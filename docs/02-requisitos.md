@@ -134,6 +134,8 @@ Como Editor quiero que el sistema me impida publicar fotos de personas sin autor
 **HU-07 · Flujo de revisión** (RF-A-25)
 Como Autor quiero enviar mi historia a revisión para que un Editor la apruebe.
 - Dado que soy Autor, entonces no veo el botón "Publicar" y el servidor rechaza la acción si la intento directamente.
+- Dado que faltan descripciones de fotos o autorizaciones de imagen, cuando envío a revisión, entonces el sistema **lo permite con avisos** (siempre que los datos básicos estén completos y las fotos hayan terminado de subir) y el Editor ve los puntos pendientes. *(Decisión del 26-sep-2026: quien toma las fotos no siempre maneja las autorizaciones.)*
+- Dado que hay puntos pendientes, cuando el Editor intenta publicar, entonces el sistema lo bloquea hasta resolverlos (HU-06).
 - Cuando el Editor publica, entonces queda registrado en auditoría quién y cuándo.
 
 **HU-08 · Programar una publicación** (RF-A-26)
