@@ -39,6 +39,8 @@ Si falta información: **preguntar**. En código de ejemplo o seeds usa marcador
 - **Vercel** (hosting) · **GitHub** + Actions · Vitest · Playwright · pgTAP
 - Next.js 16: el antiguo `middleware.ts` ahora es **`src/proxy.ts`**. Consulta la documentación versionada que `next dev` deja en `AGENTS.md`/`node_modules` antes de usar APIs de Next.
 
+@AGENTS.md
+
 ## Arquitectura (ver `docs/04-arquitectura.md`)
 
 - Monolito modular. Lógica por dominio en `src/modules/<modulo>/` con `schema.ts` (Zod), `queries.ts` (lecturas, server-only), `actions.ts` (Server Actions), `components/`.
