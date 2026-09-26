@@ -113,18 +113,24 @@ Un perfil por cada usuario de `auth.users` (que gestiona Supabase Auth: correo, 
 | `invited_by` | `uuid` FK → `profiles` | |
 | `created_at` · `updated_at` | `timestamptz` | |
 
-- Un trigger crea el perfil cuando se invita a alguien. El rol se toma de `raw_app_meta_data` (solo lo puede escribir el servidor con la clave secreta). **Nunca** de `raw_user_meta_data`, que el propio usuario puede modificar.
-- Un usuario puede cambiar su `full_name`; `role_id` e `is_active` solo con `users.manage` (lo vigila un trigger).
+- Triggers sobre `auth.users` crean y completan el perfil al invitar a alguien. El rol, el nombre y quien invitó se toman de `raw_app_meta_data` (solo lo puede escribir el servidor con la clave secreta). **Nunca** de `raw_user_meta_data`, que el propio usuario puede modificar.
+  - Supabase Auth inserta el usuario **y luego** guarda `app_metadata` en una actualización; por eso el aprovisionamiento corre en ambos eventos, y la actualización solo asigna el rol **mientras el perfil no tenga uno**. Después, los cambios de rol pasan por `profiles` y su trigger de control (hallado al probar con Supabase Auth real, 5.2).
+- Un usuario puede cambiar su `full_name` (con MFA); `role_id` e `is_active` solo con `users.manage` + MFA, y **nadie puede cambiar su propio rol ni desactivarse** (lo vigila el trigger `private.guard_profile_changes`).
+- Los perfiles no se borran: `auth.users → profiles` es `on delete restrict`.
 
 ### Funciones de apoyo (usadas por RLS y triggers)
 
+Viven en el esquema **`private`**, que la Data API **no expone**: las políticas RLS pueden usarlas, pero nadie puede invocarlas por `/rest/v1/rpc`. Así `has_permission` puede ser `security definer` (necesario para leer `profiles` sin volver a entrar a su propia política RLS) sin generar las alertas 0028/0029 del Security Advisor.
+
 ```sql
--- ¿El usuario actual tiene este permiso? (activo + rol + permiso)
-has_permission(p text) returns boolean   -- security definer, stable, search_path = ''
+-- ¿El usuario actual está activo y su rol tiene este permiso?
+private.has_permission(permission text) returns boolean  -- security definer, stable, search_path = ''
 
 -- ¿La sesión actual completó MFA?
-is_aal2() returns boolean                 -- (auth.jwt() ->> 'aal') = 'aal2'
+private.is_aal2() returns boolean                          -- (auth.jwt() ->> 'aal') = 'aal2'
 ```
+
+Solo `authenticated` tiene `usage` sobre `private` y `execute` sobre estas dos funciones.
 
 ## 4. Clasificación
 
@@ -351,7 +357,7 @@ Como respeta la RLS de quien consulta, un visitante solo ve lo publicado.
 
 ## 10. Políticas RLS
 
-Abreviaturas: **pub** = `status = 'published' and published_at <= now() and deleted_at is null` · **A2** = `is_aal2()` · **P(x)** = `has_permission('x')`.
+Abreviaturas: **pub** = `status = 'published' and published_at <= now() and deleted_at is null` · **A2** = `private.is_aal2()` · **P(x)** = `private.has_permission('x')`.
 
 | Tabla | SELECT | INSERT | UPDATE | DELETE (físico) |
 |---|---|---|---|---|

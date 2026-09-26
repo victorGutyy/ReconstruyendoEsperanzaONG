@@ -88,7 +88,7 @@ npx supabase start | stop | status   # Supabase local (requiere Docker Desktop a
 npx supabase migration new <nombre>  # nueva migración en supabase/migrations/
 npx supabase db reset                # recrea la BD local y reaplica migraciones + seed
 npx supabase test db                 # pruebas pgTAP de RLS (desde F5)
-npx supabase gen types typescript --local > src/types/database.ts   # tipos de la BD (desde F5)
+npm run db:types                     # regenera src/types/database.ts tras cada migración (commitear el resultado)
 ```
 
 - Para servir un build en segundo plano usa `node node_modules/next/dist/bin/next start -p <puerto>`; con `npx next start` el proceso de Node queda huérfano al detener la tarea.
