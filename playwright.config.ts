@@ -1,4 +1,10 @@
+import { existsSync } from "node:fs";
+
 import { defineConfig, devices } from "@playwright/test";
+
+// The auth tests create [DEMO] users with the local Supabase secret key.
+// Locally it comes from .env.local; in CI from the job environment.
+if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
 const PORT = 3100;
 const baseURL = `http://127.0.0.1:${PORT}`;
