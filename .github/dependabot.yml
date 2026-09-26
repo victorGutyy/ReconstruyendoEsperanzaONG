@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Dependency updates arrive as PRs to develop and must pass CI (docs/05 §10, docs/08 §6)
+  - package-ecosystem: npm
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Bogota
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: chore
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: monthly
+      timezone: America/Bogota
+    commit-message:
+      prefix: ci
