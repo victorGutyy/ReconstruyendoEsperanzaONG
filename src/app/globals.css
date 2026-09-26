@@ -1,21 +1,49 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* `dark:` classes in shadcn components only apply under a `.dark` ancestor,
+   never from the OS setting: the public site has no dark mode in Etapa A. */
+@custom-variant dark (&:is(.dark *));
 
 /*
- * Design tokens — docs/07-diseno-ux-ui.md §3.2
+ * Brand tokens — docs/07-diseno-ux-ui.md §3.2
  * Contrast ratios are measured against --paper (WCAG 2.2 AA).
- * The public site has no dark mode in Etapa A.
  */
 :root {
   --paper: #f7f3ea;
   --paper-2: #efe8d8;
+  --card-bg: #fffdf8;
   --ink: #1c2420; /* 14.3 */
   --ink-muted: #4f5a53; /* 6.5 */
   --green-900: #173a2f; /* 11.3 */
   --green-700: #245745; /* 7.5 — primary */
+  --green-50: #e3ede7;
   --gold-500: #b79a4b; /* 2.5 — decorative only, never text on paper */
   --gold-700: #7a6224; /* 5.3 — gold text */
   --rule: #d9d0bc;
   --danger: #a33a2a; /* 5.9 */
+
+  /* shadcn/ui semantic variables, mapped to the brand tokens */
+  --radius: 0.25rem; /* editorial, almost square corners */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--card-bg);
+  --card-foreground: var(--ink);
+  --popover: var(--card-bg);
+  --popover-foreground: var(--ink);
+  --primary: var(--green-700);
+  --primary-foreground: var(--paper);
+  --secondary: var(--paper-2);
+  --secondary-foreground: var(--green-900);
+  --muted: var(--paper-2);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--green-50);
+  --accent-foreground: var(--green-900);
+  --destructive: var(--danger);
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--green-700);
 }
 
 @theme inline {
@@ -25,23 +53,51 @@
   --color-ink-muted: var(--ink-muted);
   --color-green-900: var(--green-900);
   --color-green-700: var(--green-700);
+  --color-green-50: var(--green-50);
   --color-gold-500: var(--gold-500);
   --color-gold-700: var(--gold-700);
   --color-rule: var(--rule);
   --color-danger: var(--danger);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 3);
 
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-serif: var(--font-fraunces), Georgia, serif;
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    background-color: var(--paper);
-    color: var(--ink);
+    @apply bg-background text-foreground;
     font-family: var(--font-sans);
     font-size: 1.0625rem; /* 17px on phones, 18px from md up */
     line-height: 1.6;
