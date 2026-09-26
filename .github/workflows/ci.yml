@@ -66,12 +66,10 @@ jobs:
   e2e:
     name: E2E (Playwright + axe)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    # Public placeholders so the app (src/proxy.ts) can start. They are not
-    # secrets and point nowhere: these tests never need a real Supabase session.
+    timeout-minutes: 25
     env:
-      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-not-a-real-key
+      # Single server process in CI: the in-memory rate limiter is valid here
+      RATE_LIMIT_DRIVER: memory
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -83,6 +81,23 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # Real Supabase Auth for the sign-in + MFA tests (only what they need)
+      - name: Start Supabase
+        run: npx supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      # Local keys are the CLI's fixed development defaults; masked anyway
+      - name: Export Supabase environment
+        run: |
+          npx supabase status -o env > "$RUNNER_TEMP/supabase.env"
+          get() { grep "^$1=" "$RUNNER_TEMP/supabase.env" | cut -d= -f2- | tr -d '"'; }
+          for key in PUBLISHABLE_KEY SECRET_KEY; do echo "::add-mask::$(get $key)"; done
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$(get API_URL)"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(get PUBLISHABLE_KEY)"
+            echo "SUPABASE_SECRET_KEY=$(get SECRET_KEY)"
+          } >> "$GITHUB_ENV"
+          rm "$RUNNER_TEMP/supabase.env"
 
       - name: Cache Playwright browsers
         id: pw-cache

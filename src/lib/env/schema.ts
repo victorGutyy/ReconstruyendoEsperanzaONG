@@ -6,8 +6,14 @@ export const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
 });
 
+// Server variables are optional here and required where they are used, so a
+// missing secret only breaks the feature that needs it.
 export const serverEnvSchema = z.object({
-  SUPABASE_SECRET_KEY: z.string().min(1),
+  SUPABASE_SECRET_KEY: z.string().min(1).optional(),
+  UPSTASH_REDIS_REST_URL: z.url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
+  // Only for local development and CI (single process). Never set it on Vercel.
+  RATE_LIMIT_DRIVER: z.enum(["memory"]).optional(),
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;
