@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { getPublicEnv } from "@/lib/env/public";
+import type { Database } from "@/types/database";
 
 // Server Components and Server Actions. Create one per request, never share it.
 // To know who the user is, call supabase.auth.getClaims() — never trust getSession() alone.
@@ -11,7 +12,7 @@ export async function createClient() {
   const env = getPublicEnv();
   const cookieStore = await cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
