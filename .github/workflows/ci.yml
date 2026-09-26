@@ -67,6 +67,11 @@ jobs:
     name: E2E (Playwright + axe)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Public placeholders so the app (src/proxy.ts) can start. They are not
+    # secrets and point nowhere: these tests never need a real Supabase session.
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-not-a-real-key
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
