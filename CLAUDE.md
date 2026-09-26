@@ -74,16 +74,25 @@ Si falta información: **preguntar**. En código de ejemplo o seeds usa marcador
 - Fechas en zona `America/Bogota`, formato colombiano.
 - Accesibilidad WCAG 2.2 AA; mobile-first; Lighthouse ≥ 90.
 
-## Comandos (se completarán en la Fase 4)
+## Comandos
 
 ```bash
-npm run dev            # Next.js local
-npx supabase start     # Supabase local (requiere Docker Desktop)
-npx supabase db reset  # Reaplica migraciones + seed
-npx supabase test db   # Pruebas pgTAP (RLS)
-npm run lint && npm run typecheck && npm test
-npx supabase gen types typescript --local > src/types/database.ts
+npm run dev                    # Next.js local (http://localhost:3000)
+npm run check                  # formato + lint + tipos + unitarias — correr antes de cada commit (igual que el CI)
+npm run format                 # aplicar Prettier
+npm test                       # Vitest (src/**/*.test.ts[x])
+npm run test:e2e               # Playwright + axe sobre el build de producción (puerto 3100)
+npm run typecheck              # next typegen && tsc --noEmit
+
+npx supabase start | stop | status   # Supabase local (requiere Docker Desktop abierto)
+npx supabase migration new <nombre>  # nueva migración en supabase/migrations/
+npx supabase db reset                # recrea la BD local y reaplica migraciones + seed
+npx supabase test db                 # pruebas pgTAP de RLS (desde F5)
+npx supabase gen types typescript --local > src/types/database.ts   # tipos de la BD (desde F5)
 ```
+
+- Para servir un build en segundo plano usa `node node_modules/next/dist/bin/next start -p <puerto>`; con `npx next start` el proceso de Node queda huérfano al detener la tarea.
+- Nunca imprimir el contenido de `.env.local` ni la salida de `npx supabase status` (por defecto es JSON e incluye secretos): usar `npx supabase status -o env`, filtrar solo las variables necesarias y escribirlas al archivo sin mostrarlas.
 
 ## Herramientas de Claude Code en este proyecto
 
