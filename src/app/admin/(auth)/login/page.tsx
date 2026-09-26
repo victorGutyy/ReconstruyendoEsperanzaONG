@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import { safeNextPath } from "@/lib/auth/rules";
+import { RECOVERY_PATH, safeNextPath } from "@/lib/auth/rules";
 import { LoginForm } from "@/modules/auth/components/login-form";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -16,6 +17,14 @@ export default async function LoginPage({ searchParams }: PageProps<"/admin/logi
         Solo para el equipo de la organización. Las cuentas se crean por invitación.
       </p>
       <LoginForm next={safeNext} />
+      <p className="mt-6 text-center text-sm">
+        <Link
+          href={RECOVERY_PATH}
+          className="font-medium text-green-700 underline underline-offset-4"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </p>
     </>
   );
 }

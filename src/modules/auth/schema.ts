@@ -18,9 +18,33 @@ export const mfaCodeSchema = z.object({
     .regex(/^\d{6}$/, "El código tiene 6 números."),
 });
 
+const emailField = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email({ message: "Escribe un correo válido." }).max(254));
+
+export const recoverySchema = z.object({ email: emailField });
+
+/** Password policy (docs/05 §4): at least 12 characters; long passphrases welcome. */
+export const newPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(12, "Usa al menos 12 caracteres.")
+      .max(128, "Usa como máximo 128 caracteres."),
+    confirm: z.string(),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "Las dos contraseñas no coinciden.",
+    path: ["confirm"],
+  });
+
 /** State returned by the auth Server Actions to their forms (useActionState). */
 export type FormState = {
   error?: string;
+  /** Neutral confirmation (e.g. "if the account exists, we sent a link"). */
+  notice?: string;
   /** Typed e-mail, returned so the form keeps it after React resets the fields. */
   email?: string;
 };

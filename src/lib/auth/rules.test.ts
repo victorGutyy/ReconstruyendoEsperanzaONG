@@ -147,3 +147,26 @@ describe("hasPermission", () => {
     expect(PERMISSIONS).toHaveLength(17);
   });
 });
+
+describe("decideAdminRoute — password recovery", () => {
+  it("always lets the e-mail link handler through", () => {
+    for (const session of [null, { aal: "aal1" as const }, { aal: "aal2" as const }]) {
+      expect(decideAdminRoute({ pathname: "/admin/auth/confirm", session })).toEqual({
+        type: "next",
+      });
+    }
+  });
+
+  it("requires a session to set a new password", () => {
+    expect(decideAdminRoute({ pathname: "/admin/restablecer", session: null })).toEqual({
+      type: "redirect",
+      to: "/admin/login?next=%2Fadmin%2Frestablecer",
+    });
+  });
+
+  it("lets the recovery session (aal1) set a new password before MFA", () => {
+    expect(decideAdminRoute({ pathname: "/admin/restablecer", session: { aal: "aal1" } })).toEqual({
+      type: "next",
+    });
+  });
+});

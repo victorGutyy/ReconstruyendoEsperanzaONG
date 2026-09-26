@@ -41,3 +41,13 @@ export async function deactivate(userId: string) {
     .eq("id", userId);
   if (error) throw error;
 }
+
+/**
+ * Each test signs in "from" its own IP, like different people. Otherwise the
+ * whole suite (one machine) would hit the per-IP login limit (docs/05 §7).
+ * On Vercel this header is set by the platform, not by the visitor.
+ */
+export function randomClientIp(): string {
+  const octet = () => Math.floor(Math.random() * 254) + 1;
+  return `10.${octet()}.${octet()}.${octet()}`;
+}

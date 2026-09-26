@@ -10,3 +10,6 @@ coverage/
 # Documentation keeps its hand-written tables and diagrams
 docs/
 *.md
+
+# E-mail templates keep their hand-written HTML (e-mail clients are picky)
+supabase/templates/
