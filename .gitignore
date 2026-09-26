@@ -2,6 +2,10 @@
 .env*
 !.env.example
 
+# Client source documents and brand material (kept outside the public repo)
+docs/fuentes/
+docs/marca/
+
 # Dependencies
 node_modules/
 
