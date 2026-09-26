@@ -135,7 +135,8 @@ Una funcionalidad está **terminada** solo si:
 **Infraestructura**
 - [ ] Decisión de hosting cerrada (`03` §5) y documentada
 - [ ] Dominio a nombre de la organización; DNS en Cloudflare; HTTPS activo
-- [ ] Proyecto Supabase de producción separado de staging; migraciones aplicadas con aprobación
+- [ ] Proyecto Supabase de producción separado de staging, en la organización de la iniciativa; migraciones aplicadas con aprobación
+- [ ] La organización de Supabase tiene ≥ 2 *Owners* de la iniciativa, todos con MFA
 - [ ] Variables de entorno de producción cargadas (nunca copiadas de staging)
 - [ ] Correo: dominio verificado en Resend (SPF, DKIM, DMARC); correos de invitación y recuperación probados
 - [ ] Monitor de disponibilidad con alerta

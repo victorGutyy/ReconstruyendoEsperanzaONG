@@ -87,7 +87,8 @@ npx supabase gen types typescript --local > src/types/database.ts
 
 ## Herramientas de Claude Code en este proyecto
 
-- **MCP de Supabase**: úsalo para consultar esquema, logs y `get_advisors` (seguridad/rendimiento). Conéctalo al proyecto de **staging**; con producción, solo lectura.
+- **MCP de Supabase**: úsalo para consultar esquema, logs y `get_advisors` (seguridad/rendimiento). Conéctalo al proyecto de **staging** (`reconstruyendo-esperanza-staging`, id `brsvzmklqdwbbswwpsbs`); con producción, solo lectura. Victor es *Developer* en esa organización: crear proyectos o cambiar Auth lo hace el Owner desde el panel (`docs/03` §6).
+- **Migraciones**: toda migración activa RLS y declara sus `grant` explícitos (staging no expone tablas nuevas automáticamente, `docs/04` §8.1). Si se aplica en staging con el MCP, renombrar el archivo local a la versión que registra staging.
 - **MCP de Vercel**: despliegues, logs de runtime, variables de entorno (nunca descifrar valores sin que Victor lo pida).
 - **GitHub CLI (`gh`)** para PRs e issues.
 
