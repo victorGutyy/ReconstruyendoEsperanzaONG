@@ -1,0 +1,12 @@
+# Generated or third-party
+.next/
+node_modules/
+package-lock.json
+next-env.d.ts
+playwright-report/
+test-results/
+coverage/
+
+# Documentation keeps its hand-written tables and diagrams
+docs/
+*.md
