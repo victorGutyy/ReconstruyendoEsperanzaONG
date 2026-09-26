@@ -22,4 +22,6 @@ export const RATE_LIMITS = {
   loginPerIp: { name: "login-ip", limit: 30, windowSeconds: 15 * 60 },
   mfaPerUser: { name: "mfa-user", limit: 5, windowSeconds: 15 * 60 },
   passwordRecovery: { name: "password-recovery", limit: 3, windowSeconds: 60 * 60 },
+  userInvites: { name: "user-invites", limit: 20, windowSeconds: 60 * 60 },
+  panelActions: { name: "panel-actions", limit: 120, windowSeconds: 60 },
 } as const satisfies Record<string, RateLimitRule>;

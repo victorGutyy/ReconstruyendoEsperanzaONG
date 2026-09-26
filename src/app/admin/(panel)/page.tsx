@@ -1,8 +1,11 @@
+import { Users } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
 import { isAuthError } from "@/lib/auth/errors";
-import { LOGIN_PATH, MFA_PATH } from "@/lib/auth/rules";
+import { hasPermission, LOGIN_PATH, MFA_PATH } from "@/lib/auth/rules";
 import { getCurrentProfile, requireAal2 } from "@/lib/auth/session";
 import { SignOutButton } from "@/modules/auth/components/sign-out-button";
 
@@ -29,7 +32,15 @@ export default async function AdminHomePage() {
         Entraste con verificación en dos pasos. El panel completo se construye en los próximos
         pasos.
       </p>
-      <div className="mt-8">
+      <div className="mt-8 flex flex-wrap gap-3">
+        {profile && hasPermission(profile, "users.manage") ? (
+          <Button asChild>
+            <Link href="/admin/usuarios">
+              <Users aria-hidden="true" />
+              Usuarios
+            </Link>
+          </Button>
+        ) : null}
         <SignOutButton />
       </div>
     </main>

@@ -294,9 +294,20 @@ Un *Developer* no puede cambiar Auth (`03` §6). La configuración local vive en
 | **URL Configuration → Site URL** | `https://reconstruyendo-esperanza-git-develop-victorgutyys-projects.vercel.app` | Base de los enlaces de los correos |
 | **URL Configuration → Redirect URLs** | `https://reconstruyendo-esperanza-*-victorgutyys-projects.vercel.app/**` | Solo los despliegues del proyecto pueden recibir enlaces de Auth |
 | **Emails → Reset password** | Asunto y HTML de `supabase/templates/recovery.html` | Enlace con `token_hash` (funciona aunque se abra en otro dispositivo) |
+| **Emails → Invite user** | Asunto y HTML de `supabase/templates/invite.html` | Misma técnica, `type=invite` (paso 5.6) |
 | **Sign In / Providers → Email** | Proveedor **activado** | Es el método de login; el registro público se cierra con *Allow new users to sign up* (global). Desactivar el proveedor apagaría el login (hallado en 5.5a) |
 
-Vercel (*Preview*): `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (tipo *Secret*). Sin ellas el login responde "Demasiados intentos" (*fail closed*, `05` §7). **Nunca** `RATE_LIMIT_DRIVER` en Vercel. El origen de los enlaces se toma de `VERCEL_BRANCH_URL` (nunca del encabezado `Host`).
+Vercel (*Preview*): `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (tipo *Secret*). Sin ellas el login responde "Demasiados intentos" (*fail closed*, `05` §7). **Nunca** `RATE_LIMIT_DRIVER` en Vercel. El origen de los enlaces se toma de `VERCEL_BRANCH_URL` (nunca del encabezado `Host`). `SUPABASE_SECRET_KEY` (tipo *Secret*): solo la usa invitar y activar/desactivar usuarios, siempre después de verificar `users.manage` + MFA.
+
+#### Primer Administrador de staging (una sola vez)
+
+Nadie puede invitar al primero porque aún no hay Administradores:
+
+1. El **Owner** invita desde el panel de Supabase (*Authentication → Users → Invite user*). El correo gratuito de Supabase solo entrega a miembros de la organización.
+2. Con aprobación de Victor, se asigna el rol por SQL con el MCP (queda en auditoría como acción del sistema): `update public.profiles set role_id = (select id from public.roles where key = 'admin') where email = '<correo>';`
+3. La persona abre el correo, crea su contraseña, registra su app autenticadora y, desde **Usuarios**, invita al resto. Meta: **≥ 2 Administradores** (`05` §4).
+
+En local no hace falta: `npm run db:local-admin` crea un Administrador `[DEMO]` y se niega a correr si Supabase no es el de este equipo.
 
 ### Variables de entorno (solo nombres; valores en `.env.local`, jamás en Git)
 

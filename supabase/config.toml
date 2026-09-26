@@ -253,10 +253,10 @@ otp_expiry = 3600
 subject = "Restablece tu contraseña · Reconstruyendo Esperanza"
 content_path = "./supabase/templates/recovery.html"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Invitations (step 5.6): same token_hash link, type=invite.
+[auth.email.template.invite]
+subject = "Te invitaron al panel de Reconstruyendo Esperanza"
+content_path = "./supabase/templates/invite.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
