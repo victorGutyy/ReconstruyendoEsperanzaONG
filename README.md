@@ -15,6 +15,7 @@ Plataforma web de **Reconstruyendo Esperanza**, iniciativa social sin ánimo de 
 | [`docs/04-arquitectura.md`](docs/04-arquitectura.md) | Diagramas, carpetas, flujos y ambientes |
 | [`docs/05-seguridad.md`](docs/05-seguridad.md) | Amenazas, controles, OWASP, incidentes y checklist |
 | [`docs/06-modelo-datos.md`](docs/06-modelo-datos.md) | Tablas, relaciones, índices, RLS y migraciones |
+| [`docs/07-diseno-ux-ui.md`](docs/07-diseno-ux-ui.md) | Identidad visual, mapa del sitio, wireframes, accesibilidad y SEO |
 
 > **Repositorio público.** Los documentos originales del cliente y el material de marca **no** se versionan: se guardan en una carpeta privada fuera del repositorio (`reconstruyendo-esperanza-privado/`). Las rutas `docs/fuentes/` y `docs/marca/` están en `.gitignore`.
 
