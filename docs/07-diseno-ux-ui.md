@@ -225,7 +225,7 @@ flowchart TB
  Paso 4/4 · Revisar y publicar
 ┌──────────────────────┐
 │ ✅ Datos completos     │
-│ ⚠️ Foto 4 sin autoriz.│ ← bloquea "Publicar", explica cómo resolver
+│ ⚠️ Foto 4 sin autoriz.│ ← bloquea "Publicar" (no "Enviar a revisión"), explica cómo resolver
 │ [Guardar borrador]   │
 │ [Enviar a revisión]  │ (Autor)
 │ [Publicar ahora ▾]   │ (Editor/Admin: ahora · programar)
@@ -235,6 +235,18 @@ flowchart TB
 - Guardado automático del borrador (no se pierde el trabajo si se cae la señal).
 - Subida en segundo plano con progreso por foto y reintento.
 - Botones grandes (≥ 44 × 44 px), campos con el teclado correcto (fecha, teléfono).
+
+**Decisiones validadas en el prototipo (26-sep-2026):**
+
+| Tema | Decisión |
+|---|---|
+| Paso 3 (personas) | Por foto: *No* · *Sí, adultos* · *Sí, con menores*. Vincular autorizaciones en una hoja inferior; se puede registrar una nueva allí mismo (nombre, menor/acudiente, foto del formato). Guardar exige confirmar que **todas** las personas reconocibles están cubiertas |
+| Paso 4 (revisar) | Lista verde/roja/amarilla con botón *Resolver* que lleva al paso exacto. Nunca botones deshabilitados: al intentar publicar se explica qué falta |
+| Autor | Puede **enviar a revisión con avisos** (descripciones o autorizaciones pendientes). Solo lo bloquean los datos básicos incompletos y las fotos que no terminaron de subir |
+| Editor/Admin | *Publicar ahora* o *Programar* (fecha y hora de Colombia); bloqueado mientras haya puntos en rojo |
+| Detalle de actividad en celular | La columna lateral (ficha, compartir, relacionadas) va después del contenido; fecha y lugar ya aparecen bajo el título y WhatsApp está siempre disponible en el botón flotante |
+| Video | Carga diferida: imagen con botón de reproducir; el reproductor del proveedor se carga solo al pulsarlo (rendimiento y privacidad) |
+| Prueba de uso | El prototipo mide el tiempo total del flujo; se valida la meta de < 10 min (RNF-A-03) con personas reales de la organización |
 
 ### 6.6 Panel — estructura general
 
