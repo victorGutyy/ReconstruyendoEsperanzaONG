@@ -3,6 +3,42 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string;
+          actor_id: string | null;
+          changed_fields: string[];
+          id: number;
+          new_data: Json | null;
+          occurred_at: string;
+          old_data: Json | null;
+          record_id: string;
+          table_name: string;
+        };
+        Insert: {
+          action: string;
+          actor_id?: string | null;
+          changed_fields?: string[];
+          id?: never;
+          new_data?: Json | null;
+          occurred_at?: string;
+          old_data?: Json | null;
+          record_id: string;
+          table_name: string;
+        };
+        Update: {
+          action?: string;
+          actor_id?: string | null;
+          changed_fields?: string[];
+          id?: never;
+          new_data?: Json | null;
+          occurred_at?: string;
+          old_data?: Json | null;
+          record_id?: string;
+          table_name?: string;
+        };
+        Relationships: [];
+      };
       permissions: {
         Row: {
           description: string;
