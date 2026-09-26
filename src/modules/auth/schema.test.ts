@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { loginSchema, mfaCodeSchema } from "./schema";
+import { loginSchema, mfaCodeSchema, newPasswordSchema, recoverySchema } from "./schema";
 
 describe("loginSchema", () => {
   it("normalises the e-mail", () => {
@@ -33,5 +33,32 @@ describe("mfaCodeSchema", () => {
 
   it("rejects a factor id that is not a UUID", () => {
     expect(mfaCodeSchema.safeParse({ factorId: "x", code: "123456" }).success).toBe(false);
+  });
+});
+
+describe("newPasswordSchema", () => {
+  it("accepts a long passphrase that is confirmed", () => {
+    const password = "tortuga lampara nube 47";
+    expect(newPasswordSchema.safeParse({ password, confirm: password }).success).toBe(true);
+  });
+
+  it("requires at least 12 characters", () => {
+    const result = newPasswordSchema.safeParse({ password: "corta123", confirm: "corta123" });
+    expect(result.success).toBe(false);
+  });
+
+  it("requires both fields to match", () => {
+    const result = newPasswordSchema.safeParse({
+      password: "una-frase-bien-larga",
+      confirm: "otra-frase-bien-larga",
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe("Las dos contraseñas no coinciden.");
+  });
+});
+
+describe("recoverySchema", () => {
+  it("normalises the e-mail", () => {
+    expect(recoverySchema.parse({ email: " Admin@Example.TEST" }).email).toBe("admin@example.test");
   });
 });

@@ -4,6 +4,10 @@ export const ADMIN_HOME = "/admin";
 export const LOGIN_PATH = "/admin/login";
 export const MFA_PATH = "/admin/mfa";
 export const RECOVERY_PATH = "/admin/recuperar";
+/** Where the recovery e-mail link lands: it creates the session from the token. */
+export const AUTH_CONFIRM_PATH = "/admin/auth/confirm";
+/** New password form: needs the session created by the recovery link (any aal). */
+export const RESET_PASSWORD_PATH = "/admin/restablecer";
 
 /** Panel pages that do not require a session. */
 const PUBLIC_AUTH_PATHS = new Set([LOGIN_PATH, RECOVERY_PATH]);
@@ -86,14 +90,18 @@ export function decideAdminRoute(input: {
   const pathname = normalizePath(input.pathname);
   const requested = safeNextPath(`${pathname}${input.search ?? ""}`);
 
+  // The e-mail link must always reach the handler: it is what creates the session
+  if (pathname === AUTH_CONFIRM_PATH) return { type: "next" };
+
   if (!input.session) {
     if (PUBLIC_AUTH_PATHS.has(pathname)) return { type: "next" };
     return { type: "redirect", to: withNext(LOGIN_PATH, requested) };
   }
 
   if (input.session.aal === "aal1") {
-    // Password only: MFA (enrollment or challenge) is mandatory before anything else
-    if (pathname === MFA_PATH) return { type: "next" };
+    // Password only: MFA (enrollment or challenge) is mandatory before anything else,
+    // except setting a new password right after the recovery link
+    if (pathname === MFA_PATH || pathname === RESET_PASSWORD_PATH) return { type: "next" };
     return { type: "redirect", to: withNext(MFA_PATH, requested) };
   }
 

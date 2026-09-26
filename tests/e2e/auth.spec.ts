@@ -2,10 +2,20 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { generateSync } from "otplib";
 
-import { createTestUser, deactivate, hasSupabase, type TestUser } from "./helpers/users";
+import {
+  createTestUser,
+  deactivate,
+  hasSupabase,
+  type TestUser,
+  randomClientIp,
+} from "./helpers/users";
 
 // Sign-in with mandatory MFA against a real Supabase Auth (HU-04, docs/05 §4)
 test.skip(!hasSupabase, "needs a local Supabase with the secret key");
+
+test.beforeEach(async ({ page }) => {
+  await page.setExtraHTTPHeaders({ "x-forwarded-for": randomClientIp() });
+});
 
 async function signIn(page: Page, user: Pick<TestUser, "email" | "password">) {
   await page.getByLabel("Correo").fill(user.email);
@@ -15,6 +25,8 @@ async function signIn(page: Page, user: Pick<TestUser, "email" | "password">) {
     page.waitForResponse((response) => response.request().method() === "POST"),
     page.getByRole("button", { name: "Entrar" }).click(),
   ]);
+  // React re-enables the button in the same update that resets the fields
+  await expect(page.locator('button[type="submit"]').first()).toBeEnabled();
 }
 
 /** The form's own error message (Next.js also renders an empty role="alert" route announcer). */
