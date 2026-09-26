@@ -69,12 +69,12 @@ En orden de importancia para este proyecto:
 
 | Servicio | Límite relevante | ¿Nos alcanza en la Etapa A? | Página oficial |
 |---|---|---|---|
-| Supabase Free | 500 MB de BD · 1 GB Storage · 5 GB de transferencia/mes · 2 proyectos · **se pausa tras 7 días sin actividad** · sin backups descargables | Sí: el contenido es texto; las imágenes públicas van a R2. La pausa y los backups se resuelven en §6 | supabase.com/pricing |
+| Supabase Free | 500 MB de BD · 1 GB Storage · 5 GB de transferencia/mes · **2 proyectos activos por persona** (ver §6) · **se pausa tras 7 días sin actividad** · sin backups descargables · MFA TOTP **gratis** (verificado 26-sep-2026; el MFA por SMS es pago) | Sí: el contenido es texto; las imágenes públicas van a R2. La pausa y los backups se resuelven en §6 | supabase.com/pricing |
 | Cloudflare R2 | 10 GB almacenados · **transferencia de salida gratis** · 1 M escrituras y 10 M lecturas/mes | Sí: ~10.000 fotos optimizadas (~300 KB c/u × 3 tamaños) | developers.cloudflare.com/r2/pricing |
 | Vercel Hobby | ~100 GB de transferencia/mes, funciones con límites de uso · **solo uso personal no comercial** | Técnicamente sí; **el problema es el uso permitido** (ver §5) | vercel.com/pricing |
 | Upstash Redis Free | ~500 mil comandos/mes | Sí, sobrado | upstash.com/pricing |
 | Resend Free | 3.000 correos/mes · 100/día · 1 dominio | Sí | resend.com/pricing |
-| GitHub Actions | Ilimitado en repos públicos · 2.000 min/mes en privados | Sí (repo privado) | github.com/pricing |
+| GitHub Actions | Ilimitado en repos públicos · 2.000 min/mes en privados | Sí (el repositorio es público) | github.com/pricing |
 | Turnstile | Gratis | Sí | — |
 
 ## 5. Decisión pendiente: hosting (Vercel Hobby vs. alternativas)
@@ -98,7 +98,9 @@ En orden de importancia para este proyecto:
 |---|---|
 | Pausa tras 7 días sin actividad | Un GitHub Action diario (el mismo del backup) consulta la BD → el proyecto nunca queda inactivo. Además, un monitor de disponibilidad gratuito (UptimeRobot o similar) |
 | Sin backups descargables en Free | GitHub Action nocturno: `pg_dump` → archivo **cifrado** → bucket privado de R2, con retención de 30 días. Restauración probada en staging antes de lanzar (RNF-A-08) |
-| Solo 2 proyectos gratuitos | Proyecto 1 = **staging**, proyecto 2 = **producción**. Desarrollo local con `supabase start` (Docker) |
+| Solo 2 proyectos activos gratis **por persona** (cuenta el total de organizaciones donde es *Owner* o *Admin*; los pausados no cuentan) | **Organización de Supabase propia de la iniciativa** ("Reconstruyendo Esperanza"), creada con la cuenta de la iniciativa como *Owner*. Victor participa como **Developer**, rol que no consume cupo. Proyecto 1 = **staging**, proyecto 2 = **producción**, ambos en el cupo de la iniciativa. Desarrollo local con `supabase start` (Docker) |
+
+**Consecuencia del rol Developer:** no puede crear ni borrar proyectos ni cambiar la configuración de Auth, SMTP o API. Esas tareas las hace el *Owner* desde el panel de Supabase; lo demás (SQL, migraciones, claves, asesores) se hace con la cuenta Developer. Para la Etapa A se recomienda un segundo *Owner* de la iniciativa (`08` §5).
 
 ## 7. Costos proyectados
 

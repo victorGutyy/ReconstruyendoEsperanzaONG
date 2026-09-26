@@ -269,11 +269,21 @@ Cambiar de proveedor = escribir otra implementación de la interfaz, sin tocar l
 | Ambiente | App | Base de datos | Datos | Quién accede |
 |---|---|---|---|---|
 | **Local** | `npm run dev` | `supabase start` (Docker) | `seed.sql` con marcadores `[DEMO]` | Victor |
-| **Staging** | Vercel Preview (cada PR) + rama `develop` | Proyecto Supabase #1 | `[DEMO]` + pruebas | Victor, revisores |
-| **Producción** | Vercel/Cloudflare (rama `main`) | Proyecto Supabase #2 | Reales | Público + equipo |
+| **Staging** | Vercel Preview (cada PR) + rama `develop` | Proyecto Supabase `reconstruyendo-esperanza-staging` (`us-east-1`) | `[DEMO]` + pruebas | Victor, revisores |
+| **Producción** | Vercel/Cloudflare (rama `main`) | Proyecto Supabase de producción (se crea en F10) | Reales | Público + equipo |
 
 - Las migraciones se prueban en local → se aplican en staging → **con aprobación de Victor** se aplican en producción.
 - Staging **nunca** tiene datos reales ni copias de producción.
+
+### 8.1 Configuración de staging (creado el 26-sep-2026)
+
+| Servicio | Configuración |
+|---|---|
+| **Supabase** | Organización *Reconstruyendo Esperanza* (cuenta de la iniciativa como Owner, con MFA; Victor como Developer) · proyecto `reconstruyendo-esperanza-staging` en `us-east-1` · registro público **desactivado** · contraseña mínima 12 · MFA TOTP habilitado |
+| Supabase · API | **Data API activada**; **"Automatically expose new tables" desactivado** → ninguna tabla se ve por la API hasta que una migración le dé permisos explícitos (`grant`); **RLS automático activado** en tablas nuevas del esquema `public` |
+| **Vercel** | Proyecto `reconstruyendo-esperanza` (cuenta Hobby de Victor) conectado a GitHub · **Vercel Authentication (Standard Protection)**: toda URL exige iniciar sesión · rama de producción `main` · variables `NEXT_PUBLIC_SUPABASE_*` solo en *Preview*, tipo *Config* (públicas por diseño) · la clave secreta se cargará como *Secret* cuando el código la necesite (F5), nunca con prefijo `NEXT_PUBLIC_` |
+
+> **Paridad local ↔ staging:** el Supabase local sí expone las tablas nuevas por defecto y no tiene RLS automático. Por eso cada migración **activa RLS y declara sus `grant` explícitamente**, para comportarse igual en ambos ambientes.
 
 ### Variables de entorno (solo nombres; valores en `.env.local`, jamás en Git)
 
