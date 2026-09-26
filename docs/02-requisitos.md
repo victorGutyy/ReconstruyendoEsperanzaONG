@@ -1,7 +1,7 @@
 # 02 · Requisitos de la Etapa A (Portal público + CMS)
 
 > Versión 0.1 (borrador para aprobación) · 26-sep-2026
-> Fuentes: `01-vision-y-alcance.md` · `CLAUDE.md` · `fuentes/Requerimientos_Plataforma_Calarca_v1.0.docx`
+> Fuentes: `01-vision-y-alcance.md` · `CLAUDE.md` · `Requerimientos_Plataforma_Calarca_v1.0.docx` (copia privada, fuera del repositorio)
 
 Este documento dice **qué** debe hacer la plataforma en la Etapa A, no **cómo** (eso va en `04-arquitectura.md` y `06-modelo-datos.md`).
 

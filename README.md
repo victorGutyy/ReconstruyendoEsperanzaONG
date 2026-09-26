@@ -10,8 +10,12 @@ Plataforma web de **Reconstruyendo Esperanza**, iniciativa social sin ánimo de 
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | Reglas de trabajo, stack, arquitectura y seguridad (resumen) |
 | [`docs/01-vision-y-alcance.md`](docs/01-vision-y-alcance.md) | Problema, alcance del MVP, riesgos, preguntas pendientes |
-| `docs/fuentes/` | Documentos originales entregados por el cliente |
-| `docs/marca/` | Logo y material de identidad visual |
+| [`docs/02-requisitos.md`](docs/02-requisitos.md) | Requisitos funcionales, no funcionales e historias de usuario |
+| [`docs/03-stack-tecnologico.md`](docs/03-stack-tecnologico.md) | Stack, alternativas, límites gratuitos y costos |
+| [`docs/04-arquitectura.md`](docs/04-arquitectura.md) | Diagramas, carpetas, flujos y ambientes |
+| [`docs/05-seguridad.md`](docs/05-seguridad.md) | Amenazas, controles, OWASP, incidentes y checklist |
+
+> **Repositorio público.** Los documentos originales del cliente y el material de marca **no** se versionan: se guardan en una carpeta privada fuera del repositorio (`reconstruyendo-esperanza-privado/`). Las rutas `docs/fuentes/` y `docs/marca/` están en `.gitignore`.
 
 ## Cómo empezar
 
