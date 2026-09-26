@@ -31,13 +31,23 @@
 
 ### 3.1 Logo
 
-- ⚠️ **Pendiente:** versión del logo **sin la fotografía** (título + hojas + "Calarcá"), idealmente en **SVG** o PNG transparente, más una versión reducida (solo hojas o monograma) para favicon e ícono.
-- Mientras llega: el nombre se escribe como texto en Fraunces (no se recorta ni se redibuja el logo).
+- ✅ **Recibido (26-sep-2026):** logo sin fotografía — óvalo verde, "Reconstruyendo Esperanza" en letra manuscrita, hojas verdes y doradas, y "Calarcá" en una cápsula verde. Formato horizontal (~3:1).
+- ⚠️ **Pendiente:** el archivo recibido es **JPG con fondo de papel texturizado**. Para el sitio se necesita **SVG** (ideal) o **PNG con fondo transparente**. El prototipo usa un recorte aproximado.
+- **Uso por tamaño de pantalla:**
+
+| Contexto | Versión |
+|---|---|
+| Escritorio y tablet (cabecera) | Logo completo, alto ~110–120 px |
+| Celular (cabecera) | **Hojas** + "Reconstruyendo Esperanza" en Fraunces + "CALARCÁ" en versalitas: el logo completo a ~180 px de ancho vuelve ilegible la letra manuscrita |
+| Favicon, ícono de app, avatar | Solo las **hojas** |
+| Pie de página (fondo verde oscuro) | Hojas + nombre en texto claro (el logo completo no tiene versión para fondo oscuro) |
+
+- No se deforma, recolorea ni redibuja el logo; la letra manuscrita se usa **solo** dentro del logo.
 - La foto de Angélica María Díaz se usa **solo** en "Quiénes somos" con su biografía autorizada, no en la cabecera.
 
 ### 3.2 Paleta de colores (tokens)
 
-Derivada del logo. Contraste calculado sobre el fondo `paper` (WCAG AA exige ≥ 4,5 para texto normal y ≥ 3 para texto grande e íconos).
+Derivada del logo (los verdes se ajustaron el 26-sep-2026 midiendo el color del logo recibido: `#1F4A3D`, más azulado que la primera propuesta). Contraste calculado sobre el fondo `paper` (WCAG AA exige ≥ 4,5 para texto normal y ≥ 3 para texto grande e íconos).
 
 | Token | Hex | Uso | Contraste sobre `paper` |
 |---|---|---|---|
@@ -45,8 +55,8 @@ Derivada del logo. Contraste calculado sobre el fondo `paper` (WCAG AA exige ≥
 | `paper-2` | `#EFE8D8` | Bandas, tarjetas destacadas | — |
 | `ink` | `#1C2420` | Texto principal | **14,3** ✅ |
 | `ink-muted` | `#4F5A53` | Fechas, metadatos, pies de foto | **6,5** ✅ |
-| `green-900` | `#173B26` | Pie de página, cabecera invertida | **11,2** ✅ |
-| `green-700` | `#245C3A` | **Color principal**: enlaces, botones | **7,1** ✅ (texto crema sobre verde: 7,1 ✅) |
+| `green-900` | `#173A2F` | Pie de página, cabecera invertida | **11,3** ✅ |
+| `green-700` | `#245745` | **Color principal**: enlaces, botones | **7,5** ✅ (texto crema sobre verde: 7,5 ✅) |
 | `gold-500` | `#B79A4B` | **Solo decorativo**: filetes, hojas, subrayados | 2,5 ❌ para texto → nunca como texto sobre crema |
 | `gold-700` | `#7A6224` | Etiquetas/"kicker" en dorado cuando sea texto | **5,3** ✅ |
 | `rule` | `#D9D0BC` | Líneas divisorias y bordes | Decorativo |
@@ -87,7 +97,7 @@ Texto de lectura con ancho máximo ~68 caracteres. Fuentes servidas con `next/fo
 - Español de Colombia, cercano y respetuoso; frases cortas; verbos concretos ("entregamos", "acompañamos", "escuchamos").
 - **Hechos verificables** en lugar de adjetivos: fecha, lugar, qué se hizo. Nada de cifras sin fuente.
 - Sin lenguaje electoral ni comparaciones con otras personas o grupos.
-- ⚠️ **Pendiente:** ¿"tú" o "usted" para dirigirse al visitante? (Ej.: "Escríbenos" vs. "Escríbanos").
+- ✅ **Decidido (26-sep-2026): se tutea al visitante** ("Escríbenos", "¿Quieres sumarte?", "Conoce cómo apoyar"). Cercano sin perder el respeto. En el panel también se usa "tú".
 
 ## 5. Mapa del sitio
 
@@ -287,8 +297,8 @@ Base: **shadcn/ui** personalizado con los tokens de §3.
 
 ## 11. Pendientes del cliente para esta fase
 
-1. Logo sin foto (SVG/PNG transparente) y versión reducida para ícono.
-2. ¿"Tú" o "usted"?
+1. ~~Logo sin foto~~ ✅ recibido en JPG → falta **SVG o PNG transparente**.
+2. ~~¿"Tú" o "usted"?~~ ✅ tú.
 3. Fotos reales **con autorización** para la portada y secciones (mientras tanto: marcadores `[DEMO]` sin personas).
 4. Biografía y foto oficial de Angélica María Díaz para "Quiénes somos".
 5. Redes sociales oficiales y número de WhatsApp.
