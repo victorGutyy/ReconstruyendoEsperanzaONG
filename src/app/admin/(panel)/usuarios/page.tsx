@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { authorizePage } from "@/lib/auth/guard";
-import { ADMIN_HOME } from "@/lib/auth/rules";
+import { NoPermission } from "@/modules/panel/components/no-permission";
 import { InviteForm } from "@/modules/users/components/invite-form";
 import { MemberActions } from "@/modules/users/components/member-actions";
 import { listTeam } from "@/modules/users/queries";
@@ -21,15 +20,7 @@ export default async function UsersPage() {
 
   if (!authorized) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-12">
-        <h1 className="font-serif text-3xl font-semibold text-green-900">No tienes permiso</h1>
-        <p className="mt-4 text-ink-muted">
-          Solo las personas con rol de Administrador pueden gestionar el equipo.
-        </p>
-        <Link href={ADMIN_HOME} className="mt-6 inline-block font-medium text-green-700 underline">
-          Volver al inicio del panel
-        </Link>
-      </main>
+      <NoPermission reason="Solo las personas con rol de Administrador pueden gestionar el equipo." />
     );
   }
 
@@ -37,7 +28,7 @@ export default async function UsersPage() {
   const me = authorized.user.id;
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
+    <div className="mx-auto max-w-4xl px-4 py-10">
       <p className="text-xs font-semibold tracking-[0.12em] text-gold-700 uppercase">Panel</p>
       <h1 className="mt-2 font-serif text-3xl font-semibold text-green-900">Usuarios</h1>
       <p className="mt-2 text-ink-muted">
@@ -96,10 +87,6 @@ export default async function UsersPage() {
           ))}
         </ul>
       </section>
-
-      <Link href={ADMIN_HOME} className="mt-8 inline-block font-medium text-green-700 underline">
-        Volver al inicio del panel
-      </Link>
-    </main>
+    </div>
   );
 }

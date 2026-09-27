@@ -4,6 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 import { extractRecoveryLink, waitForEmail } from "./helpers/mailpit";
+import { goToSection } from "./helpers/panel";
 import { completeMfaEnrollment, signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
 
@@ -18,7 +19,7 @@ test("an admin invites a person who joins with a password and MFA", async ({ pag
   const admin = await createTestUser("admin");
   await signInEnrollingMfa(page, admin);
 
-  await page.getByRole("link", { name: "Usuarios" }).click();
+  await goToSection(page, "Usuarios");
   await expect(page.getByRole("heading", { name: "Usuarios", level: 1 })).toBeVisible();
   expect(
     (

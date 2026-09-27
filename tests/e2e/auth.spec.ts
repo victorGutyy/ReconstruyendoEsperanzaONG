@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { generateSync } from "otplib";
 
+import { signOutFromPanel } from "./helpers/panel";
 import {
   createTestUser,
   deactivate,
@@ -61,7 +62,7 @@ test("first sign-in enrolls the authenticator app and reaches the panel", async 
   await expect(page.getByRole("heading", { name: `Hola, ${user.fullName}` })).toBeVisible();
 
   // Sign out, then the next sign-in only asks for the code (no new QR)
-  await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await signOutFromPanel(page);
   await expect(page).toHaveURL(/\/admin\/login$/);
 
   await signIn(page, user);

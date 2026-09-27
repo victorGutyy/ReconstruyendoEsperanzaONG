@@ -1,12 +1,13 @@
 -- Audit log (docs/06 §7, docs/05 §11, HU-10).
 begin;
-select plan(14);
+select plan(15);
 
 -- Users, as Supabase Auth would create them (system actor)
 insert into auth.users (id, email, raw_app_meta_data, raw_user_meta_data) values
   ('aaaaaaaa-0000-0000-0000-000000000001', 'admin@example.test', '{"role":"admin"}', '{}'),
   ('bbbbbbbb-0000-0000-0000-000000000003', 'author@example.test', '{"role":"author"}', '{}'),
-  ('cccccccc-0000-0000-0000-000000000005', 'author2@example.test', '{"role":"author"}', '{}');
+  ('cccccccc-0000-0000-0000-000000000005', 'author2@example.test', '{"role":"author"}', '{}'),
+  ('eeeeeeee-0000-0000-0000-000000000007', 'editor@example.test', '{"role":"editor"}', '{}');
 
 select is(
   (select count(*)::int from public.audit_logs
@@ -76,6 +77,11 @@ select is((select count(*)::int from public.audit_logs), 0, 'without MFA, even a
 select set_config('request.jwt.claims',
   '{"sub":"cccccccc-0000-0000-0000-000000000005","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*)::int from public.audit_logs), 0, 'an author cannot read the audit log');
+
+-- Editor with MFA: publishes content, but the audit log is for admins only
+select set_config('request.jwt.claims',
+  '{"sub":"eeeeeeee-0000-0000-0000-000000000007","role":"authenticated","aal":"aal2"}', true);
+select is((select count(*)::int from public.audit_logs), 0, 'an editor with MFA cannot read the audit log');
 
 -- Anonymous visitors
 reset role;
