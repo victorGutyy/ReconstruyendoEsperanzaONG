@@ -365,7 +365,7 @@ Abreviaturas: **pub** = `status = 'published' and published_at <= now() and dele
 |---|---|---|---|---|
 | Contenido (`activities`, `posts`, `projects`, `galleries`, `videos`, `testimonials`, `team_members`, `pages`) | anon: **pub** · auth: A2 ∧ P(`content.read`) | A2 ∧ P(`content.create`) | A2 ∧ (P(`content.update_any`) ∨ (P(`content.update_own`) ∧ `created_by = auth.uid()` ∧ estado ∈ {draft, review})) | A2 ∧ P(`trash.purge`) ∧ `deleted_at is not null` |
 | Tablas puente (`*_tags`, `gallery_items`) | Si el padre es visible | Como UPDATE del padre | — | Como UPDATE del padre |
-| `categories` · `tags` · `places` | anon/auth: `deleted_at is null` | A2 ∧ P(`taxonomy.manage`) | A2 ∧ P(`taxonomy.manage`) | A2 ∧ P(`trash.purge`) |
+| `categories` · `tags` · `places` | anon/auth: `deleted_at is null` · A2 ∧ P(`taxonomy.manage`) también ve la papelera (para restaurar) | A2 ∧ P(`taxonomy.manage`) | A2 ∧ P(`taxonomy.manage`); el `slug` no se puede cambiar (permiso por columna) | A2 ∧ P(`trash.purge`) |
 | `media` | anon: `public_key is not null ∧ deleted_at is null` · auth: A2 ∧ P(`content.read`) | A2 ∧ P(`media.upload`) | A2 ∧ (P(`media.update`) ∨ `uploaded_by = auth.uid()`) | A2 ∧ P(`trash.purge`) |
 | `consent_records` · `media_consents` | A2 ∧ P(`consent.manage`) | A2 ∧ P(`consent.manage`) | A2 ∧ P(`consent.manage`) | A2 ∧ P(`trash.purge`) |
 | `content_media_usages` | auth: A2 ∧ P(`content.read`) | Con el contenido | Con el contenido | Con el contenido |
@@ -400,16 +400,17 @@ Abreviaturas: **pub** = `status = 'published' and published_at <= now() and dele
 | 1 | `extensions_and_helpers` | `unaccent`, funciones de fechas, trigger `set_updated_at`, `set_actor_columns` |
 | 2 | `access_control` | `roles`, `permissions`, `role_permissions`, `profiles`, `has_permission`, `is_aal2`, datos de roles/permisos |
 | 3 | `audit` | `audit_logs` y trigger genérico |
-| 4 | `taxonomy` | `categories`, `tags`, `places` |
-| 5 | `media_and_consents` | `media`, `consent_records`, `media_consents`, `media_is_publishable` |
-| 6 | `content` | Tablas de contenido, puentes, `content_media_usages`, `guard_content_changes`, trigger de publicabilidad |
-| 7 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 8 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
-| 9 | `storage` | Buckets y políticas de Storage |
+| 4 | `profiles_email` | Copia del correo en `profiles` (paso 5.6) |
+| 5 | `taxonomy` | `categories`, `tags`, `places` (paso 6.1) |
+| 6 | `media_and_consents` | `media`, `consent_records`, `media_consents`, `media_is_publishable` |
+| 7 | `content` | Tablas de contenido, puentes, `content_media_usages`, `guard_content_changes`, trigger de publicabilidad |
+| 8 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 9 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 10 | `storage` | Buckets y políticas de Storage |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 
-**Datos de desarrollo** (`supabase/seed.sql`, solo local): contenido marcado `[DEMO]`, usuarios de prueba y fotos genéricas sin personas. Nunca datos reales.
+**Datos de desarrollo** (solo local, marcados `[DEMO]`, nunca datos reales): se cargan con comandos que se niegan a correr contra un Supabase que no sea el de este equipo (`npm run db:local-admin`, `npm run db:local-demo`). No se usa `supabase/seed.sql` porque las pruebas pgTAP parten de tablas vacías.
 
 ## 13. Evolución hacia la Etapa B
 

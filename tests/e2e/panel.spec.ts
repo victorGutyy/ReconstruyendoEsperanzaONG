@@ -21,7 +21,7 @@ test("the menu shows the sections of the role and marks the current one", async 
 
   // Dashboard cards lead to the same sections
   const cards = page.getByRole("region", { name: "Secciones" });
-  await expect(cards.getByRole("link")).toHaveCount(2);
+  await expect(cards.getByRole("link")).toHaveCount(3);
 
   expect(
     (
@@ -32,7 +32,12 @@ test("the menu shows the sections of the role and marks the current one", async 
   ).toEqual([]);
 
   const menu = await openPanelMenu(page);
-  await expect(menu.getByRole("link")).toHaveText(["Inicio", "Usuarios", "Auditoría"]);
+  await expect(menu.getByRole("link")).toHaveText([
+    "Inicio",
+    "Categorías y lugares",
+    "Usuarios",
+    "Auditoría",
+  ]);
   await expect(menu.getByRole("link", { name: "Inicio" })).toHaveAttribute("aria-current", "page");
   await expect(
     page.getByText(admin.fullName, { exact: true }).filter({ visible: true }),

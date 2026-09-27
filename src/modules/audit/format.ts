@@ -37,7 +37,16 @@ export const ACTION_LABELS: Record<AuditAction, string> = {
   status_change: "Cambió el estado",
 };
 
-type FieldKind = "text" | "role" | "active" | "person";
+type FieldKind =
+  | { type: "text" }
+  | { type: "role" }
+  | { type: "active" }
+  | { type: "yesNo" }
+  | { type: "person" }
+  /** Fixed values stored as keys: the labels live here, not in another module. */
+  | { type: "enum"; labels: Readonly<Record<string, string>> };
+
+const TEXT: FieldKind = { type: "text" };
 
 type SectionConfig = {
   label: string;
@@ -53,11 +62,60 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
     singular: "Usuario",
     nameField: "full_name",
     fields: [
-      { key: "full_name", label: "Nombre", kind: "text" },
-      { key: "email", label: "Correo", kind: "text" },
-      { key: "role_id", label: "Rol", kind: "role" },
-      { key: "is_active", label: "Estado", kind: "active" },
-      { key: "invited_by", label: "Invitada por", kind: "person" },
+      { key: "full_name", label: "Nombre", kind: TEXT },
+      { key: "email", label: "Correo", kind: TEXT },
+      { key: "role_id", label: "Rol", kind: { type: "role" } },
+      { key: "is_active", label: "Estado", kind: { type: "active" } },
+      { key: "invited_by", label: "Invitada por", kind: { type: "person" } },
+    ],
+  },
+  places: {
+    label: "Lugares",
+    singular: "Lugar",
+    nameField: "name",
+    fields: [
+      { key: "name", label: "Nombre", kind: TEXT },
+      { key: "slug", label: "Slug", kind: TEXT },
+      {
+        key: "kind",
+        label: "Tipo",
+        kind: {
+          type: "enum",
+          labels: {
+            municipality: "Municipio",
+            neighborhood: "Barrio",
+            vereda: "Vereda",
+            sector: "Sector",
+            other: "Otro",
+          },
+        },
+      },
+      { key: "is_active", label: "Activo", kind: { type: "yesNo" } },
+    ],
+  },
+  categories: {
+    label: "Categorías",
+    singular: "Categoría",
+    nameField: "name",
+    fields: [
+      {
+        key: "scope",
+        label: "Para",
+        kind: { type: "enum", labels: { activity: "Actividades", post: "Historias" } },
+      },
+      { key: "name", label: "Nombre", kind: TEXT },
+      { key: "slug", label: "Slug", kind: TEXT },
+      { key: "description", label: "Descripción", kind: TEXT },
+      { key: "position", label: "Orden", kind: TEXT },
+    ],
+  },
+  tags: {
+    label: "Etiquetas",
+    singular: "Etiqueta",
+    nameField: "name",
+    fields: [
+      { key: "name", label: "Nombre", kind: TEXT },
+      { key: "slug", label: "Slug", kind: TEXT },
     ],
   },
 };
@@ -97,11 +155,17 @@ function truncate(text: string): string {
 function formatValue(kind: FieldKind, value: unknown, lookups: AuditLookups): string {
   if (value === null || value === undefined || value === "") return EMPTY;
 
-  switch (kind) {
+  switch (kind.type) {
     case "role":
       return lookups.roles.get(Number(value)) ?? "Rol desconocido";
     case "active":
       return value === true ? "Activa" : "Desactivada";
+    case "yesNo":
+      return value === true ? "Sí" : "No";
+    case "enum":
+      return typeof value === "string" && Object.hasOwn(kind.labels, value)
+        ? kind.labels[value]!
+        : String(value);
     case "person":
       return typeof value === "string" ? (lookups.people.get(value) ?? UNKNOWN_PERSON) : EMPTY;
     case "text":
