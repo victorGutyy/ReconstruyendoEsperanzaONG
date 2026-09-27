@@ -147,3 +147,47 @@ describe("describeChanges", () => {
     expect(changes[0]?.after).toHaveLength(201);
   });
 });
+
+describe("taxonomy sections", () => {
+  it("names places and shows their kind and state in Spanish", () => {
+    const place = entry({
+      action: "status_change",
+      tableName: "places",
+      oldData: { name: "[DEMO] Barrio", kind: "neighborhood", is_active: true },
+      newData: { name: "[DEMO] Barrio", kind: "vereda", is_active: false },
+      changedFields: ["kind", "is_active"],
+    });
+    expect(recordLabel(place)).toBe("Lugar: [DEMO] Barrio");
+    expect(describeChanges(place, lookups).changes).toEqual([
+      { field: "kind", label: "Tipo", before: "Barrio", after: "Vereda" },
+      { field: "is_active", label: "Activo", before: "Sí", after: "No" },
+    ]);
+  });
+
+  it("shows a category move as its new order", () => {
+    const { changes } = describeChanges(
+      entry({
+        tableName: "categories",
+        oldData: { name: "Salud", position: 2 },
+        newData: { name: "Salud", position: 1 },
+        changedFields: ["position"],
+      }),
+      lookups,
+    );
+    expect(changes).toEqual([{ field: "position", label: "Orden", before: "2", after: "1" }]);
+  });
+
+  it("does not show the trash date: the action already says it", () => {
+    const result = describeChanges(
+      entry({
+        action: "soft_delete",
+        tableName: "categories",
+        oldData: { name: "Salud", deleted_at: null },
+        newData: { name: "Salud", deleted_at: "2026-09-27T12:00:00Z" },
+        changedFields: ["deleted_at"],
+      }),
+      lookups,
+    );
+    expect(result).toEqual({ changes: [], hidden: 1 });
+  });
+});

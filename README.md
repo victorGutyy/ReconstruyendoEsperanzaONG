@@ -88,6 +88,7 @@ Al terminar el día puedes detener Supabase con `npx supabase stop` (los datos l
 | `npx supabase start` · `stop` · `status` | Encender, apagar y ver el Supabase local |
 | `npx supabase migration new <nombre>` | Crear una migración en `supabase/migrations/` |
 | `npm run db:local-admin` | Crear un Administrador `[DEMO]` en el Supabase **local** para probar el panel (muestra la contraseña una sola vez) |
+| `npm run db:local-demo` | Cargar lugares y categorías `[DEMO]` en el Supabase **local** (se puede correr varias veces) |
 | `npx supabase db reset` | Recrear la BD local y reaplicar todas las migraciones |
 
 ### Flujo de trabajo

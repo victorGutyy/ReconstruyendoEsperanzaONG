@@ -7,7 +7,19 @@ const labels = (permissions: string[], isActive = true) =>
 
 describe("navFor", () => {
   it("shows every existing section to an admin", () => {
-    expect(labels(["users.manage", "audit.read"])).toEqual(["Inicio", "Usuarios", "Auditoría"]);
+    expect(labels(["taxonomy.manage", "users.manage", "audit.read"])).toEqual([
+      "Inicio",
+      "Categorías y lugares",
+      "Usuarios",
+      "Auditoría",
+    ]);
+  });
+
+  it("shows the taxonomy to an editor, but not users or audit", () => {
+    expect(labels(["content.read", "taxonomy.manage", "consent.manage"])).toEqual([
+      "Inicio",
+      "Categorías y lugares",
+    ]);
   });
 
   it("shows only Inicio to an author", () => {

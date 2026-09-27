@@ -39,6 +39,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      categories: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          description: string | null;
+          id: string;
+          name: string;
+          position: number;
+          scope: string;
+          slug: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name: string;
+          position?: number;
+          scope: string;
+          slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          position?: number;
+          scope?: string;
+          slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       permissions: {
         Row: {
           description: string;
@@ -51,6 +87,39 @@ export type Database = {
         Update: {
           description?: string;
           key?: string;
+        };
+        Relationships: [];
+      };
+      places: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          is_active: boolean;
+          kind: string;
+          name: string;
+          slug: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind: string;
+          name: string;
+          slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind?: string;
+          name?: string;
+          slug?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -150,6 +219,30 @@ export type Database = {
           id?: never;
           key?: string;
           name?: string;
+        };
+        Relationships: [];
+      };
+      tags: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          slug: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          slug: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          slug?: string;
         };
         Relationships: [];
       };

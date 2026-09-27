@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "db:types": "supabase gen types typescript --local --schema public > src/types/database.ts && prettier --write src/types/database.ts",
     "db:local-admin": "node --env-file=.env.local scripts/create-local-admin.mjs",
+    "db:local-demo": "node --env-file=.env.local scripts/seed-local-demo.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },
   "engines": {

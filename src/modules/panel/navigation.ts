@@ -2,7 +2,7 @@
 
 import { ADMIN_HOME, hasPermission, type Permission, type ProfileAccess } from "@/lib/auth/rules";
 
-export type NavIcon = "home" | "users" | "history";
+export type NavIcon = "home" | "tags" | "users" | "history";
 
 export type NavItem = {
   href: string;
@@ -22,6 +22,13 @@ export const PANEL_NAV: readonly NavItem[] = [
     label: "Inicio",
     description: "Resumen del panel.",
     icon: "home",
+  },
+  {
+    href: "/admin/categorias-y-lugares",
+    label: "Categorías y lugares",
+    description: "Lugares generales y categorías para clasificar el contenido.",
+    icon: "tags",
+    permission: "taxonomy.manage",
   },
   {
     href: "/admin/usuarios",
