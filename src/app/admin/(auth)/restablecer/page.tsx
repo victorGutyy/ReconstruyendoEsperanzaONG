@@ -7,7 +7,7 @@ import { NewPasswordForm } from "@/modules/auth/components/new-password-form";
 
 export const metadata: Metadata = { title: "Crear contraseña nueva" };
 
-// Reached from the recovery e-mail link (which created the session)
+// Reached from the recovery or invitation e-mail link (which created the session)
 export default async function ResetPasswordPage() {
   const session = await getSession();
   if (!session) redirect(LOGIN_PATH);
@@ -18,7 +18,8 @@ export default async function ResetPasswordPage() {
         Crea tu contraseña nueva
       </h1>
       <p className="mb-6 text-sm text-ink-muted">
-        Después te pediremos el código de tu app autenticadora, como siempre.
+        Después te pediremos el código de tu app autenticadora. Si es tu primera vez, te ayudaremos
+        a configurarla.
       </p>
       <NewPasswordForm />
     </>

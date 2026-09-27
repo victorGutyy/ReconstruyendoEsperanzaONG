@@ -108,8 +108,9 @@ Un perfil por cada usuario de `auth.users` (que gestiona Supabase Auth: correo, 
 |---|---|---|
 | `id` | `uuid` PK, FK → `auth.users` | |
 | `full_name` | `text` not null | |
+| `email` | `text` | Copia de `auth.users.email`, sincronizada por trigger; **no** modificable por la API. Permite listar el equipo con RLS sin usar la clave secreta (migración 4, paso 5.6) |
 | `role_id` | `smallint` FK → `roles`, **nullable** | `null` = sin permisos |
-| `is_active` | `boolean` default `true` | Desactivar = sin acceso, sin borrar |
+| `is_active` | `boolean` default `true` | Desactivar = sin acceso, sin borrar. En el panel, además, se bloquea la cuenta en Supabase Auth (`ban`) para impedir nuevos inicios de sesión |
 | `invited_by` | `uuid` FK → `profiles` | |
 | `created_at` · `updated_at` | `timestamptz` | |
 
