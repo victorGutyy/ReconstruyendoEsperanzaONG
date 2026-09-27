@@ -7,8 +7,9 @@ const labels = (permissions: string[], isActive = true) =>
 
 describe("navFor", () => {
   it("shows every existing section to an admin", () => {
-    expect(labels(["taxonomy.manage", "users.manage", "audit.read"])).toEqual([
+    expect(labels(["media.upload", "taxonomy.manage", "users.manage", "audit.read"])).toEqual([
       "Inicio",
+      "Medios",
       "Categorías y lugares",
       "Usuarios",
       "Auditoría",
@@ -16,14 +17,18 @@ describe("navFor", () => {
   });
 
   it("shows the taxonomy to an editor, but not users or audit", () => {
-    expect(labels(["content.read", "taxonomy.manage", "consent.manage"])).toEqual([
+    expect(labels(["content.read", "media.upload", "taxonomy.manage", "consent.manage"])).toEqual([
       "Inicio",
+      "Medios",
       "Categorías y lugares",
     ]);
   });
 
-  it("shows only Inicio to an author", () => {
-    expect(labels(["content.read", "content.create"])).toEqual(["Inicio"]);
+  it("shows Inicio and Medios to an author", () => {
+    expect(labels(["content.read", "content.create", "media.upload"])).toEqual([
+      "Inicio",
+      "Medios",
+    ]);
   });
 
   it("hides everything but Inicio from a deactivated profile", () => {

@@ -221,13 +221,13 @@ sequenceDiagram
     participant Pr as Storage privado<br/>(procesadas)
     participant R2 as R2 (público)
 
-    C->>C: reduce a ~2560px (ahorra datos 4G)
+    C->>C: aplica la rotación, reduce a 2560px y convierte a JPEG<br/>(ahorra datos 4G; convierte HEIC)
     C->>App: pedir URL de subida firmada
     App-->>C: URL válida 60 s, nombre UUID
     C->>In: sube el archivo directo
     C->>App: "listo, procesa"
     App->>In: descarga
-    App->>App: valida firma binaria (JPEG/PNG/WebP/HEIC), tamaño<br/>sharp: re-codifica a WebP/AVIF en 3 tamaños → sin EXIF/GPS
+    App->>App: valida firma binaria (JPEG/PNG/WebP), tamaño y píxeles<br/>sharp: re-codifica a WebP en 3 anchos (480, 1080, 1920) → sin EXIF/GPS
     App->>Pr: guarda versiones procesadas
     App->>In: borra el original
     Note over App,R2: Al PUBLICAR el contenido<br/>(y si la foto tiene autorización cuando la requiere)
@@ -237,7 +237,8 @@ sequenceDiagram
 
 - El **original con GPS nunca se conserva**.
 - Mientras el contenido es borrador, sus fotos **no son públicas** (solo el panel las ve con URL firmada temporal).
-- El límite de 1 GB del Storage gratuito alcanza para ~3.000 fotos procesadas; si se acerca, se reduce a una sola versión privada (la pública vive en R2).
+- Solo WebP (AVIF es más lento de codificar en servidores sin estado). Con 3 tamaños son ~550 KB por foto: el 1 GB del Storage gratuito alcanza para **~1.800 fotos** procesadas; si se acerca, se reduce a una sola versión privada (la pública vive en R2, F7).
+- Fotos que quedan a medias (se cerró la app durante la subida): la pantalla **Medios** ofrece *Reintentar* o *Quitar*; la limpieza programada de esos restos llega en la F9.
 
 ## 6. Proveedores detrás de interfaces
 
