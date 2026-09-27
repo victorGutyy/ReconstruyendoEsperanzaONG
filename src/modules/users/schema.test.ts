@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { changeRoleSchema, inviteSchema, setActiveSchema } from "./schema";
+import { changeRoleSchema, inviteSchema, roleLabel, setActiveSchema } from "./schema";
 
 const userId = "7c9e6679-7425-40de-944b-e07fc1f90ae7";
 
@@ -49,5 +49,13 @@ describe("setActiveSchema", () => {
 
   it("rejects anything else", () => {
     expect(setActiveSchema.safeParse({ userId, active: "yes" }).success).toBe(false);
+  });
+});
+
+describe("roleLabel", () => {
+  it("names known roles and falls back for missing or unknown ones", () => {
+    expect(roleLabel("editor")).toBe("Editor");
+    expect(roleLabel(null)).toBe("Sin rol");
+    expect(roleLabel("toString")).toBe("Sin rol");
   });
 });

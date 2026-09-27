@@ -9,6 +9,13 @@ export const ROLE_LABELS: Record<RoleKey, string> = {
   author: "Autor",
 };
 
+/** Label for a role key read from the database ("Sin rol" when missing or unknown). */
+export function roleLabel(roleKey: string | null): string {
+  return roleKey !== null && Object.hasOwn(ROLE_LABELS, roleKey)
+    ? ROLE_LABELS[roleKey as RoleKey]
+    : "Sin rol";
+}
+
 const roleField = z.enum(ROLE_KEYS, { message: "Elige un rol." });
 
 export const inviteSchema = z.object({
