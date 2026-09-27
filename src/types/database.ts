@@ -75,6 +75,182 @@ export type Database = {
         };
         Relationships: [];
       };
+      consent_records: {
+        Row: {
+          channel: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          document_path: string;
+          form_version: string;
+          granted_on: string;
+          id: string;
+          is_minor: boolean;
+          revocation_note: string | null;
+          revoked_at: string | null;
+          scope_description: string;
+          signer_name: string | null;
+          signer_type: string;
+          subject_name: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          channel: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_path: string;
+          form_version: string;
+          granted_on: string;
+          id?: string;
+          is_minor: boolean;
+          revocation_note?: string | null;
+          revoked_at?: string | null;
+          scope_description: string;
+          signer_name?: string | null;
+          signer_type: string;
+          subject_name: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          channel?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_path?: string;
+          form_version?: string;
+          granted_on?: string;
+          id?: string;
+          is_minor?: boolean;
+          revocation_note?: string | null;
+          revoked_at?: string | null;
+          scope_description?: string;
+          signer_name?: string | null;
+          signer_type?: string;
+          subject_name?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "consent_records_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "consent_records_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      media: {
+        Row: {
+          alt_text: string | null;
+          bytes: number | null;
+          caption: string | null;
+          created_at: string;
+          credit: string | null;
+          deleted_at: string | null;
+          height: number | null;
+          id: string;
+          mime_type: string | null;
+          people_in_photo: string | null;
+          private_path: string | null;
+          processing_status: string;
+          public_key: string | null;
+          updated_at: string;
+          uploaded_by: string;
+          width: number | null;
+        };
+        Insert: {
+          alt_text?: string | null;
+          bytes?: number | null;
+          caption?: string | null;
+          created_at?: string;
+          credit?: string | null;
+          deleted_at?: string | null;
+          height?: number | null;
+          id?: string;
+          mime_type?: string | null;
+          people_in_photo?: string | null;
+          private_path?: string | null;
+          processing_status?: string;
+          public_key?: string | null;
+          updated_at?: string;
+          uploaded_by: string;
+          width?: number | null;
+        };
+        Update: {
+          alt_text?: string | null;
+          bytes?: number | null;
+          caption?: string | null;
+          created_at?: string;
+          credit?: string | null;
+          deleted_at?: string | null;
+          height?: number | null;
+          id?: string;
+          mime_type?: string | null;
+          people_in_photo?: string | null;
+          private_path?: string | null;
+          processing_status?: string;
+          public_key?: string | null;
+          updated_at?: string;
+          uploaded_by?: string;
+          width?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "media_uploaded_by_fkey";
+            columns: ["uploaded_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      media_consents: {
+        Row: {
+          consent_record_id: string;
+          created_at: string;
+          id: string;
+          media_id: string;
+        };
+        Insert: {
+          consent_record_id: string;
+          created_at?: string;
+          id?: string;
+          media_id: string;
+        };
+        Update: {
+          consent_record_id?: string;
+          created_at?: string;
+          id?: string;
+          media_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "media_consents_consent_record_id_fkey";
+            columns: ["consent_record_id"];
+            isOneToOne: false;
+            referencedRelation: "consent_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "media_consents_media_id_fkey";
+            columns: ["media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       permissions: {
         Row: {
           description: string;

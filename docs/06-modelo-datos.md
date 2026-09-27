@@ -251,19 +251,21 @@ No se guarda el nombre original del archivo ni ningún metadato EXIF.
 | `signer_type` | `text` check (`self`, `legal_guardian`) | |
 | `signer_name` | `text` | Obligatorio si `legal_guardian` |
 | `scope_description` | `text` not null | Qué cubre (p. ej. "fotos de la jornada del 12/03/2026") |
-| `activity_id` | `uuid` FK nullable | |
+| `activity_id` | `uuid` FK nullable | Se agrega en la F7, con la tabla `activities` |
 | `granted_on` | `date` not null | |
 | `channel` | `text` check (`paper`, `digital`) | |
 | `form_version` | `text` not null | Versión del formato firmado |
 | `document_path` | `text` not null | Escaneo/foto del formato firmado en bucket **privado** |
-| `revoked_at` · `revocation_note` | | Revocación (RB-005) |
+| `revoked_at` · `revocation_note` | | Revocación (RB-005). **No se puede deshacer** (trigger): si la persona vuelve a autorizar, se registra una autorización nueva |
 | `created_at` · `created_by` · `updated_at` · `updated_by` · `deleted_at` | | |
 
 Checks: `is_minor → signer_type = 'legal_guardian'`; `signer_type = 'legal_guardian' → signer_name not null`.
 **Sin** cédula, teléfono, dirección ni correo (minimización). Tiempo de conservación: se define en `09-privacidad-y-marco-legal.md`.
 
 ### `media_consents`
-PK (`media_id`, `consent_record_id`). Una foto puede requerir varias autorizaciones (varias personas) y una autorización cubrir varias fotos.
+`id` propio (la auditoría necesita un id por fila) + `unique (media_id, consent_record_id)`. Una foto puede requerir varias autorizaciones (varias personas) y una autorización cubrir varias fotos.
+
+**Columnas técnicas de `media`** (`processing_status`, `private_path`, `public_key`, `mime_type`, `width`, `height`, `bytes`): solo las escribe el servidor; la API no tiene permiso sobre ellas. Así nadie puede volver pública una foto desde el navegador. `uploaded_by` lo pone un trigger con el usuario de la sesión y no cambia. El documento firmado (`document_path`) tampoco se puede reemplazar desde la API.
 
 ### `content_media_usages`
 Registra **dónde se usa cada imagen** (portada, galería o dentro del texto): `media_id`, `entity_type` (`activity`, `post`, …), `entity_id`, `usage` (`cover`, `body`, `gallery`, `photo`). La app lo actualiza al guardar.
@@ -282,6 +284,8 @@ media_is_publishable(m) =
         OR existe una autorización vigente (no revocada, no borrada) vinculada
            y, si people_in_photo = 'minors', firmada por representante legal )
 ```
+
+Implementada en `private.media_publish_issues(media_id)` (devuelve los pendientes: `in_trash`, `not_processed`, `missing_alt_text`, `people_unclassified`, `missing_consent`, `missing_guardian_consent`; vacío = publicable) y `private.media_is_publishable(media_id)` (paso 6.2). Son `security definer` porque deben ver las autorizaciones aunque quien pregunta no pueda (un Autor que envía a revisión con avisos), y solo devuelven códigos, nunca datos personales.
 
 Un **trigger** en cada tabla de contenido la evalúa para todas sus imágenes cuando el estado pasa a `published`, y rechaza la operación indicando qué imagen falla (HU-06). Está en la base de datos, así que ni un error en la app puede saltársela.
 
@@ -387,11 +391,13 @@ Abreviaturas: **pub** = `status = 'published' and published_at <= now() and dele
 
 | Dónde | Bucket | Acceso | Contenido |
 |---|---|---|---|
-| Supabase Storage | `media-incoming` | Privado; subida solo con URL firmada (60 s) | Originales temporales; se borran al procesar |
+| Supabase Storage | `media-incoming` | Privado; subida solo con URL firmada (60 s); 15 MB; JPEG, PNG, WebP | Originales temporales; se borran al procesar |
 | Supabase Storage | `media-private` | Privado; el panel ve con URL firmada | Versiones procesadas (sin EXIF/GPS) |
 | Supabase Storage | `consent-documents` | Privado; solo `consent.manage` con URL firmada | Formatos de autorización firmados |
 | Cloudflare R2 | `media-public` | Público de solo lectura | `media/{uuid}/{tamaño}.webp` de contenido publicado y autorizado |
 | Cloudflare R2 | `backups` | Privado | Backups cifrados de la BD |
+
+Los tres buckets de Supabase Storage se crean en la migración `media_and_consents` (paso 6.2) y **no tienen políticas** en `storage.objects`: solo el servidor (clave secreta), después de verificar el permiso en la app, los lee o escribe y entrega URLs firmadas temporales.
 
 ## 12. Orden de migraciones
 

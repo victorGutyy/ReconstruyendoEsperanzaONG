@@ -82,7 +82,7 @@ La interfaz **oculta** botones sin permiso, pero eso es comodidad, no seguridad.
 - Lectura anónima: solo filas con `status = 'published'`, `published_at <= now()` y `deleted_at is null`.
 - Vistas con `security_invoker = true` (respetan la RLS de quien consulta).
 - **Pruebas pgTAP** por tabla: anónimo no ve borradores; Autor no publica; usuario sin `aal2` no escribe; nadie modifica la auditoría.
-- La clave secreta (`SUPABASE_SECRET_KEY`) **se salta la RLS**: solo se usa en `lib/supabase/admin.ts` (`import 'server-only'`) para tareas puntuales (invitar usuarios, procesar imágenes), nunca para servir datos al usuario.
+- La clave secreta (`SUPABASE_SECRET_KEY`) **se salta la RLS**: solo se usa en `lib/supabase/admin.ts` (`import 'server-only'`) para tareas puntuales (invitar usuarios, procesar imágenes, firmar enlaces de Storage), siempre **después** de que la app verificó el permiso y el MFA, y nunca para servir datos al usuario. Los buckets privados no tienen políticas para la API: sin la clave secreta nadie los lee ni escribe.
 
 ## 6. Validación de entradas y contenido
 

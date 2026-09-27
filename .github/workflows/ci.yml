@@ -82,9 +82,9 @@ jobs:
 
       - run: npm ci
 
-      # Real Supabase Auth + Mailpit (recovery e-mails) for the sign-in tests, nothing else
+      # Real Supabase Auth + Mailpit (recovery e-mails) + Storage (media buckets), nothing else
       - name: Start Supabase
-        run: npx supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+        run: npx supabase start -x realtime,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       # Local keys are the CLI's fixed development defaults; masked anyway
       - name: Export Supabase environment
