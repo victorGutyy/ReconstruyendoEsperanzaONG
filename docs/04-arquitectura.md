@@ -298,7 +298,7 @@ Un *Developer* no puede cambiar Auth (`03` §6). La configuración local vive en
 | **Emails → Invite user** | Asunto y HTML de `supabase/templates/invite.html` | Misma técnica, `type=invite` (paso 5.6) |
 | **Sign In / Providers → Email** | Proveedor **activado** | Es el método de login; el registro público se cierra con *Allow new users to sign up* (global). Desactivar el proveedor apagaría el login (hallado en 5.5a) |
 
-Vercel (*Preview*): `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (tipo *Secret*). Sin ellas el login responde "Demasiados intentos" (*fail closed*, `05` §7). **Nunca** `RATE_LIMIT_DRIVER` en Vercel. El origen de los enlaces se toma de `VERCEL_BRANCH_URL` (nunca del encabezado `Host`). `SUPABASE_SECRET_KEY` (tipo *Secret*): solo la usa invitar y activar/desactivar usuarios, siempre después de verificar `users.manage` + MFA.
+Vercel (*Preview*): `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (tipo *Secret*). Sin ellas el login responde "Demasiados intentos" (*fail closed*, `05` §7). **Nunca** `RATE_LIMIT_DRIVER` en Vercel. El origen de los enlaces se toma de `VERCEL_BRANCH_URL` (nunca del encabezado `Host`). `SUPABASE_SECRET_KEY` (tipo *Secret*): la usan invitar y activar/desactivar usuarios, y desde la F6 el acceso a Storage (enlaces firmados de subida y de vista, procesamiento de fotos, formatos de autorización), siempre después de verificar el permiso + MFA en la app. Los buckets no tienen políticas para la API.
 
 #### Primer Administrador de staging (una sola vez)
 
