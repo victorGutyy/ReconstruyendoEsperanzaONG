@@ -291,8 +291,9 @@ Un *Developer* no puede cambiar Auth (`03` §6). La configuración local vive en
 
 | Dónde (Authentication → …) | Valor | Por qué |
 |---|---|---|
-| **URL Configuration → Site URL** | `https://reconstruyendo-esperanza-git-develop-victorgutyys-projects.vercel.app` | Base de los enlaces de los correos |
+| **URL Configuration → Site URL** | `https://reconstruyendo-esperanza-git-develop-victorgutyys-projects.vercel.app/admin/auth/confirm` | Destino por defecto de los enlaces de los correos. Lleva la ruta de confirmación porque una invitación hecha desde el panel de Supabase usa la Site URL como `{{ .RedirectTo }}`; sin la ruta, el enlace caería en la portada (hallado el 26-sep-2026). La app siempre envía su propio destino |
 | **URL Configuration → Redirect URLs** | `https://reconstruyendo-esperanza-*-victorgutyys-projects.vercel.app/**` | Solo los despliegues del proyecto pueden recibir enlaces de Auth |
+| **Emails → SMTP Settings** | Staging: Gmail de la iniciativa (`smtp.gmail.com`, puerto 465, usuario = el correo, contraseña = *contraseña de aplicación* de Google). Producción (F10): Resend con el dominio verificado | Supabase **solo deja editar las plantillas con SMTP propio**; con su correo por defecto se envían sus plantillas en inglés, cuyo enlace no trae `token_hash` y **no funciona** con `/admin/auth/confirm` |
 | **Emails → Reset password** | Asunto y HTML de `supabase/templates/recovery.html` | Enlace con `token_hash` (funciona aunque se abra en otro dispositivo) |
 | **Emails → Invite user** | Asunto y HTML de `supabase/templates/invite.html` | Misma técnica, `type=invite` (paso 5.6) |
 | **Sign In / Providers → Email** | Proveedor **activado** | Es el método de login; el registro público se cierra con *Allow new users to sign up* (global). Desactivar el proveedor apagaría el login (hallado en 5.5a) |
@@ -301,11 +302,14 @@ Vercel (*Preview*): `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (tipo 
 
 #### Primer Administrador de staging (una sola vez)
 
-Nadie puede invitar al primero porque aún no hay Administradores:
+Nadie puede invitar al primero porque aún no hay Administradores. No hace falta correo:
 
-1. El **Owner** invita desde el panel de Supabase (*Authentication → Users → Invite user*). El correo gratuito de Supabase solo entrega a miembros de la organización.
-2. Con aprobación de Victor, se asigna el rol por SQL con el MCP (queda en auditoría como acción del sistema): `update public.profiles set role_id = (select id from public.roles where key = 'admin') where email = '<correo>';`
-3. La persona abre el correo, crea su contraseña, registra su app autenticadora y, desde **Usuarios**, invita al resto. Meta: **≥ 2 Administradores** (`05` §4).
+1. El **Owner** crea la cuenta en el panel de Supabase (*Authentication → Users → Add user → Create new user*, con *Auto Confirm User*). La contraseña (≥ 12) la escribe la propia persona ahí; nunca se comparte.
+2. La persona corre en el **SQL Editor** (el MCP de Supabase es de solo lectura) el SQL revisado y aprobado; queda en auditoría como *Cambió el rol* hecho por "Sistema": `update public.profiles set role_id = (select id from public.roles where key = 'admin'), full_name = '<nombre>' where email = '<correo>';`
+3. Se verifica con una consulta de solo lectura (rol, estado y las dos entradas de auditoría).
+4. La persona entra en `/admin/login`, registra su app autenticadora y, cuando el SMTP esté configurado, invita al resto desde **Usuarios**. Meta: **≥ 2 Administradores** (`05` §4).
+
+Hecho en staging el 26-sep-2026: Victor es el primer Administrador.
 
 En local no hace falta: `npm run db:local-admin` crea un Administrador `[DEMO]` y se niega a correr si Supabase no es el de este equipo.
 
