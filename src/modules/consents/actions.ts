@@ -14,10 +14,14 @@ import { createClient } from "@/lib/supabase/server";
 import {
   consentPaths,
   type ConsentFormState,
+  consentStatus,
   DOCUMENT_WIDTHS,
+  escapeLike,
   idSchema,
+  type MinorOpinion,
   readConsentFields,
   revokeSchema,
+  type SignerType,
 } from "./schema";
 
 const CONSENTS_PATH = "/admin/autorizaciones";
@@ -177,4 +181,123 @@ export async function revokeConsent(
   revalidatePath(CONSENTS_PATH, "layout");
   revalidatePath("/admin/medios", "layout");
   return { notice: "Autorización revocada." };
+}
+
+export type ConsentOption = {
+  id: string;
+  subjectName: string;
+  isMinor: boolean;
+  signerType: SignerType;
+  grantedOn: string;
+};
+
+const LINK_SEARCH_LIMIT = 10;
+
+/**
+ * Authorizations that can be linked to a photo: not revoked, not expired,
+ * not in the trash and not linked yet. Search by name.
+ */
+export async function searchConsentsToLink(
+  mediaId: string,
+  query: string,
+): Promise<{ ok: true; options: ConsentOption[] } | { ok: false; error: string }> {
+  const authorized = await authorizeAction("consent.manage");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+
+  const media = idSchema.safeParse(mediaId);
+  const text = query.trim().slice(0, 80);
+  if (!media.success) return { ok: false, error: "Foto no válida." };
+
+  const supabase = await createClient();
+  const [linked, found] = await Promise.all([
+    supabase.from("media_consents").select("consent_record_id").eq("media_id", media.data),
+    supabase
+      .from("consent_records")
+      .select("id, subject_name, is_minor, minor_opinion, signer_type, granted_on, valid_until")
+      .is("deleted_at", null)
+      .is("revoked_at", null)
+      .ilike("subject_name", `%${escapeLike(text)}%`)
+      .order("granted_on", { ascending: false })
+      .limit(LINK_SEARCH_LIMIT * 2),
+  ]);
+  if (linked.error || found.error) return { ok: false, error: "No se pudo buscar." };
+
+  const already = new Set(linked.data.map((link) => link.consent_record_id));
+  const options = found.data
+    .filter(
+      (row) =>
+        !already.has(row.id) &&
+        consentStatus({
+          revokedAt: null,
+          validUntil: row.valid_until,
+          isMinor: row.is_minor,
+          minorOpinion: row.minor_opinion as MinorOpinion | null,
+        }) === "active",
+    )
+    .slice(0, LINK_SEARCH_LIMIT)
+    .map((row) => ({
+      id: row.id,
+      subjectName: row.subject_name,
+      isMinor: row.is_minor,
+      signerType: row.signer_type as SignerType,
+      grantedOn: row.granted_on,
+    }));
+  return { ok: true, options };
+}
+
+function revalidateLinks() {
+  revalidatePath("/admin/medios", "layout");
+  revalidatePath(CONSENTS_PATH, "layout");
+}
+
+/** Links an authorization to a photo (RLS: consent.manage + MFA; audited). */
+export async function linkConsent(
+  mediaId: string,
+  consentId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const authorized = await authorizeAction("consent.manage");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+
+  const media = idSchema.safeParse(mediaId);
+  const consent = idSchema.safeParse(consentId);
+  if (!media.success || !consent.success) return { ok: false, error: "Datos no válidos." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("media_consents")
+    .insert({ media_id: media.data, consent_record_id: consent.data });
+  if (error) {
+    return {
+      ok: false,
+      error:
+        error.code === "23505"
+          ? "Esa autorización ya está vinculada a la foto."
+          : "No se pudo vincular la autorización.",
+    };
+  }
+
+  revalidateLinks();
+  return { ok: true };
+}
+
+/** Removes the link (the authorization itself is kept). */
+export async function unlinkConsent(
+  linkId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const authorized = await authorizeAction("consent.manage");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+
+  const link = idSchema.safeParse(linkId);
+  if (!link.success) return { ok: false, error: "Vínculo no válido." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("media_consents")
+    .delete()
+    .eq("id", link.data)
+    .select("id");
+  if (error || data.length === 0) return { ok: false, error: "No se pudo desvincular." };
+
+  revalidateLinks();
+  return { ok: true };
 }

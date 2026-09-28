@@ -42,6 +42,8 @@ type FieldKind =
   | { type: "role" }
   | { type: "active" }
   | { type: "yesNo" }
+  /** "Sí" when the column has any value (e.g. a revocation date). */
+  | { type: "present" }
   | { type: "person" }
   /** Fixed values stored as keys: the labels live here, not in another module. */
   | { type: "enum"; labels: Readonly<Record<string, string>> };
@@ -139,6 +141,57 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       },
     ],
   },
+  // Authorizations: personal data, read only by audit.read (admins, who also
+  // have consent.manage). Never the path of the signed form.
+  consent_records: {
+    label: "Autorizaciones",
+    singular: "Autorización",
+    nameField: "subject_name",
+    fields: [
+      { key: "subject_name", label: "Persona", kind: TEXT },
+      { key: "is_minor", label: "Menor de edad", kind: { type: "yesNo" } },
+      {
+        key: "minor_opinion",
+        label: "Opinión del menor",
+        kind: {
+          type: "enum",
+          labels: {
+            agrees: "Está de acuerdo",
+            disagrees: "No quiere aparecer",
+            not_applicable: "No aplica por su edad",
+          },
+        },
+      },
+      {
+        key: "signer_type",
+        label: "Firmó",
+        kind: {
+          type: "enum",
+          labels: { self: "La misma persona", legal_guardian: "Su representante legal" },
+        },
+      },
+      { key: "signer_name", label: "Representante", kind: TEXT },
+      { key: "scope_description", label: "Qué cubre", kind: TEXT },
+      { key: "granted_on", label: "Fecha de firma", kind: TEXT },
+      { key: "valid_until", label: "Válida hasta", kind: TEXT },
+      {
+        key: "channel",
+        label: "Se firmó en",
+        kind: { type: "enum", labels: { paper: "Papel", digital: "Digital" } },
+      },
+      { key: "form_version", label: "Versión del formato", kind: TEXT },
+      { key: "revoked_at", label: "Revocada", kind: { type: "present" } },
+      { key: "revocation_note", label: "Motivo de la revocación", kind: TEXT },
+    ],
+  },
+  // Links between a photo and an authorization: the action says what happened
+  media_consents: {
+    label: "Vínculos foto–autorización",
+    singular: "Vínculo",
+    nameField: "__none__",
+    untitled: "Vínculo entre una foto y una autorización",
+    fields: [],
+  },
   tags: {
     label: "Etiquetas",
     singular: "Etiqueta",
@@ -192,6 +245,8 @@ function formatValue(kind: FieldKind, value: unknown, lookups: AuditLookups): st
       return value === true ? "Activa" : "Desactivada";
     case "yesNo":
       return value === true ? "Sí" : "No";
+    case "present":
+      return "Sí";
     case "enum":
       return typeof value === "string" && Object.hasOwn(kind.labels, value)
         ? kind.labels[value]!

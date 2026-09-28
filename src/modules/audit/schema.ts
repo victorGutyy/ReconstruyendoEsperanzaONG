@@ -17,7 +17,15 @@ export const AUDIT_ACTIONS = [
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
 /** Audited tables. Each new audited table (F7+) is added here and in format.ts. */
-export const AUDIT_SECTIONS = ["profiles", "places", "categories", "tags", "media"] as const;
+export const AUDIT_SECTIONS = [
+  "profiles",
+  "places",
+  "categories",
+  "tags",
+  "media",
+  "consent_records",
+  "media_consents",
+] as const;
 export type AuditSection = (typeof AUDIT_SECTIONS)[number];
 
 /** Filter value for entries without a person (Supabase Auth, migrations). */

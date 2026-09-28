@@ -7,6 +7,8 @@ import {
   CONSENT_PAGE_SIZE,
   type Channel,
   type ConsentFilters,
+  type ConsentStatus,
+  consentStatus,
   type MinorOpinion,
   type SignerType,
   escapeLike,
@@ -146,4 +148,57 @@ export async function getConsentDocumentUrl(id: string): Promise<string | null> 
     DOCUMENT_URL_SECONDS,
   );
   return urls.get(data.document_path) ?? null;
+}
+
+export type LinkedConsent = {
+  linkId: string;
+  consentId: string;
+  subjectName: string;
+  isMinor: boolean;
+  signerType: SignerType;
+  status: ConsentStatus;
+};
+
+/** Authorizations linked to a photo (consent.manage + MFA through RLS). */
+export async function listConsentsForMedia(mediaId: string): Promise<LinkedConsent[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("media_consents")
+    .select(
+      "id, consent_records(id, subject_name, is_minor, minor_opinion, signer_type, valid_until, revoked_at, deleted_at)",
+    )
+    .eq("media_id", mediaId)
+    .order("created_at");
+  if (error) throw error;
+
+  return data.flatMap((link) => {
+    const record = link.consent_records;
+    if (!record || record.deleted_at) return [];
+    return [
+      {
+        linkId: link.id,
+        consentId: record.id,
+        subjectName: record.subject_name,
+        isMinor: record.is_minor,
+        signerType: record.signer_type as SignerType,
+        status: consentStatus({
+          revokedAt: record.revoked_at,
+          validUntil: record.valid_until,
+          isMinor: record.is_minor,
+          minorOpinion: record.minor_opinion as MinorOpinion | null,
+        }),
+      },
+    ];
+  });
+}
+
+/** Ids of the photos an authorization covers (the page asks media for the cards). */
+export async function listMediaIdsForConsent(consentId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("media_consents")
+    .select("media_id")
+    .eq("consent_record_id", consentId);
+  if (error) throw error;
+  return data.map((link) => link.media_id);
 }

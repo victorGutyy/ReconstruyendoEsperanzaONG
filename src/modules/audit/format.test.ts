@@ -220,3 +220,47 @@ describe("media section", () => {
     expect(result.hidden).toBe(1);
   });
 });
+
+describe("authorization sections", () => {
+  it("shows a revocation without the path of the signed form", () => {
+    const revocation = entry({
+      tableName: "consent_records",
+      oldData: {
+        subject_name: "[DEMO] Ana",
+        revoked_at: null,
+        revocation_note: null,
+        document_path: "abc.webp",
+      },
+      newData: {
+        subject_name: "[DEMO] Ana",
+        revoked_at: "2026-09-28T12:00:00Z",
+        revocation_note: "La persona lo pidió",
+        document_path: "abc.webp",
+      },
+      changedFields: ["revocation_note", "revoked_at", "updated_by"],
+    });
+    expect(recordLabel(revocation)).toBe("Autorización: [DEMO] Ana");
+    const result = describeChanges(revocation, lookups);
+    expect(result.changes).toEqual([
+      { field: "revoked_at", label: "Revocada", before: "—", after: "Sí" },
+      {
+        field: "revocation_note",
+        label: "Motivo de la revocación",
+        before: "—",
+        after: "La persona lo pidió",
+      },
+    ]);
+    expect(result.hidden).toBe(1);
+    expect(JSON.stringify(result)).not.toContain("abc.webp");
+  });
+
+  it("names a link between a photo and an authorization", () => {
+    const link = entry({
+      action: "insert",
+      tableName: "media_consents",
+      newData: { id: "x", media_id: "m", consent_record_id: "c" },
+    });
+    expect(recordLabel(link)).toBe("Vínculo entre una foto y una autorización");
+    expect(describeChanges(link, lookups).changes).toEqual([]);
+  });
+});
