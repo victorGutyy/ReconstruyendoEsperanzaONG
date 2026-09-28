@@ -205,7 +205,7 @@ export function escapeLike(text: string): string {
   return text.replace(/[\\%_]/g, (char) => `\\${char}`);
 }
 
-export type ConsentFormState = { error?: string; notice?: string };
+export type ConsentFormState = { error?: string; notice?: string; done?: boolean };
 
 export const consentPaths = {
   incoming: (uploadId: string) => `consents/${uploadId}`,

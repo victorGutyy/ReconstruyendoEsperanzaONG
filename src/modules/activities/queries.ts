@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import type { RichTextDoc } from "@/lib/rich-text/schema";
+import { getPublishIssues } from "@/modules/media";
 
 export type ActivityStatus = "draft" | "review" | "published" | "archived";
 
@@ -158,4 +159,14 @@ export async function listBasicsOptions(): Promise<{ places: Option[]; categorie
   if (places.error) throw places.error;
   if (categories.error) throw categories.error;
   return { places: places.data, categories: categories.data };
+}
+
+/** Photos with what each still needs (codes from the database), in order. */
+export async function getPhotosWithIssues(activity: ActivityForWizard) {
+  const issues = await getPublishIssues(activity.photos.map((photo) => photo.mediaId));
+  return activity.photos.map((photo, index) => ({
+    ...photo,
+    label: photo.altText ? `Foto ${index + 1} («${photo.altText}»)` : `Foto ${index + 1}`,
+    issues: issues.get(photo.mediaId) ?? [],
+  }));
 }

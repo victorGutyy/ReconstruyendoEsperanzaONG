@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getPublicEnv } from "@/lib/env/public";
 import { preparePhoto, UnreadablePhotoError, uploadWithProgress } from "@/lib/images/browser";
 
-import { createConsent, requestConsentDocumentUpload } from "../actions";
+import { createConsent, createConsentForPhoto, requestConsentDocumentUpload } from "../actions";
 import { type ConsentFormState, readConsentFields } from "../schema";
 import { ConsentFields } from "./consent-fields";
 
@@ -15,12 +15,26 @@ import { ConsentFields } from "./consent-fields";
  * Register an authorization. The photo of the signed form is uploaded first
  * (reduced in the browser, private bucket), then the record is created with it.
  */
-export function CreateConsentForm() {
-  const [state, formAction, saving] = useActionState<ConsentFormState, FormData>(createConsent, {});
+export function CreateConsentForm({
+  forPhoto,
+  onDone,
+}: {
+  /** From the activity wizard: the new authorization is linked to this photo. */
+  forPhoto?: { mediaId: string; activityId: string };
+  onDone?: () => void;
+} = {}) {
+  const [state, formAction, saving] = useActionState<ConsentFormState, FormData>(
+    forPhoto ? createConsentForPhoto : createConsent,
+    {},
+  );
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [, startTransition] = useTransition();
   const busy = saving || progress !== null;
+
+  useEffect(() => {
+    if (state.done) onDone?.();
+  }, [state.done, onDone]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,6 +86,12 @@ export function CreateConsentForm() {
 
   return (
     <form onSubmit={onSubmit} className="grid gap-6" noValidate>
+      {forPhoto ? (
+        <>
+          <input type="hidden" name="mediaId" value={forPhoto.mediaId} />
+          <input type="hidden" name="activityId" value={forPhoto.activityId} />
+        </>
+      ) : null}
       <ConsentFields />
 
       <div className="space-y-2">

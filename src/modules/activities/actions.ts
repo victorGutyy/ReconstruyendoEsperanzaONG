@@ -7,7 +7,15 @@ import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, uniqueSlug } from "@/lib/utils/slug";
 
-import { type BasicsInput, basicsSchema, type PhotoResult, type SaveResult } from "./schema";
+import { getActivityForWizard, getPhotosWithIssues } from "./queries";
+import { reviewActivity } from "./review";
+import {
+  type BasicsInput,
+  basicsSchema,
+  type PhotoResult,
+  type SaveResult,
+  toBogotaInstant,
+} from "./schema";
 
 const ACTIVITIES_PATH = "/admin/actividades";
 const SLUG_BASE_MAX = 110;
@@ -240,4 +248,116 @@ export async function detachPhoto(activityId: string, mediaId: string): Promise<
   }
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true };
+}
+
+export type PublishOutcome = "review" | "published" | "scheduled";
+export type PublishResult = { ok: true; outcome: PublishOutcome } | { ok: false; error: string };
+
+/** The database names the photo that failed (docs/06 §6): say which one. */
+function publishError(
+  error: { code?: string; message?: string; details?: string },
+  labels: Map<string, string>,
+): string {
+  if (error.code === FORBIDDEN) return "No tienes permiso para hacer esto.";
+  if (error.message?.includes("media_not_publishable")) {
+    const mediaId = error.details?.split(":")[0] ?? "";
+    return `${labels.get(mediaId) ?? "Una foto"} no se puede publicar todavía: revisa su descripción, las personas y sus autorizaciones.`;
+  }
+  if (error.message?.includes("activities_published_complete")) {
+    return "Faltan el lugar general o la categoría.";
+  }
+  return "No se pudo publicar. Vuelve a intentarlo.";
+}
+
+async function loadReview(activityId: string, publisher: boolean) {
+  const activity = await getActivityForWizard(activityId);
+  if (!activity || activity.inTrash) return null;
+  const photos = await getPhotosWithIssues(activity);
+  const review = reviewActivity(
+    {
+      placeId: activity.placeId,
+      categoryId: activity.categoryId,
+      photos: photos.map((photo) => ({
+        mediaId: photo.mediaId,
+        label: photo.label,
+        processing: photo.processingStatus !== "ready",
+        issues: photo.issues,
+      })),
+    },
+    publisher,
+  );
+  return { activity, review, labels: new Map(photos.map((photo) => [photo.mediaId, photo.label])) };
+}
+
+const firstProblems = (texts: string[]) =>
+  texts.length === 1 ? texts[0]! : `${texts[0]} (y ${texts.length - 1} punto(s) más).`;
+
+/** "Enviar a revisión": authors, with warnings allowed (docs/07 §6.5). */
+export async function submitForReview(activityId: string): Promise<PublishResult> {
+  const authorized = await authorizeAction("content.read");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+
+  const loaded = await loadReview(activityId, false);
+  if (!loaded) return { ok: false, error: "No se encontró la actividad." };
+  if (!loaded.review.canSubmit) {
+    const blocking = loaded.review.items.filter((item) => item.level === "error");
+    return { ok: false, error: firstProblems(blocking.map((item) => item.text)) };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("activities")
+    .update({ status: "review" })
+    .eq("id", activityId)
+    .eq("status", "draft")
+    .select("id");
+  if (error) return { ok: false, error: publishError(error, loaded.labels) };
+  if (data.length === 0) return { ok: false, error: "La actividad ya no es un borrador." };
+
+  revalidatePath(ACTIVITIES_PATH, "layout");
+  return { ok: true, outcome: "review" };
+}
+
+/**
+ * "Publicar ahora" or "Programar" (Colombian date and time): content.publish,
+ * nothing red. The database checks HU-06 and RN-A-02 again.
+ */
+export async function publishActivity(
+  activityId: string,
+  schedule?: { date: string; time: string },
+): Promise<PublishResult> {
+  const authorized = await authorizeAction("content.publish");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+
+  let publishedAt: string | null = null;
+  if (schedule) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(schedule.date) || !/^\d{2}:\d{2}$/.test(schedule.time)) {
+      return { ok: false, error: "Escribe la fecha y la hora de publicación." };
+    }
+    publishedAt = toBogotaInstant(schedule.date, schedule.time);
+    if (new Date(publishedAt).getTime() <= Date.now() + 60_000) {
+      return { ok: false, error: "La fecha de publicación programada debe ser futura." };
+    }
+  }
+
+  const loaded = await loadReview(activityId, true);
+  if (!loaded) return { ok: false, error: "No se encontró la actividad." };
+  if (!loaded.review.canPublish) {
+    const blocking = loaded.review.items.filter((item) => item.level === "error");
+    return { ok: false, error: firstProblems(blocking.map((item) => item.text)) };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("activities")
+    .update({ status: "published", published_at: publishedAt })
+    .eq("id", activityId)
+    .in("status", ["draft", "review"])
+    .select("id");
+  if (error) return { ok: false, error: publishError(error, loaded.labels) };
+  if (data.length === 0)
+    return { ok: false, error: "La actividad ya estaba publicada o archivada." };
+
+  revalidatePath(ACTIVITIES_PATH, "layout");
+  return { ok: true, outcome: schedule ? "scheduled" : "published" };
 }

@@ -6,9 +6,17 @@ import { z } from "zod";
 import { authorizePage } from "@/lib/auth/guard";
 import { hasPermission } from "@/lib/auth/rules";
 import { BasicsForm } from "@/modules/activities/components/basics-form";
+import { PeopleStep } from "@/modules/activities/components/people-step";
 import { PhotosStep } from "@/modules/activities/components/photos-step";
+import { ReviewStep } from "@/modules/activities/components/review-step";
 import { WizardSteps } from "@/modules/activities/components/wizard-steps";
-import { getActivityForWizard, listBasicsOptions } from "@/modules/activities/queries";
+import {
+  getActivityForWizard,
+  getPhotosWithIssues,
+  listBasicsOptions,
+} from "@/modules/activities/queries";
+import { reviewActivity } from "@/modules/activities/review";
+import { listConsentsForMedia } from "@/modules/consents";
 import {
   displayStatus,
   fromBogotaInstant,
@@ -68,11 +76,16 @@ export default async function EditActivityPage({
               <StepBasics activity={activity} />
             ) : step === 2 ? (
               <StepPhotos activity={activity} />
+            ) : step === 3 ? (
+              <StepPeople
+                activity={activity}
+                canManageConsents={hasPermission(profile, "consent.manage")}
+              />
             ) : (
-              <p className="text-ink-muted">
-                Este paso llega en la próxima actualización (personas en las fotos, revisar y
-                publicar). Mientras tanto la actividad queda guardada como borrador.
-              </p>
+              <StepReview
+                activity={activity}
+                publisher={hasPermission(profile, "content.publish")}
+              />
             )}
           </div>
         </>
@@ -125,6 +138,72 @@ async function StepPhotos({
         thumbnailUrl: byId.get(photo.mediaId)?.thumbnailUrl ?? null,
         processing: photo.processingStatus !== "ready",
       }))}
+    />
+  );
+}
+
+type WizardActivity = NonNullable<Awaited<ReturnType<typeof getActivityForWizard>>>;
+
+async function StepPeople({
+  activity,
+  canManageConsents,
+}: {
+  activity: WizardActivity;
+  canManageConsents: boolean;
+}) {
+  const [photos, cards] = await Promise.all([
+    getPhotosWithIssues(activity),
+    getMediaCards(activity.photos.map((photo) => photo.mediaId)),
+  ]);
+  const thumbnails = new Map(cards.map((card) => [card.id, card.thumbnailUrl]));
+  // Names in authorizations are personal data: only for consent.manage
+  const linked = canManageConsents
+    ? await Promise.all(photos.map((photo) => listConsentsForMedia(photo.mediaId)))
+    : photos.map(() => []);
+
+  return (
+    <PeopleStep
+      activityId={activity.id}
+      canManageConsents={canManageConsents}
+      photos={photos.map((photo, index) => ({
+        mediaId: photo.mediaId,
+        label: photo.label,
+        thumbnailUrl: thumbnails.get(photo.mediaId) ?? null,
+        people: photo.people,
+        issues: photo.issues,
+        linked: linked[index] ?? [],
+      }))}
+    />
+  );
+}
+
+async function StepReview({
+  activity,
+  publisher,
+}: {
+  activity: WizardActivity;
+  publisher: boolean;
+}) {
+  const photos = await getPhotosWithIssues(activity);
+  const review = reviewActivity(
+    {
+      placeId: activity.placeId,
+      categoryId: activity.categoryId,
+      photos: photos.map((photo) => ({
+        mediaId: photo.mediaId,
+        label: photo.label,
+        processing: photo.processingStatus !== "ready",
+        issues: photo.issues,
+      })),
+    },
+    publisher,
+  );
+  return (
+    <ReviewStep
+      activityId={activity.id}
+      items={review.items}
+      publisher={publisher}
+      status={activity.status}
     />
   );
 }

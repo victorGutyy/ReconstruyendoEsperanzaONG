@@ -68,28 +68,32 @@ export async function requestConsentDocumentUpload(input: {
  * stores it in the private consent-documents bucket and inserts the record
  * with the manager's session (RLS + audit with them as actor).
  */
-export async function createConsent(
-  _prev: ConsentFormState,
+/**
+ * Registers an authorization: re-encodes the uploaded form (no EXIF/GPS),
+ * stores it in the private consent-documents bucket and inserts the record
+ * with the manager's session (RLS + audit with them as actor).
+ * Call after authorizeAction('consent.manage').
+ */
+async function registerConsent(
   formData: FormData,
-): Promise<ConsentFormState> {
-  const authorized = await authorizeAction("consent.manage");
-  if (!authorized.ok) return { error: authorized.error };
-
+  activityId: string | null,
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const uploadId = idSchema.safeParse(formData.get("uploadId"));
-  if (!uploadId.success) return { error: "Adjunta la foto del formato firmado." };
+  if (!uploadId.success) return { ok: false, error: "Adjunta la foto del formato firmado." };
 
   const storage = supabasePrivateStorage();
   const incoming = consentPaths.incoming(uploadId.data);
   const documentPath = consentPaths.document(uploadId.data);
-  let recordId: string;
 
   try {
     // The browser checks the fields before uploading; this is the real check
     const fields = readConsentFields(formData);
-    if (!fields.success) return { error: firstIssue(fields.error.issues) };
+    if (!fields.success) return { ok: false, error: firstIssue(fields.error.issues) };
 
     const original = await storage.download("media-incoming", incoming);
-    if (!original) return { error: "No recibimos la foto del formato. Vuelve a adjuntarla." };
+    if (!original) {
+      return { ok: false, error: "No recibimos la foto del formato. Vuelve a adjuntarla." };
+    }
 
     const [version] = await processImage(original, { widths: DOCUMENT_WIDTHS });
     await storage.upload("consent-documents", documentPath, version!.data, "image/webp");
@@ -97,16 +101,17 @@ export async function createConsent(
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("consent_records")
-      .insert({ ...fields.data, document_path: documentPath })
+      .insert({ ...fields.data, document_path: documentPath, activity_id: activityId })
       .select("id")
       .single();
     if (error || !data) {
       await storage.remove("consent-documents", [documentPath]).catch(() => undefined);
-      return { error: "No se pudo registrar la autorización." };
+      return { ok: false, error: "No se pudo registrar la autorización." };
     }
-    recordId = data.id;
+    return { ok: true, id: data.id };
   } catch (error) {
     return {
+      ok: false,
       error:
         error instanceof ImageRejectedError
           ? "La foto del formato no es una imagen válida."
@@ -116,9 +121,53 @@ export async function createConsent(
     // The original photo of the form is never kept
     await storage.remove("media-incoming", [incoming]).catch(() => undefined);
   }
+}
+
+/** "Registrar autorización" page: registers it and opens its page. */
+export async function createConsent(
+  _prev: ConsentFormState,
+  formData: FormData,
+): Promise<ConsentFormState> {
+  const authorized = await authorizeAction("consent.manage");
+  if (!authorized.ok) return { error: authorized.error };
+
+  const result = await registerConsent(formData, null);
+  if (!result.ok) return { error: result.error };
 
   revalidatePath(CONSENTS_PATH, "layout");
-  redirect(`${CONSENTS_PATH}/${recordId}`);
+  redirect(`${CONSENTS_PATH}/${result.id}`);
+}
+
+/**
+ * From the activity wizard (docs/07 §6.5, step 3): registers an authorization
+ * signed for that activity and links it to the photo in one go.
+ */
+export async function createConsentForPhoto(
+  _prev: ConsentFormState,
+  formData: FormData,
+): Promise<ConsentFormState> {
+  const authorized = await authorizeAction("consent.manage");
+  if (!authorized.ok) return { error: authorized.error };
+
+  const mediaId = idSchema.safeParse(formData.get("mediaId"));
+  if (!mediaId.success) return { error: "Foto no válida." };
+  const activityId = idSchema.safeParse(formData.get("activityId"));
+
+  const result = await registerConsent(formData, activityId.success ? activityId.data : null);
+  if (!result.ok) return { error: result.error };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("media_consents")
+    .insert({ media_id: mediaId.data, consent_record_id: result.id });
+  revalidateLinks();
+  if (error) {
+    return {
+      error:
+        "La autorización quedó registrada, pero no se pudo vincular. Vincúlala con el buscador.",
+    };
+  }
+  return { notice: "Autorización registrada y vinculada a la foto.", done: true };
 }
 
 /** Fixes the text of an authorization; the signed form cannot be replaced. */

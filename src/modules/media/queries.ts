@@ -217,3 +217,8 @@ export async function getMediaCards(ids: string[]): Promise<MediaCard[]> {
     inTrash: row.deleted_at !== null,
   }));
 }
+
+/** What each photo still needs before it can be published (codes only). */
+export async function getPublishIssues(ids: string[]): Promise<Map<string, string[]>> {
+  return ids.length === 0 ? new Map() : publishStatus(ids);
+}
