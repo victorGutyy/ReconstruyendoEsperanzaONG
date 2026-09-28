@@ -99,24 +99,26 @@ select throws_ok(
 select set_config('request.jwt.claims',
   '{"sub":"eeeeeeee-0000-0000-0000-000000000002","role":"authenticated","aal":"aal2"}', true);
 select throws_ok(
-  $$ insert into public.consent_records (subject_name, is_minor, signer_type, scope_description,
-       granted_on, channel, form_version, document_path)
-     values ('[DEMO] Niño', true, 'self', 'Fotos', current_date, 'paper', 'v1', 'x.webp') $$,
+  $$ insert into public.consent_records (subject_name, is_minor, minor_opinion, signer_type,
+       scope_description, granted_on, channel, form_version, document_path)
+     values ('[DEMO] Niño', true, 'agrees', 'self', 'Fotos', current_date, 'paper', 'v1',
+             'x.webp') $$,
   '23514', null, 'a minor must be authorized by a legal guardian'
 );
 select throws_ok(
-  $$ insert into public.consent_records (subject_name, is_minor, signer_type, scope_description,
-       granted_on, channel, form_version, document_path)
-     values ('[DEMO] Niño', true, 'legal_guardian', 'Fotos', current_date, 'paper', 'v1', 'x.webp') $$,
+  $$ insert into public.consent_records (subject_name, is_minor, minor_opinion, signer_type,
+       scope_description, granted_on, channel, form_version, document_path)
+     values ('[DEMO] Niño', true, 'agrees', 'legal_guardian', 'Fotos', current_date, 'paper',
+             'v1', 'x.webp') $$,
   '23514', null, 'a legal guardian must be named'
 );
 select lives_ok(
-  $$ insert into public.consent_records (subject_name, is_minor, signer_type, signer_name,
-       scope_description, granted_on, channel, form_version, document_path)
-     values ('[DEMO] Ana', false, 'self', null, 'Fotos de la jornada', current_date, 'paper', 'v1',
-             'a.webp'),
-            ('[DEMO] Niño', true, 'legal_guardian', '[DEMO] Madre', 'Fotos de la jornada',
-             current_date, 'paper', 'v1', 'b.webp') $$,
+  $$ insert into public.consent_records (subject_name, is_minor, minor_opinion, signer_type,
+       signer_name, scope_description, granted_on, channel, form_version, document_path)
+     values ('[DEMO] Ana', false, null, 'self', null, 'Fotos de la jornada', current_date, 'paper',
+             'v1', 'a.webp'),
+            ('[DEMO] Niño', true, 'agrees', 'legal_guardian', '[DEMO] Madre',
+             'Fotos de la jornada', current_date, 'paper', 'v1', 'b.webp') $$,
   'an editor registers an adult and a minor authorization'
 );
 select set_config('request.jwt.claims', '', true);

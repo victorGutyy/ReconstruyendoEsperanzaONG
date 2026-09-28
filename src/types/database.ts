@@ -86,6 +86,7 @@ export type Database = {
           granted_on: string;
           id: string;
           is_minor: boolean;
+          minor_opinion: string | null;
           revocation_note: string | null;
           revoked_at: string | null;
           scope_description: string;
@@ -94,6 +95,7 @@ export type Database = {
           subject_name: string;
           updated_at: string;
           updated_by: string | null;
+          valid_until: string | null;
         };
         Insert: {
           channel: string;
@@ -105,6 +107,7 @@ export type Database = {
           granted_on: string;
           id?: string;
           is_minor: boolean;
+          minor_opinion?: string | null;
           revocation_note?: string | null;
           revoked_at?: string | null;
           scope_description: string;
@@ -113,6 +116,7 @@ export type Database = {
           subject_name: string;
           updated_at?: string;
           updated_by?: string | null;
+          valid_until?: string | null;
         };
         Update: {
           channel?: string;
@@ -124,6 +128,7 @@ export type Database = {
           granted_on?: string;
           id?: string;
           is_minor?: boolean;
+          minor_opinion?: string | null;
           revocation_note?: string | null;
           revoked_at?: string | null;
           scope_description?: string;
@@ -132,6 +137,7 @@ export type Database = {
           subject_name?: string;
           updated_at?: string;
           updated_by?: string | null;
+          valid_until?: string | null;
         };
         Relationships: [
           {
