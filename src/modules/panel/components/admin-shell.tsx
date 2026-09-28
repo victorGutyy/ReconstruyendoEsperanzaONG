@@ -35,11 +35,13 @@ export function AdminShell({
   items,
   user,
   signOut,
+  quickAction,
   children,
 }: {
   items: NavItem[];
   user: ShellUser;
   signOut: React.ReactNode;
+  quickAction?: { href: string; label: string };
   children: React.ReactNode;
 }) {
   return (
@@ -69,7 +71,11 @@ export function AdminShell({
         {children}
       </main>
 
-      <MobileBar items={items} footer={<Account user={user} signOut={signOut} />} />
+      <MobileBar
+        items={items}
+        quickAction={quickAction}
+        footer={<Account user={user} signOut={signOut} />}
+      />
     </div>
   );
 }

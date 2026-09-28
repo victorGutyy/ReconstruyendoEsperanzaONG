@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { isAuthError } from "@/lib/auth/errors";
-import { LOGIN_PATH, MFA_PATH } from "@/lib/auth/rules";
+import { hasPermission, LOGIN_PATH, MFA_PATH } from "@/lib/auth/rules";
 import { getCurrentProfile, requireAal2 } from "@/lib/auth/session";
 import { SignOutButton } from "@/modules/auth/components/sign-out-button";
 import { AdminShell } from "@/modules/panel/components/admin-shell";
@@ -28,6 +28,11 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         roleLabel: roleLabel(profile?.roleKey ?? null),
       }}
       signOut={<SignOutButton />}
+      quickAction={
+        hasPermission(profile, "content.create")
+          ? { href: "/admin/actividades/nueva", label: "Nueva actividad" }
+          : undefined
+      }
     >
       {children}
     </AdminShell>

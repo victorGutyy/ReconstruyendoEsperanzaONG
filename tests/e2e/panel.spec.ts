@@ -21,7 +21,7 @@ test("the menu shows the sections of the role and marks the current one", async 
 
   // Dashboard cards lead to the same sections
   const cards = page.getByRole("region", { name: "Secciones" });
-  await expect(cards.getByRole("link")).toHaveCount(5);
+  await expect(cards.getByRole("link")).toHaveCount(6);
 
   expect(
     (
@@ -34,6 +34,7 @@ test("the menu shows the sections of the role and marks the current one", async 
   const menu = await openPanelMenu(page);
   await expect(menu.getByRole("link")).toHaveText([
     "Inicio",
+    "Actividades",
     "Medios",
     "Autorizaciones",
     "Categorías y lugares",
@@ -71,9 +72,10 @@ test("an author sees a panel with Inicio and Medios only", async ({ page }) => {
   await signInEnrollingMfa(page, author);
 
   await expect(page.getByRole("region", { name: "Secciones" }).getByRole("link")).toHaveText([
+    /Actividades/,
     /Medios/,
   ]);
   const menu = await openPanelMenu(page);
-  await expect(menu.getByRole("link")).toHaveText(["Inicio", "Medios"]);
+  await expect(menu.getByRole("link")).toHaveText(["Inicio", "Actividades", "Medios"]);
   await expect(page.getByText("Autor", { exact: true }).filter({ visible: true })).toBeVisible();
 });

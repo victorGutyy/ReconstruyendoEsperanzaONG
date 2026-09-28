@@ -1,6 +1,17 @@
 "use client";
 
-import { History, House, Image, Menu, ShieldCheck, Tags, Users, X } from "lucide-react";
+import {
+  CalendarDays,
+  History,
+  House,
+  Image,
+  Menu,
+  Plus,
+  ShieldCheck,
+  Tags,
+  Users,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dialog } from "radix-ui";
@@ -12,6 +23,7 @@ import { isActivePath, type NavIcon, type NavItem } from "../navigation";
 
 const ICONS: Record<NavIcon, typeof House> = {
   home: House,
+  calendar: CalendarDays,
   image: Image,
   shield: ShieldCheck,
   tags: Tags,
@@ -62,7 +74,16 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
  * Phone bottom bar (docs/07 §6.6): Inicio and "Más", which opens the full menu
  * in a sheet. The frequent actions (new activity, messages) join as they exist.
  */
-export function MobileBar({ items, footer }: { items: NavItem[]; footer: React.ReactNode }) {
+export function MobileBar({
+  items,
+  footer,
+  quickAction,
+}: {
+  items: NavItem[];
+  footer: React.ReactNode;
+  /** Frequent action next to Inicio (docs/07 §6.6), e.g. "Nueva actividad". */
+  quickAction?: { href: string; label: string };
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const homeActive = isActivePath(pathname, "/admin");
@@ -84,6 +105,17 @@ export function MobileBar({ items, footer }: { items: NavItem[]; footer: React.R
           <House aria-hidden="true" className="size-5" />
           Inicio
         </Link>
+
+        {quickAction ? (
+          <Link
+            href={quickAction.href}
+            aria-current={isActivePath(pathname, quickAction.href) ? "page" : undefined}
+            className={cn(tab, "text-green-700")}
+          >
+            <Plus aria-hidden="true" className="size-5" />
+            {quickAction.label}
+          </Link>
+        ) : null}
 
         <Dialog.Root open={open} onOpenChange={setOpen}>
           <Dialog.Trigger className={cn(tab, "cursor-pointer text-ink-muted")}>

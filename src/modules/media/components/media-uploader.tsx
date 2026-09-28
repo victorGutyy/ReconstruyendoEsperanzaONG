@@ -34,7 +34,17 @@ const STATUS_TEXT: Record<Exclude<ItemStatus, "error">, string> = {
 const UNREADABLE =
   "Este navegador no pudo abrir la foto. Si es de iPhone (HEIC), envíala como JPEG o cambia en Ajustes › Cámara › Formatos a «Más compatible».";
 
-export function MediaUploader() {
+/**
+ * `onUploaded` runs after each photo is processed (e.g. to attach it to an
+ * activity); the photo is already in the library either way.
+ */
+export function MediaUploader({
+  onUploaded,
+  title = "Elegir fotos",
+}: {
+  onUploaded?: (mediaId: string) => Promise<string | null | void> | string | null | void;
+  title?: string;
+} = {}) {
   const inputId = useId();
   const [items, setItems] = useState<Item[]>([]);
   const running = useRef(0);
@@ -70,7 +80,13 @@ export function MediaUploader() {
 
         update(item.key, { status: "processing", progress: 100 });
         const result = await finishUpload(request.mediaId);
-        update(item.key, result.ok ? { status: "done" } : { status: "error", error: result.error });
+        if (!result.ok) return update(item.key, { status: "error", error: result.error });
+        // The caller may return an error message (e.g. could not attach it)
+        const attachError = onUploaded ? await onUploaded(request.mediaId) : null;
+        update(
+          item.key,
+          attachError ? { status: "error", error: attachError } : { status: "done" },
+        );
       } catch (error) {
         update(item.key, {
           status: "error",
@@ -81,7 +97,7 @@ export function MediaUploader() {
         });
       }
     },
-    [update],
+    [update, onUploaded],
   );
 
   // Starts queued uploads while fewer than CONCURRENCY are running; each one
@@ -134,7 +150,7 @@ export function MediaUploader() {
           className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-green-700/40 bg-card p-6 text-center focus-within:ring-2 focus-within:ring-ring hover:border-green-700"
         >
           <ImagePlus aria-hidden="true" className="size-8 text-green-700" />
-          <span className="font-semibold text-green-900">Elegir fotos</span>
+          <span className="font-semibold text-green-900">{title}</span>
           <span className="text-sm text-ink-muted">
             Desde la galería o la cámara. Se les quita la ubicación antes de guardarlas.
           </span>
