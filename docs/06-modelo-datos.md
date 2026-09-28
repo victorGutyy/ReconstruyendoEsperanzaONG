@@ -176,10 +176,12 @@ Todas incluyen las **columnas comunes** (§1.1).
 | `ends_at` | `timestamptz` | check `ends_at >= starts_at` |
 | `place_id` | `uuid` FK → `places` | |
 | `category_id` | `uuid` FK → `categories` (scope `activity`) | |
-| `project_id` | `uuid` FK → `projects`, nullable | |
+| `project_id` | `uuid` FK → `projects`, nullable | Se agrega en el paso 7.6, con la tabla `projects` |
 | `results` | `text` | Resultados reportados por la organización (sin cifras inventadas) |
 
-Regla RN-A-02 como `check`: si `status = 'published'` → `place_id` y `category_id` no nulos.
+Regla RN-A-02 como `check`: si `status = 'published'` → `place_id` y `category_id` no nulos. Un trigger exige además que la categoría sea de `scope = 'activity'`, pone `published_at = now()` si se publica sin fecha y **congela el `slug`** desde que la actividad tiene `published_at` (enlaces públicos estables).
+
+**`activity_media`** (paso 7.1): las fotos de la actividad, en orden (`id`, `activity_id`, `media_id`, `position`, `caption`), única por (`activity_id`, `media_id`). La foto no se puede borrar de verdad mientras esté en uso. **`activity_tags`**: (`id`, `activity_id`, `tag_id`). Ambas tienen `id` propio para la auditoría y las edita quien puede editar la actividad (`private.can_edit_activity`).
 
 ### `posts` — Historias/Blog (RF-A-04)
 | Columna | Tipo | Notas |
@@ -270,7 +272,7 @@ Checks: `is_minor → signer_type = 'legal_guardian'`; `signer_type = 'legal_gua
 **Columnas técnicas de `media`** (`processing_status`, `private_path`, `public_key`, `mime_type`, `width`, `height`, `bytes`): solo las escribe el servidor; la API no tiene permiso sobre ellas. Así nadie puede volver pública una foto desde el navegador. `uploaded_by` toma por defecto el usuario de la sesión, un trigger lo fuerza a ese valor y no cambia. El documento firmado (`document_path`) tampoco se puede reemplazar desde la API.
 
 ### `content_media_usages`
-Registra **dónde se usa cada imagen** (portada, galería o dentro del texto): `media_id`, `entity_type` (`activity`, `post`, …), `entity_id`, `usage` (`cover`, `body`, `gallery`, `photo`). La app lo actualiza al guardar.
+**Vista** (no tabla) que calcula **dónde se usa cada imagen** a partir de las referencias reales: `media_id`, `entity_type` (`activity`, …), `entity_id`, `usage` (`cover`, `gallery`, …). Decisión del paso 7.1: así nunca se desincroniza (antes estaba pensada como tabla que la app actualizaría). Cada tipo de contenido nuevo (7.6) agrega sus referencias a la vista. Se ejecuta con la RLS de quien consulta.
 
 Sirve para dos cosas:
 1. **Bloquear la publicación** si alguna imagen usada no es publicable.
@@ -415,7 +417,7 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 8 | `media_publish_status` | Pendientes de publicación por foto, solo códigos (paso 6.4) |
 | 9 | `media_publish_status_invoker` | La función anterior pasa a `security invoker` (lint 0029 del asesor) |
 | 10 | `consent_details` | `minor_opinion`, `valid_until` y regla de publicación que los tiene en cuenta (paso 6.5) |
-| 11 | `content` | Tablas de contenido, puentes, `content_media_usages`, `guard_content_changes`, trigger de publicabilidad |
+| 11 | `content_activities` | Estados de publicación, `guard_content_changes` (transiciones y permisos), bloqueo de publicación por fotos (HU-06), `activities`, `activity_media`, `activity_tags`, vista `content_media_usages`, `consent_records.activity_id` (paso 7.1). Los demás tipos de contenido llegan en el paso 7.6 |
 | 12 | `site` | `pages`, `site_settings`, `contact_messages` |
 | 13 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 

@@ -3,6 +3,189 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      activities: {
+        Row: {
+          body: Json | null;
+          body_text: string | null;
+          category_id: string | null;
+          cover_media_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ends_at: string | null;
+          id: string;
+          place_id: string | null;
+          published_at: string | null;
+          results: string | null;
+          seo_description: string | null;
+          seo_title: string | null;
+          slug: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["content_status"];
+          summary: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          body?: Json | null;
+          body_text?: string | null;
+          category_id?: string | null;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at?: string | null;
+          id?: string;
+          place_id?: string | null;
+          published_at?: string | null;
+          results?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          slug: string;
+          starts_at: string;
+          status?: Database["public"]["Enums"]["content_status"];
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: Json | null;
+          body_text?: string | null;
+          category_id?: string | null;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at?: string | null;
+          id?: string;
+          place_id?: string | null;
+          published_at?: string | null;
+          results?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          slug?: string;
+          starts_at?: string;
+          status?: Database["public"]["Enums"]["content_status"];
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "activities_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activities_cover_media_id_fkey";
+            columns: ["cover_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activities_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activities_place_id_fkey";
+            columns: ["place_id"];
+            isOneToOne: false;
+            referencedRelation: "places";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activities_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      activity_media: {
+        Row: {
+          activity_id: string;
+          caption: string | null;
+          created_at: string;
+          id: string;
+          media_id: string;
+          position: number;
+        };
+        Insert: {
+          activity_id: string;
+          caption?: string | null;
+          created_at?: string;
+          id?: string;
+          media_id: string;
+          position?: number;
+        };
+        Update: {
+          activity_id?: string;
+          caption?: string | null;
+          created_at?: string;
+          id?: string;
+          media_id?: string;
+          position?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "activity_media_activity_id_fkey";
+            columns: ["activity_id"];
+            isOneToOne: false;
+            referencedRelation: "activities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activity_media_media_id_fkey";
+            columns: ["media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      activity_tags: {
+        Row: {
+          activity_id: string;
+          id: string;
+          tag_id: string;
+        };
+        Insert: {
+          activity_id: string;
+          id?: string;
+          tag_id: string;
+        };
+        Update: {
+          activity_id?: string;
+          id?: string;
+          tag_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "activity_tags_activity_id_fkey";
+            columns: ["activity_id"];
+            isOneToOne: false;
+            referencedRelation: "activities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activity_tags_tag_id_fkey";
+            columns: ["tag_id"];
+            isOneToOne: false;
+            referencedRelation: "tags";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       audit_logs: {
         Row: {
           action: string;
@@ -77,6 +260,7 @@ export type Database = {
       };
       consent_records: {
         Row: {
+          activity_id: string | null;
           channel: string;
           created_at: string;
           created_by: string | null;
@@ -98,6 +282,7 @@ export type Database = {
           valid_until: string | null;
         };
         Insert: {
+          activity_id?: string | null;
           channel: string;
           created_at?: string;
           created_by?: string | null;
@@ -119,6 +304,7 @@ export type Database = {
           valid_until?: string | null;
         };
         Update: {
+          activity_id?: string | null;
           channel?: string;
           created_at?: string;
           created_by?: string | null;
@@ -140,6 +326,13 @@ export type Database = {
           valid_until?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "consent_records_activity_id_fkey";
+            columns: ["activity_id"];
+            isOneToOne: false;
+            referencedRelation: "activities";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "consent_records_created_by_fkey";
             columns: ["created_by"];
@@ -430,7 +623,15 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      content_media_usages: {
+        Row: {
+          entity_id: string | null;
+          entity_type: string | null;
+          media_id: string | null;
+          usage: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       media_publish_status: {
@@ -442,7 +643,7 @@ export type Database = {
       };
     };
     Enums: {
-      [_ in never]: never;
+      content_status: "draft" | "review" | "published" | "archived";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -553,6 +754,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      content_status: ["draft", "review", "published", "archived"],
+    },
   },
 } as const;
