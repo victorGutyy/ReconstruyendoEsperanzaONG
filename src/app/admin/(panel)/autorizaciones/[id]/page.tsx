@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { authorizePage } from "@/lib/auth/guard";
 import { EditConsentForm } from "@/modules/consents/components/edit-consent-form";
 import { RevokeConsentForm } from "@/modules/consents/components/revoke-consent-form";
-import { getConsent } from "@/modules/consents/queries";
+import { getConsent, listMediaIdsForConsent } from "@/modules/consents/queries";
 import {
   CHANNEL_LABELS,
   consentStatus,
@@ -15,6 +15,7 @@ import {
   SIGNER_LABELS,
   STATUS_LABELS,
 } from "@/modules/consents/schema";
+import { getMediaCards } from "@/modules/media/queries";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 
 export const metadata: Metadata = { title: "Autorización" };
@@ -41,6 +42,7 @@ export default async function ConsentPage({ params }: PageProps<"/admin/autoriza
   if (!consent) notFound();
 
   const status = consentStatus(consent);
+  const photos = await getMediaCards(await listMediaIdsForConsent(consent.id));
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -126,6 +128,41 @@ export default async function ConsentPage({ params }: PageProps<"/admin/autoriza
         <FileText aria-hidden="true" className="size-4" />
         Ver el formato firmado (se abre en otra pestaña; el enlace dura 5 minutos)
       </a>
+
+      <section aria-labelledby="photos-title" className="mt-10">
+        <h2 id="photos-title" className="mb-4 font-serif text-xl font-semibold text-green-900">
+          Fotos que cubre ({photos.length})
+        </h2>
+        {photos.length === 0 ? (
+          <p className="text-ink-muted">
+            Todavía no está vinculada a ninguna foto. Se vincula desde la ficha de cada foto, en
+            Medios.
+          </p>
+        ) : (
+          <ul aria-label="Fotos que cubre" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {photos.map((photo) => (
+              <li key={photo.id} className="overflow-hidden rounded-lg border bg-card">
+                <Link
+                  href={`/admin/medios/${photo.id}`}
+                  className="block outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <div className="flex aspect-[4/3] items-center justify-center bg-paper-2">
+                    {photo.thumbnailUrl ? (
+                      // Short-lived signed URL from a private bucket: next/image cannot cache it
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={photo.thumbnailUrl} alt="" className="size-full object-cover" />
+                    ) : null}
+                  </div>
+                  <span className="block p-2 text-sm">
+                    {photo.altText ?? "Foto sin descripción"}
+                    {photo.inTrash ? " (en la papelera)" : ""}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {consent.revokedAt ? null : (
         <>

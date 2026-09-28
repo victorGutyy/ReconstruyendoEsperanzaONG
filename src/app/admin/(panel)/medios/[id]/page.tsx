@@ -10,6 +10,8 @@ import { TrashMediaButton } from "@/modules/media/components/trash-media-button"
 import { describeIssues, PEOPLE_LABELS } from "@/modules/media/library";
 import { getMediaDetail } from "@/modules/media/queries";
 import { mediaIdSchema } from "@/modules/media/schema";
+import { MediaConsentsPanel } from "@/modules/consents/components/media-consents-panel";
+import { listConsentsForMedia } from "@/modules/consents/queries";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 
 export const metadata: Metadata = { title: "Foto" };
@@ -34,6 +36,10 @@ export default async function MediaDetailPage({ params }: PageProps<"/admin/medi
   const canEdit =
     !media.inTrash && (media.isMine || hasPermission(authorized.profile, "media.update"));
   const issues = describeIssues(media.issues.filter((code) => code !== "in_trash"));
+  // Names of the people are personal data: only consent.manage sees and links them
+  const canManageConsents = hasPermission(authorized.profile, "consent.manage");
+  const linkedConsents =
+    canManageConsents && !media.inTrash ? await listConsentsForMedia(media.id) : [];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -138,6 +144,10 @@ export default async function MediaDetailPage({ params }: PageProps<"/admin/medi
               )}
             </dl>
           )}
+
+          {canManageConsents && !media.inTrash && media.status === "ready" ? (
+            <MediaConsentsPanel mediaId={media.id} linked={linkedConsents} />
+          ) : null}
 
           {canEdit ? <TrashMediaButton id={media.id} /> : null}
         </div>

@@ -180,3 +180,40 @@ export async function getMediaDetail(id: string, userId: string): Promise<MediaD
     issues: statuses.get(row.id) ?? [],
   };
 }
+
+export type MediaCard = {
+  id: string;
+  altText: string | null;
+  thumbnailUrl: string | null;
+  inTrash: boolean;
+};
+
+/**
+ * Small cards for photos listed elsewhere (e.g. the photos an authorization
+ * covers), read through RLS. Call after the page checked its permission.
+ */
+export async function getMediaCards(ids: string[]): Promise<MediaCard[]> {
+  if (ids.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("media")
+    .select("id, alt_text, processing_status, deleted_at")
+    .in("id", ids)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  const urls = await supabasePrivateStorage().signedUrls(
+    "media-private",
+    data
+      .filter((row) => row.processing_status === "ready")
+      .map((row) => mediaPaths.variant(row.id, "sm")),
+    IMAGE_URL_SECONDS,
+  );
+
+  return data.map((row) => ({
+    id: row.id,
+    altText: row.alt_text,
+    thumbnailUrl: urls.get(mediaPaths.variant(row.id, "sm")) ?? null,
+    inTrash: row.deleted_at !== null,
+  }));
+}
