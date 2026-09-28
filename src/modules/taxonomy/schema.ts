@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { slugify } from "@/lib/utils/slug";
+
 // Places, categories and tags (docs/06 §4). Pure: unit-tested in schema.test.ts.
 
 export const PLACE_KINDS = ["municipality", "neighborhood", "vereda", "sector", "other"] as const;
@@ -21,23 +23,8 @@ export const CATEGORY_SCOPE_LABELS: Record<CategoryScope, string> = {
   post: "Categorías de historias",
 };
 
-const SLUG_MAX = 80;
-
-/**
- * "Barrio La Ñ" → "barrio-la-n". Accents and ñ become plain letters, anything
- * else becomes a hyphen. Returns "" when the name has no letters or numbers.
- */
-export function slugify(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, SLUG_MAX)
-    .replace(/-+$/, "");
-}
-
+// Shared with content (activities): lives in lib now
+export { slugify } from "@/lib/utils/slug";
 const nameField = z
   .string()
   .trim()

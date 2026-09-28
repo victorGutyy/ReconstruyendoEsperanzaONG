@@ -8,9 +8,17 @@ const labels = (permissions: string[], isActive = true) =>
 describe("navFor", () => {
   it("shows every existing section to an admin", () => {
     expect(
-      labels(["media.upload", "consent.manage", "taxonomy.manage", "users.manage", "audit.read"]),
+      labels([
+        "content.read",
+        "media.upload",
+        "consent.manage",
+        "taxonomy.manage",
+        "users.manage",
+        "audit.read",
+      ]),
     ).toEqual([
       "Inicio",
+      "Actividades",
       "Medios",
       "Autorizaciones",
       "Categorías y lugares",
@@ -22,6 +30,7 @@ describe("navFor", () => {
   it("shows authorizations and the taxonomy to an editor, but not users or audit", () => {
     expect(labels(["content.read", "media.upload", "taxonomy.manage", "consent.manage"])).toEqual([
       "Inicio",
+      "Actividades",
       "Medios",
       "Autorizaciones",
       "Categorías y lugares",
@@ -31,6 +40,7 @@ describe("navFor", () => {
   it("shows Inicio and Medios to an author", () => {
     expect(labels(["content.read", "content.create", "media.upload"])).toEqual([
       "Inicio",
+      "Actividades",
       "Medios",
     ]);
   });

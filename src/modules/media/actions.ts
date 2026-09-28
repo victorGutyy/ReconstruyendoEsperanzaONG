@@ -257,3 +257,68 @@ export async function trashMedia(
   revalidateMedia();
   return { notice: "Foto enviada a la papelera." };
 }
+
+/**
+ * Only the description of a photo (used inline while publishing an
+ * activity). RLS: the uploader or media.update.
+ */
+export async function updateMediaDescription(
+  mediaId: string,
+  altText: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const authorized = await authorizeAction("media.upload");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+
+  const parsed = updateMediaSchema
+    .pick({ id: true, altText: true })
+    .safeParse({ id: mediaId, altText });
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Revisa la descripción." };
+  }
+
+  const limited = await limitPanelAction(authorized.auth.user.id);
+  if (limited) return { ok: false, error: limited };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("media")
+    .update({ alt_text: parsed.data.altText })
+    .eq("id", parsed.data.id)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return { ok: false, error: "No se pudo guardar la descripción." };
+  if (data.length === 0) return { ok: false, error: "No tienes permiso para editar esta foto." };
+
+  revalidateMedia();
+  return { ok: true };
+}
+
+/** Whether each photo appears in people's photos (step 3 of publishing, 7.3b). */
+export async function updateMediaPeople(
+  mediaId: string,
+  people: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const authorized = await authorizeAction("media.upload");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+
+  const parsed = updateMediaSchema
+    .pick({ id: true, people: true })
+    .safeParse({ id: mediaId, people });
+  if (!parsed.success) return { ok: false, error: "Elige una opción válida." };
+
+  const limited = await limitPanelAction(authorized.auth.user.id);
+  if (limited) return { ok: false, error: limited };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("media")
+    .update({ people_in_photo: parsed.data.people })
+    .eq("id", parsed.data.id)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return { ok: false, error: "No se pudo guardar." };
+  if (data.length === 0) return { ok: false, error: "No tienes permiso para editar esta foto." };
+
+  revalidateMedia();
+  return { ok: true };
+}
