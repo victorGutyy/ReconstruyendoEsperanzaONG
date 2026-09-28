@@ -98,12 +98,12 @@ La interfaz **oculta** botones sin permiso, pero eso es comodidad, no seguridad.
 | Redirecciones abiertas | Parámetros como `?next=` solo aceptan rutas internas que empiezan con `/` |
 
 ### 6.1 Archivos e imágenes
-1. Tipos permitidos: JPEG, PNG, WebP, HEIC/HEIF. **Nunca SVG** (puede contener código) ni otros formatos.
+1. Tipos permitidos en el servidor: JPEG, PNG y WebP. **Nunca SVG** (puede contener código) ni otros formatos. Las fotos HEIC/HEIF de iPhone las convierte el **navegador** a JPEG antes de subirlas (sharp estándar no lee HEIC); si el navegador no puede abrirlas, la persona recibe un mensaje con qué hacer (decisión del 27-sep-2026).
 2. Se valida la **firma binaria** (los primeros bytes del archivo), no la extensión ni el tipo que declara el navegador.
 3. Tamaño máximo por archivo (15 MB antes de reducción) y dimensiones máximas (evita "bombas" de descompresión).
 4. **Re-codificación con sharp**: genera archivos nuevos, eliminando EXIF/GPS y cualquier contenido oculto.
 5. Nombres **UUID** generados por el servidor; el nombre original no se usa en rutas.
-6. URLs de subida firmadas, de un solo uso y 60 s de vida, al bucket de entrada (privado).
+6. URLs de subida firmadas al bucket de entrada (privado): valen para **una sola ruta** (el UUID que genera el servidor) y **un solo archivo** (no se puede sobrescribir). Supabase fija su vigencia en **2 horas** y no se puede acortar (medido el 27-sep-2026); lo compensan: la URL solo se entrega después de verificar permiso, MFA y el límite de 60 subidas por hora; solo la conoce quien sube; y el servidor valida y re-codifica todo lo que llega y borra el original.
 7. Buckets de Storage **privados** con políticas; R2 solo recibe versiones procesadas de contenido publicado.
 
 ## 7. Rate limiting (límite de intentos)

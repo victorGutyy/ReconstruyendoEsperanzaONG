@@ -265,7 +265,7 @@ Checks: `is_minor → signer_type = 'legal_guardian'`; `signer_type = 'legal_gua
 ### `media_consents`
 `id` propio (la auditoría necesita un id por fila) + `unique (media_id, consent_record_id)`. Una foto puede requerir varias autorizaciones (varias personas) y una autorización cubrir varias fotos.
 
-**Columnas técnicas de `media`** (`processing_status`, `private_path`, `public_key`, `mime_type`, `width`, `height`, `bytes`): solo las escribe el servidor; la API no tiene permiso sobre ellas. Así nadie puede volver pública una foto desde el navegador. `uploaded_by` lo pone un trigger con el usuario de la sesión y no cambia. El documento firmado (`document_path`) tampoco se puede reemplazar desde la API.
+**Columnas técnicas de `media`** (`processing_status`, `private_path`, `public_key`, `mime_type`, `width`, `height`, `bytes`): solo las escribe el servidor; la API no tiene permiso sobre ellas. Así nadie puede volver pública una foto desde el navegador. `uploaded_by` toma por defecto el usuario de la sesión, un trigger lo fuerza a ese valor y no cambia. El documento firmado (`document_path`) tampoco se puede reemplazar desde la API.
 
 ### `content_media_usages`
 Registra **dónde se usa cada imagen** (portada, galería o dentro del texto): `media_id`, `entity_type` (`activity`, `post`, …), `entity_id`, `usage` (`cover`, `body`, `gallery`, `photo`). La app lo actualiza al guardar.
@@ -409,10 +409,10 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 4 | `profiles_email` | Copia del correo en `profiles` (paso 5.6) |
 | 5 | `taxonomy` | `categories`, `tags`, `places` (paso 6.1) |
 | 6 | `media_and_consents` | `media`, `consent_records`, `media_consents`, `media_is_publishable` |
-| 7 | `content` | Tablas de contenido, puentes, `content_media_usages`, `guard_content_changes`, trigger de publicabilidad |
-| 8 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 9 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
-| 10 | `storage` | Buckets y políticas de Storage |
+| 7 | `media_uploader_default` | `media.uploaded_by` toma por defecto `auth.uid()` (paso 6.3) |
+| 8 | `content` | Tablas de contenido, puentes, `content_media_usages`, `guard_content_changes`, trigger de publicabilidad |
+| 9 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 10 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 

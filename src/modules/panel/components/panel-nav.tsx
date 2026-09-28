@@ -1,6 +1,6 @@
 "use client";
 
-import { History, House, Menu, Tags, Users, X } from "lucide-react";
+import { History, House, Image, Menu, Tags, Users, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dialog } from "radix-ui";
@@ -12,6 +12,7 @@ import { isActivePath, type NavIcon, type NavItem } from "../navigation";
 
 const ICONS: Record<NavIcon, typeof House> = {
   home: House,
+  image: Image,
   tags: Tags,
   users: Users,
   history: History,

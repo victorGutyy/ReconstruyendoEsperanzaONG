@@ -24,4 +24,5 @@ export const RATE_LIMITS = {
   passwordRecovery: { name: "password-recovery", limit: 3, windowSeconds: 60 * 60 },
   userInvites: { name: "user-invites", limit: 20, windowSeconds: 60 * 60 },
   panelActions: { name: "panel-actions", limit: 120, windowSeconds: 60 },
+  mediaUploads: { name: "media-uploads", limit: 60, windowSeconds: 60 * 60 },
 } as const satisfies Record<string, RateLimitRule>;

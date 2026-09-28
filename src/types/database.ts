@@ -184,7 +184,7 @@ export type Database = {
           processing_status?: string;
           public_key?: string | null;
           updated_at?: string;
-          uploaded_by: string;
+          uploaded_by?: string;
           width?: number | null;
         };
         Update: {
