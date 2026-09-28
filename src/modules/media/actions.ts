@@ -9,6 +9,7 @@ import { supabasePrivateStorage } from "@/lib/storage/supabase";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+import { type MediaFormState, updateMediaSchema } from "./library";
 import {
   mediaIdSchema,
   mediaPaths,
@@ -131,7 +132,7 @@ export async function finishUpload(mediaId: string): Promise<UploadResult> {
       .eq("id", media.id);
     if (error) throw error;
 
-    revalidatePath(MEDIA_PATH);
+    revalidateMedia();
     return { ok: true };
   } catch (error) {
     await markFailed(media.id);
@@ -173,6 +174,86 @@ export async function discardUpload(mediaId: string): Promise<UploadResult> {
     .remove("media-incoming", [mediaPaths.incoming(id.data)])
     .catch(() => undefined);
 
-  revalidatePath(MEDIA_PATH);
+  revalidateMedia();
   return { ok: true };
+}
+
+/** Library and photo pages both depend on the photo rows. */
+function revalidateMedia() {
+  revalidatePath(MEDIA_PATH, "layout");
+}
+
+async function limitPanelAction(userId: string): Promise<string | null> {
+  const attempt = await getRateLimiter().limit(RATE_LIMITS.panelActions, rateLimitKey(userId));
+  return attempt.success ? null : "Demasiadas acciones seguidas. Espera un momento.";
+}
+
+/**
+ * Saves the descriptive fields of a photo. RLS lets the uploader or media.update
+ * write them (docs/06 §10); for anyone else no row changes and we say so.
+ */
+export async function updateMedia(
+  _prev: MediaFormState,
+  formData: FormData,
+): Promise<MediaFormState> {
+  const authorized = await authorizeAction("media.upload");
+  if (!authorized.ok) return { error: authorized.error };
+
+  const parsed = updateMediaSchema.safeParse({
+    id: formData.get("id"),
+    altText: formData.get("altText") ?? "",
+    caption: formData.get("caption") ?? "",
+    credit: formData.get("credit") ?? "",
+    people: formData.get("people"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Revisa los datos." };
+
+  const limited = await limitPanelAction(authorized.auth.user.id);
+  if (limited) return { error: limited };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("media")
+    .update({
+      alt_text: parsed.data.altText,
+      caption: parsed.data.caption,
+      credit: parsed.data.credit,
+      people_in_photo: parsed.data.people,
+    })
+    .eq("id", parsed.data.id)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return { error: "No se pudieron guardar los cambios." };
+  if (data.length === 0) return { error: "No tienes permiso para editar esta foto." };
+
+  revalidateMedia();
+  return { notice: "Cambios guardados." };
+}
+
+/** Soft delete: the files stay until the trash is emptied (F7, trash.purge). */
+export async function trashMedia(
+  _prev: MediaFormState,
+  formData: FormData,
+): Promise<MediaFormState> {
+  const authorized = await authorizeAction("media.upload");
+  if (!authorized.ok) return { error: authorized.error };
+
+  const id = mediaIdSchema.safeParse(formData.get("id"));
+  if (!id.success) return { error: "Foto no válida." };
+
+  const limited = await limitPanelAction(authorized.auth.user.id);
+  if (limited) return { error: limited };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("media")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id.data)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return { error: "No se pudo enviar a la papelera." };
+  if (data.length === 0) return { error: "No tienes permiso para enviar esta foto a la papelera." };
+
+  revalidateMedia();
+  return { notice: "Foto enviada a la papelera." };
 }

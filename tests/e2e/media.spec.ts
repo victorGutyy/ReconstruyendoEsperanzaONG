@@ -60,9 +60,11 @@ test("an author uploads a photo and it is stored without location or metadata", 
     { timeout: 20_000 },
   );
 
-  // It appears among the person's recent photos, with a thumbnail
-  const recent = page.getByRole("list", { name: "Mis fotos recientes" });
-  await expect(recent.getByRole("img")).toHaveCount(1);
+  // It appears in the library among the person's photos, with a thumbnail
+  await page.getByRole("link", { name: "Subidas por mí" }).click();
+  const library = page.getByRole("list", { name: "Biblioteca de fotos" });
+  await expect(library.getByRole("link", { name: /^Abrir:/ })).toHaveCount(1);
+  await expect(library.locator("img")).toHaveCount(1);
 
   // What was stored: three WebP sizes without EXIF/GPS, and no original left
   const admin = adminClient();

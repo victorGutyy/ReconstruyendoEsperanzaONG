@@ -53,6 +53,8 @@ type SectionConfig = {
   singular: string;
   /** Column that names the record in the list. */
   nameField: string;
+  /** Shown when that column is empty (default: "<singular> sin nombre"). */
+  untitled?: string;
   fields: ReadonlyArray<{ key: string; label: string; kind: FieldKind }>;
 };
 
@@ -109,6 +111,34 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "position", label: "Orden", kind: TEXT },
     ],
   },
+  // Photos: descriptive fields only, never storage paths or keys
+  media: {
+    label: "Fotos",
+    singular: "Foto",
+    nameField: "alt_text",
+    untitled: "Foto sin descripción",
+    fields: [
+      { key: "alt_text", label: "Descripción", kind: TEXT },
+      {
+        key: "people_in_photo",
+        label: "¿Personas?",
+        kind: {
+          type: "enum",
+          labels: { none: "No", identifiable: "Sí, adultos", minors: "Sí, hay menores" },
+        },
+      },
+      { key: "caption", label: "Pie de foto", kind: TEXT },
+      { key: "credit", label: "Crédito", kind: TEXT },
+      {
+        key: "processing_status",
+        label: "Procesamiento",
+        kind: {
+          type: "enum",
+          labels: { processing: "En proceso", ready: "Lista", failed: "Falló" },
+        },
+      },
+    ],
+  },
   tags: {
     label: "Etiquetas",
     singular: "Etiqueta",
@@ -145,7 +175,7 @@ export function recordLabel(entry: AuditEntry): string {
   const name = entry.newData?.[section.nameField] ?? entry.oldData?.[section.nameField];
   return typeof name === "string" && name.trim() !== ""
     ? `${section.singular}: ${truncate(name)}`
-    : `${section.singular} sin nombre`;
+    : (section.untitled ?? `${section.singular} sin nombre`);
 }
 
 function truncate(text: string): string {

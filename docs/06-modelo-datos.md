@@ -285,7 +285,7 @@ media_is_publishable(m) =
            y, si people_in_photo = 'minors', firmada por representante legal )
 ```
 
-Implementada en `private.media_publish_issues(media_id)` (devuelve los pendientes: `in_trash`, `not_processed`, `missing_alt_text`, `people_unclassified`, `missing_consent`, `missing_guardian_consent`; vacío = publicable) y `private.media_is_publishable(media_id)` (paso 6.2). Son `security definer` porque deben ver las autorizaciones aunque quien pregunta no pueda (un Autor que envía a revisión con avisos), y solo devuelven códigos, nunca datos personales.
+Implementada en `private.media_publish_issues(media_id)` (devuelve los pendientes: `in_trash`, `not_processed`, `missing_alt_text`, `people_unclassified`, `missing_consent`, `missing_guardian_consent`; vacío = publicable) y `private.media_is_publishable(media_id)` (paso 6.2). Para el panel, `public.media_publish_status(ids[])` (paso 6.4) devuelve esos códigos por foto a cualquier miembro con MFA y `content.read`: así un Autor sabe que a su foto le falta una autorización sin poder leer las autorizaciones (máx. 500 fotos por llamada). Se ejecuta con los permisos de quien llama (`security invoker`, la RLS de `media` decide qué fotos puede consultar); solo la función interna de `private`, que la API no expone, lee las autorizaciones. Son `security definer` porque deben ver las autorizaciones aunque quien pregunta no pueda (un Autor que envía a revisión con avisos), y solo devuelven códigos, nunca datos personales.
 
 Un **trigger** en cada tabla de contenido la evalúa para todas sus imágenes cuando el estado pasa a `published`, y rechaza la operación indicando qué imagen falla (HU-06). Está en la base de datos, así que ni un error en la app puede saltársela.
 
@@ -410,9 +410,11 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 5 | `taxonomy` | `categories`, `tags`, `places` (paso 6.1) |
 | 6 | `media_and_consents` | `media`, `consent_records`, `media_consents`, `media_is_publishable` |
 | 7 | `media_uploader_default` | `media.uploaded_by` toma por defecto `auth.uid()` (paso 6.3) |
-| 8 | `content` | Tablas de contenido, puentes, `content_media_usages`, `guard_content_changes`, trigger de publicabilidad |
-| 9 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 10 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 8 | `media_publish_status` | Pendientes de publicación por foto, solo códigos (paso 6.4) |
+| 9 | `media_publish_status_invoker` | La función anterior pasa a `security invoker` (lint 0029 del asesor) |
+| 10 | `content` | Tablas de contenido, puentes, `content_media_usages`, `guard_content_changes`, trigger de publicabilidad |
+| 11 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 12 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 
