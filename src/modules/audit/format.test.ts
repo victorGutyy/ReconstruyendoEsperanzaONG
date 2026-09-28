@@ -191,3 +191,32 @@ describe("taxonomy sections", () => {
     expect(result).toEqual({ changes: [], hidden: 1 });
   });
 });
+
+describe("media section", () => {
+  it("names a photo by its description and shows the people choice in Spanish", () => {
+    const photo = entry({
+      tableName: "media",
+      oldData: { alt_text: null, people_in_photo: null, private_path: "x" },
+      newData: { alt_text: "Árboles", people_in_photo: "identifiable", private_path: "x" },
+      changedFields: ["alt_text", "people_in_photo"],
+    });
+    expect(recordLabel(photo)).toBe("Foto: Árboles");
+    expect(describeChanges(photo, lookups).changes).toEqual([
+      { field: "alt_text", label: "Descripción", before: "—", after: "Árboles" },
+      { field: "people_in_photo", label: "¿Personas?", before: "—", after: "Sí, adultos" },
+    ]);
+  });
+
+  it("calls a photo without description by that name and never shows file paths", () => {
+    const processed = entry({
+      tableName: "media",
+      oldData: { alt_text: null, processing_status: "processing", private_path: null },
+      newData: { alt_text: null, processing_status: "ready", private_path: "abc" },
+      changedFields: ["private_path", "processing_status"],
+    });
+    expect(recordLabel(processed)).toBe("Foto sin descripción");
+    const result = describeChanges(processed, lookups);
+    expect(result.changes.map((change) => change.field)).toEqual(["processing_status"]);
+    expect(result.hidden).toBe(1);
+  });
+});

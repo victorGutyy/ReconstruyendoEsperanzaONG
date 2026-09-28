@@ -427,7 +427,13 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      media_publish_status: {
+        Args: { p_media_ids: string[] };
+        Returns: {
+          issues: string[];
+          media_id: string;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;
