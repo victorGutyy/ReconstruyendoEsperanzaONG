@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fitWithin } from "./prepare";
+import { fitWithin } from "@/lib/images/browser";
 import { MAX_UPLOAD_BYTES, mediaPaths, rejectionMessage, requestUploadSchema } from "./schema";
 
 describe("requestUploadSchema", () => {

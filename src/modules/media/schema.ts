@@ -5,8 +5,6 @@ import { z } from "zod";
 /** The browser always sends a JPEG it re-encoded; PNG/WebP are accepted too. */
 export const UPLOAD_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
-/** Longest side the phone reduces the photo to before uploading. */
-export const CLIENT_MAX_DIMENSION = 2560;
 
 export const requestUploadSchema = z.object({
   type: z.enum(UPLOAD_TYPES),

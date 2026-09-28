@@ -2,7 +2,8 @@
 // rotation, reduces the photo to CLIENT_MAX_DIMENSION and re-encodes it as
 // JPEG. It saves mobile data and converts formats the server does not accept
 // (e.g. HEIC in Safari). The server still validates and re-encodes everything.
-import { CLIENT_MAX_DIMENSION } from "./schema";
+/** Longest side a photo is reduced to in the browser before uploading. */
+export const CLIENT_MAX_DIMENSION = 2560;
 
 export class UnreadablePhotoError extends Error {
   constructor() {

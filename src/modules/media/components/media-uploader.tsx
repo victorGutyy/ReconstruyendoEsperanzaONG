@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getPublicEnv } from "@/lib/env/public";
 
 import { discardUpload, finishUpload, requestUpload } from "../actions";
-import { preparePhoto, UnreadablePhotoError, uploadWithProgress } from "../prepare";
+import { preparePhoto, UnreadablePhotoError, uploadWithProgress } from "@/lib/images/browser";
 
 type ItemStatus = "waiting" | "preparing" | "uploading" | "processing" | "done" | "error";
 

@@ -248,11 +248,13 @@ No se guarda el nombre original del archivo ni ningún metadato EXIF.
 | `id` | `uuid` PK | |
 | `subject_name` | `text` not null | Persona que aparece |
 | `is_minor` | `boolean` not null | |
+| `minor_opinion` | `text` check (`agrees`, `disagrees`, `not_applicable`) | Solo menores, obligatoria para ellos (`09` §4.1). Con `disagrees` la autorización **no sirve** para publicar aunque el representante haya firmado (paso 6.5) |
 | `signer_type` | `text` check (`self`, `legal_guardian`) | |
 | `signer_name` | `text` | Obligatorio si `legal_guardian` |
 | `scope_description` | `text` not null | Qué cubre (p. ej. "fotos de la jornada del 12/03/2026") |
 | `activity_id` | `uuid` FK nullable | Se agrega en la F7, con la tabla `activities` |
 | `granted_on` | `date` not null | |
+| `valid_until` | `date`, nullable | Vencimiento escrito en el formato (`09` §4.3); después de esa fecha (hora de Colombia) deja de contar. No puede ser anterior a `granted_on` |
 | `channel` | `text` check (`paper`, `digital`) | |
 | `form_version` | `text` not null | Versión del formato firmado |
 | `document_path` | `text` not null | Escaneo/foto del formato firmado en bucket **privado** |
@@ -412,9 +414,10 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 7 | `media_uploader_default` | `media.uploaded_by` toma por defecto `auth.uid()` (paso 6.3) |
 | 8 | `media_publish_status` | Pendientes de publicación por foto, solo códigos (paso 6.4) |
 | 9 | `media_publish_status_invoker` | La función anterior pasa a `security invoker` (lint 0029 del asesor) |
-| 10 | `content` | Tablas de contenido, puentes, `content_media_usages`, `guard_content_changes`, trigger de publicabilidad |
-| 11 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 12 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 10 | `consent_details` | `minor_opinion`, `valid_until` y regla de publicación que los tiene en cuenta (paso 6.5) |
+| 11 | `content` | Tablas de contenido, puentes, `content_media_usages`, `guard_content_changes`, trigger de publicabilidad |
+| 12 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 13 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 

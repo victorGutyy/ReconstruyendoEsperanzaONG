@@ -2,7 +2,7 @@
 
 import { ADMIN_HOME, hasPermission, type Permission, type ProfileAccess } from "@/lib/auth/rules";
 
-export type NavIcon = "home" | "image" | "tags" | "users" | "history";
+export type NavIcon = "home" | "image" | "shield" | "tags" | "users" | "history";
 
 export type NavItem = {
   href: string;
@@ -29,6 +29,13 @@ export const PANEL_NAV: readonly NavItem[] = [
     description: "Subir fotos desde el celular, sin ubicación ni datos ocultos.",
     icon: "image",
     permission: "media.upload",
+  },
+  {
+    href: "/admin/autorizaciones",
+    label: "Autorizaciones",
+    description: "Autorizaciones firmadas de uso de imagen: registrar, consultar y revocar.",
+    icon: "shield",
+    permission: "consent.manage",
   },
   {
     href: "/admin/categorias-y-lugares",
