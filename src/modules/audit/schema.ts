@@ -30,6 +30,8 @@ export const AUDIT_SECTIONS = [
   "activity_tags",
   "posts",
   "projects",
+  "galleries",
+  "gallery_items",
 ] as const;
 export type AuditSection = (typeof AUDIT_SECTIONS)[number];
 

@@ -302,6 +302,44 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "review_note", label: "Nota de revisión", kind: TEXT },
     ],
   },
+  galleries: {
+    label: "Galerías",
+    singular: "Galería",
+    nameField: "title",
+    fields: [
+      { key: "title", label: "Título", kind: TEXT },
+      {
+        key: "status",
+        label: "Estado",
+        kind: {
+          type: "enum",
+          labels: {
+            draft: "Borrador",
+            review: "En revisión",
+            published: "Publicada",
+            archived: "Archivada",
+          },
+        },
+      },
+      { key: "published_at", label: "Fecha de publicación", kind: DATETIME },
+      { key: "description", label: "Descripción", kind: TEXT },
+      { key: "activity_id", label: "De una actividad", kind: { type: "present" } },
+      { key: "project_id", label: "De un proyecto", kind: { type: "present" } },
+      { key: "slug", label: "Slug", kind: TEXT },
+      { key: "cover_media_id", label: "Tiene portada", kind: { type: "present" } },
+      { key: "review_note", label: "Nota de revisión", kind: TEXT },
+    ],
+  },
+  gallery_items: {
+    label: "Fotos de galerías",
+    singular: "Foto de galería",
+    nameField: "__none__",
+    untitled: "Foto de una galería",
+    fields: [
+      { key: "position", label: "Orden", kind: TEXT },
+      { key: "caption", label: "Pie de foto", kind: TEXT },
+    ],
+  },
   activity_media: {
     label: "Fotos de actividades",
     singular: "Foto de actividad",

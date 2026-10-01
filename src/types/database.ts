@@ -375,6 +375,157 @@ export type Database = {
           },
         ];
       };
+      galleries: {
+        Row: {
+          activity_id: string | null;
+          cover_media_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          id: string;
+          project_id: string | null;
+          published_at: string | null;
+          review_note: string | null;
+          review_note_at: string | null;
+          review_note_by: string | null;
+          seo_description: string | null;
+          seo_title: string | null;
+          slug: string;
+          status: Database["public"]["Enums"]["content_status"];
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          activity_id?: string | null;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          project_id?: string | null;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          slug: string;
+          status?: Database["public"]["Enums"]["content_status"];
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          activity_id?: string | null;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          project_id?: string | null;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          slug?: string;
+          status?: Database["public"]["Enums"]["content_status"];
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "galleries_activity_id_fkey";
+            columns: ["activity_id"];
+            isOneToOne: false;
+            referencedRelation: "activities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "galleries_cover_media_id_fkey";
+            columns: ["cover_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "galleries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "galleries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "galleries_review_note_by_fkey";
+            columns: ["review_note_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "galleries_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      gallery_items: {
+        Row: {
+          caption: string | null;
+          created_at: string;
+          gallery_id: string;
+          id: string;
+          media_id: string;
+          position: number;
+        };
+        Insert: {
+          caption?: string | null;
+          created_at?: string;
+          gallery_id: string;
+          id?: string;
+          media_id: string;
+          position?: number;
+        };
+        Update: {
+          caption?: string | null;
+          created_at?: string;
+          gallery_id?: string;
+          id?: string;
+          media_id?: string;
+          position?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gallery_items_gallery_id_fkey";
+            columns: ["gallery_id"];
+            isOneToOne: false;
+            referencedRelation: "galleries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gallery_items_media_id_fkey";
+            columns: ["media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       media: {
         Row: {
           alt_text: string | null;
