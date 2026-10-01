@@ -21,6 +21,7 @@ export type BasicsValues = {
   endTime: string;
   placeId: string;
   categoryId: string;
+  projectId: string;
   summary: string;
   body: RichTextDoc | null;
 };
@@ -73,12 +74,15 @@ export function BasicsForm({
   serverUpdatedAt,
   places,
   categories,
+  projects,
 }: {
   activityId?: string;
   initial: BasicsValues;
   serverUpdatedAt?: string;
   places: Option[];
   categories: Option[];
+  /** Projects it can belong to (composed by the page from the projects module). */
+  projects: Option[];
 }) {
   const router = useRouter();
   const bodyLabelId = useId();
@@ -291,6 +295,22 @@ export function BasicsForm({
             ))}
           </NativeSelect>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="activity-project">Proyecto (opcional)</Label>
+        <NativeSelect
+          id="activity-project"
+          value={values.projectId}
+          onChange={(event) => change("projectId", event.target.value)}
+        >
+          <option value="">Sin proyecto</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </NativeSelect>
       </div>
 
       <div className="space-y-2">

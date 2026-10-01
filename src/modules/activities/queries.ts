@@ -166,6 +166,7 @@ export type ActivityForWizard = {
   endsAt: string | null;
   placeId: string | null;
   categoryId: string | null;
+  projectId: string | null;
   coverMediaId: string | null;
   createdBy: string | null;
   updatedAt: string;
@@ -182,7 +183,7 @@ export async function getActivityForWizard(id: string): Promise<ActivityForWizar
   const { data } = await supabase
     .from("activities")
     .select(
-      "id, slug, status, published_at, title, summary, body, starts_at, ends_at, place_id, category_id, cover_media_id, created_by, updated_at, deleted_at, review_note, review_note_at, activity_tags(tag_id), activity_media(id, media_id, position, media(alt_text, processing_status, people_in_photo, public_key))",
+      "id, slug, status, published_at, title, summary, body, starts_at, ends_at, place_id, category_id, project_id, cover_media_id, created_by, updated_at, deleted_at, review_note, review_note_at, activity_tags(tag_id), activity_media(id, media_id, position, media(alt_text, processing_status, people_in_photo, public_key))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -212,6 +213,7 @@ export async function getActivityForWizard(id: string): Promise<ActivityForWizar
     endsAt: data.ends_at,
     placeId: data.place_id,
     categoryId: data.category_id,
+    projectId: data.project_id,
     coverMediaId: data.cover_media_id,
     createdBy: data.created_by,
     updatedAt: data.updated_at,

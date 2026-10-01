@@ -1,7 +1,9 @@
 import "server-only";
 
 import type { createClient } from "@/lib/supabase/server";
-import { syncPublicMedia } from "@/modules/media";
+import { getMediaCards, getPublishIssues, syncPublicMedia } from "@/modules/media";
+
+import type { CoverInfo } from "./components/cover-field";
 
 import { CONTENT_TYPES, type ContentType } from "./registry";
 
@@ -40,4 +42,19 @@ export async function syncContentPhotos(
   const ids = new Set(extra);
   for (const usage of usages ?? []) if (usage.media_id) ids.add(usage.media_id);
   await syncPublicMedia([...ids]).catch(() => undefined);
+}
+
+/** The cover with its preview and what it still needs, or null without cover. */
+export async function getContentCover(mediaId: string | null): Promise<CoverInfo | null> {
+  if (!mediaId) return null;
+  const [cards, issues] = await Promise.all([
+    getMediaCards([mediaId]),
+    getPublishIssues([mediaId]),
+  ]);
+  return {
+    mediaId,
+    altText: cards[0]?.altText ?? null,
+    thumbnailUrl: cards[0]?.thumbnailUrl ?? null,
+    issues: issues.get(mediaId) ?? [],
+  };
 }

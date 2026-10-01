@@ -11,41 +11,46 @@ import { NativeSelect } from "@/components/ui/native-select";
 import type { RichTextDoc } from "@/lib/rich-text/schema";
 import { DraftRecovery, useDraftAutosave } from "@/modules/content/client";
 
-import { savePost } from "../actions";
-import type { Option } from "../queries";
-import { POSTS_PATH, type PostValues } from "../schema";
+import { saveProject } from "../actions";
+import {
+  PROJECT_STAGES,
+  PROJECTS_PATH,
+  type ProjectStage,
+  type ProjectValues,
+  STAGE_LABELS,
+} from "../schema";
+
+const textareaClass =
+  "w-full rounded-md border-[1.5px] border-input bg-card px-3 py-2 text-base outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring";
 
 /**
- * The story itself (step 7.6a). The draft is created on "Guardar borrador";
- * after that every change is saved automatically and a copy stays on the
- * phone in case the signal drops.
+ * The project itself (step 7.6b). The draft is created on "Guardar borrador";
+ * after that every change is saved automatically, with a copy on the phone.
  */
-export function PostEditor({
-  postId,
+export function ProjectEditor({
+  projectId,
   initial,
   serverUpdatedAt,
-  categories,
 }: {
-  postId?: string;
-  initial: PostValues;
+  projectId?: string;
+  initial: ProjectValues;
   serverUpdatedAt?: string;
-  categories: Option[];
 }) {
   const router = useRouter();
   const bodyLabelId = useId();
-  const draft = useDraftAutosave<PostValues>({
-    id: postId,
-    storagePrefix: "historia-borrador",
+  const draft = useDraftAutosave<ProjectValues>({
+    id: projectId,
+    storagePrefix: "proyecto-borrador",
     initial,
     serverUpdatedAt,
-    save: savePost,
+    save: saveProject,
   });
   const { values, change } = draft;
 
   const submit = async () => {
     const id = await draft.saveNow();
     if (!id) return;
-    if (!postId) router.replace(`${POSTS_PATH}/${id}`);
+    if (!projectId) router.replace(`${PROJECTS_PATH}/${id}`);
     else router.refresh();
   };
 
@@ -63,9 +68,9 @@ export function PostEditor({
       ) : null}
 
       <div className="space-y-2">
-        <Label htmlFor="post-title">Título</Label>
+        <Label htmlFor="project-title">Nombre del proyecto</Label>
         <Input
-          id="post-title"
+          id="project-title"
           value={values.title}
           onChange={(event) => change("title", event.target.value)}
           maxLength={160}
@@ -75,49 +80,63 @@ export function PostEditor({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="post-excerpt">Extracto</Label>
-        <p id="post-excerpt-help" className="text-sm text-ink-muted">
+        <Label htmlFor="project-summary">Resumen</Label>
+        <p id="project-summary-help" className="text-sm text-ink-muted">
           Una o dos frases: se ve en las tarjetas del sitio.
         </p>
         <textarea
-          id="post-excerpt"
-          value={values.excerpt}
-          onChange={(event) => change("excerpt", event.target.value)}
+          id="project-summary"
+          value={values.summary}
+          onChange={(event) => change("summary", event.target.value)}
           maxLength={300}
-          aria-describedby="post-excerpt-help"
-          className="min-h-20 w-full rounded-md border-[1.5px] border-input bg-card px-3 py-2 text-base outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring"
+          aria-describedby="project-summary-help"
+          className={`min-h-20 ${textareaClass}`}
         />
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="space-y-2">
+        <Label htmlFor="project-objective">Objetivo (opcional)</Label>
+        <textarea
+          id="project-objective"
+          value={values.objective}
+          onChange={(event) => change("objective", event.target.value)}
+          maxLength={1000}
+          className={`min-h-20 ${textareaClass}`}
+        />
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="post-category">Categoría</Label>
+          <Label htmlFor="project-stage">Estado del proyecto</Label>
           <NativeSelect
-            id="post-category"
-            value={values.categoryId}
-            onChange={(event) => change("categoryId", event.target.value)}
+            id="project-stage"
+            value={values.stage}
+            onChange={(event) => change("stage", event.target.value as ProjectStage)}
           >
-            <option value="">Elige una categoría</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
+            {PROJECT_STAGES.map((stage) => (
+              <option key={stage} value={stage}>
+                {STAGE_LABELS[stage]}
               </option>
             ))}
           </NativeSelect>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="post-byline">Firma (opcional)</Label>
+          <Label htmlFor="project-start">Inicio (opcional)</Label>
           <Input
-            id="post-byline"
-            value={values.byline}
-            onChange={(event) => change("byline", event.target.value)}
-            maxLength={120}
-            autoComplete="off"
-            aria-describedby="post-byline-help"
+            id="project-start"
+            type="date"
+            value={values.startDate}
+            onChange={(event) => change("startDate", event.target.value)}
           />
-          <p id="post-byline-help" className="text-sm text-ink-muted">
-            Cómo aparece en el sitio. Si la dejas vacía, no se muestra firma.
-          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="project-end">Fin (opcional)</Label>
+          <Input
+            id="project-end"
+            type="date"
+            value={values.endDate}
+            onChange={(event) => change("endDate", event.target.value)}
+          />
         </div>
       </div>
 

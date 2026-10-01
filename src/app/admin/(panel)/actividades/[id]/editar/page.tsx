@@ -23,6 +23,7 @@ import { fromBogotaInstant, parseStep } from "@/modules/activities/schema";
 import { describeIssues, getMediaCards } from "@/modules/media";
 import { displayStatus, ReviewNote, STATUS_LABELS, StatusActions } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import { listProjectOptions } from "@/modules/projects/queries";
 
 export const metadata: Metadata = { title: "Editar actividad" };
 
@@ -111,7 +112,11 @@ async function StepBasics({
 }: {
   activity: NonNullable<Awaited<ReturnType<typeof getActivityForWizard>>>;
 }) {
-  const [{ places, categories }, tags] = await Promise.all([listBasicsOptions(), listTags()]);
+  const [{ places, categories }, tags, projects] = await Promise.all([
+    listBasicsOptions(),
+    listTags(),
+    listProjectOptions(activity.projectId),
+  ]);
   const start = fromBogotaInstant(activity.startsAt);
   return (
     <div className="grid gap-8">
@@ -126,10 +131,12 @@ async function StepBasics({
           placeId: activity.placeId ?? "",
           categoryId: activity.categoryId ?? "",
           summary: activity.summary ?? "",
+          projectId: activity.projectId ?? "",
           body: activity.body,
         }}
         places={places}
         categories={categories}
+        projects={projects}
       />
       <TagsField activityId={activity.id} tags={tags} selected={activity.tagIds} />
     </div>

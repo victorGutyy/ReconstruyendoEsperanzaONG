@@ -9,22 +9,25 @@ import { createClient } from "@/lib/supabase/server";
 
 import { contentTable, syncContentPhotos } from "./media";
 import {
+  agree,
   CONTENT_TYPES,
   type ContentType,
   isContentType,
   STATUS_CHANGES,
   type StatusChange,
+  theType,
 } from "./registry";
 import { optionalNoteSchema, reviewNoteSchema } from "./schema";
 
 export type StatusResult = { ok: true } | { ok: false; error: string };
 
-const STALE: Record<StatusChange, string> = {
-  returned: "ya no está en revisión.",
-  retired: "ya no está publicada.",
-  archived: "ya no está publicada.",
-  reopened: "ya no está archivada.",
-};
+const stale = (type: ContentType, change: StatusChange) =>
+  ({
+    returned: "ya no está en revisión.",
+    retired: `ya no está ${agree(type, "publicada", "publicado")}.`,
+    archived: `ya no está ${agree(type, "publicada", "publicado")}.`,
+    reopened: `ya no está ${agree(type, "archivada", "archivado")}.`,
+  })[change];
 
 /**
  * Editor actions on the state of any content (steps 7.4b and 7.6a): return
@@ -82,10 +85,9 @@ export async function changeContentStatus(
           : "No se pudo cambiar el estado. Vuelve a intentarlo.",
     };
   }
-  const { singular, listPath } = CONTENT_TYPES[type];
-  if (data.length === 0) return { ok: false, error: `La ${singular} ${STALE[change]}` };
+  if (data.length === 0) return { ok: false, error: `${theType(type)} ${stale(type, change)}` };
 
   await syncContentPhotos(supabase, type, id, { always: true });
-  revalidatePath(listPath, "layout");
+  revalidatePath(CONTENT_TYPES[type].listPath, "layout");
   return { ok: true };
 }

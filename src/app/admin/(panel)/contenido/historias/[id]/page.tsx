@@ -5,12 +5,19 @@ import { z } from "zod";
 
 import { authorizePage } from "@/lib/auth/guard";
 import { hasPermission } from "@/lib/auth/rules";
-import { displayStatus, ReviewNote, STATUS_LABELS, StatusActions } from "@/modules/content/client";
+import {
+  ContentReview,
+  CoverField,
+  displayStatus,
+  ReviewNote,
+  STATUS_LABELS,
+  StatusActions,
+} from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
-import { CoverField } from "@/modules/posts/components/cover-field";
 import { PostEditor } from "@/modules/posts/components/post-editor";
-import { PostReview } from "@/modules/posts/components/post-review";
-import { getCover, getPost, listPostCategories } from "@/modules/posts/queries";
+import { publishPost, setPostCover, submitPost } from "@/modules/posts/actions";
+import { getContentCover } from "@/modules/content";
+import { getPost, listPostCategories } from "@/modules/posts/queries";
 import { POSTS_PATH, reviewPost } from "@/modules/posts/schema";
 
 export const metadata: Metadata = { title: "Editar historia" };
@@ -38,7 +45,7 @@ export default async function EditPostPage({
 
   const [categories, cover] = await Promise.all([
     listPostCategories(),
-    getCover(post.coverMediaId),
+    getContentCover(post.coverMediaId),
   ]);
   const review = reviewPost(
     { excerpt: post.excerpt, categoryId: post.categoryId, coverIssues: cover?.issues ?? null },
@@ -108,14 +115,17 @@ export default async function EditPostPage({
             />
           </div>
           <div className="rounded-lg border bg-card p-5">
-            <CoverField postId={post.id} cover={cover} />
+            <CoverField contentId={post.id} cover={cover} setCover={setPostCover} />
           </div>
           <div className="rounded-lg border bg-card p-5">
-            <PostReview
-              postId={post.id}
+            <ContentReview
+              type="post"
+              contentId={post.id}
               items={review.items}
               publisher={publisher}
               status={post.status}
+              submit={submitPost}
+              publish={publishPost}
             />
           </div>
         </div>

@@ -5,6 +5,7 @@ import { BasicsForm } from "@/modules/activities/components/basics-form";
 import { WizardSteps } from "@/modules/activities/components/wizard-steps";
 import { listBasicsOptions } from "@/modules/activities/queries";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import { listProjectOptions } from "@/modules/projects/queries";
 
 export const metadata: Metadata = { title: "Nueva actividad" };
 
@@ -12,7 +13,10 @@ export default async function NewActivityPage() {
   const authorized = await authorizePage("content.create");
   if (!authorized) return <NoPermission reason="Tu rol no permite crear actividades." />;
 
-  const { places, categories } = await listBasicsOptions();
+  const [{ places, categories }, projects] = await Promise.all([
+    listBasicsOptions(),
+    listProjectOptions(),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -28,11 +32,13 @@ export default async function NewActivityPage() {
             endTime: "",
             placeId: "",
             categoryId: "",
+            projectId: "",
             summary: "",
             body: null,
           }}
           places={places}
           categories={categories}
+          projects={projects}
         />
       </div>
     </div>

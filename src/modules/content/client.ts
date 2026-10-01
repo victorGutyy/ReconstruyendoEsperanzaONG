@@ -1,19 +1,11 @@
-// Public client API of the content engine: pure helpers, components and
-// Server Actions that other modules and pages may use (docs/04 §3).
+// Public client API of the content engine: components and Server Actions
+// that other modules and pages may use (docs/04 §3), plus the pure helpers.
 export { changeContentStatus, type StatusResult } from "./actions";
+export { ContentReview } from "./components/content-review";
 export { ContentTabs } from "./components/content-tabs";
+export { type CoverInfo, CoverField } from "./components/cover-field";
+export { DraftRecovery } from "./components/draft-recovery";
 export { ReviewNote } from "./components/review-note";
 export { StatusActions } from "./components/status-actions";
-export {
-  AVAILABLE_CHANGES,
-  CONTENT_TABS,
-  CONTENT_TYPES,
-  type ContentStatus,
-  type ContentType,
-  displayStatus,
-  isContentType,
-  STATUS_CHANGES,
-  STATUS_LABELS,
-  type StatusChange,
-} from "./registry";
-export { optionalNoteSchema, reviewNoteSchema } from "./schema";
+export { useDraftAutosave } from "./components/use-draft-autosave";
+export * from "./shared";
