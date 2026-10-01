@@ -2,7 +2,7 @@
 
 Plataforma web de **Reconstruyendo Esperanza**, iniciativa social sin ánimo de lucro de Calarcá (Quindío, Colombia): portal público tipo revista + panel `/admin` (CMS). Es la memoria digital del trabajo social de la organización.
 
-> Estado: **F0–F5 completas** (documentación, prototipo, base del proyecto, acceso con MFA y auditoría, probado en staging) · **F6 — medios y autorizaciones de imagen** en cierre: categorías y lugares, subida de fotos sin EXIF/GPS, biblioteca de Medios y autorizaciones vinculadas a fotos. Siguiente: **F7 — contenido y panel**. Plan completo en [`docs/08-plan-de-fases.md`](docs/08-plan-de-fases.md).
+> Estado: **F0–F6 completas** (documentación, prototipo, base del proyecto, acceso con MFA y auditoría, medios y autorizaciones de imagen, probado en staging) · **F7 — contenido y panel** en curso: editor de texto, asistente de actividades desde el celular (crear, revisar y publicar), lista de contenido con filtros, cola de revisión y pendientes en el Inicio. Plan completo en [`docs/08-plan-de-fases.md`](docs/08-plan-de-fases.md).
 
 ## Documentación
 

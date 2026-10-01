@@ -45,10 +45,19 @@ type FieldKind =
   /** "Sí" when the column has any value (e.g. a revocation date). */
   | { type: "present" }
   | { type: "person" }
+  /** An instant, shown as date and time in Colombia. */
+  | { type: "datetime" }
   /** Fixed values stored as keys: the labels live here, not in another module. */
   | { type: "enum"; labels: Readonly<Record<string, string>> };
 
 const TEXT: FieldKind = { type: "text" };
+const DATETIME: FieldKind = { type: "datetime" };
+
+const dateTimeFormat = new Intl.DateTimeFormat("es-CO", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "America/Bogota",
+});
 
 type SectionConfig = {
   label: string;
@@ -192,6 +201,48 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
     untitled: "Vínculo entre una foto y una autorización",
     fields: [],
   },
+  // Activities: what a person reads; the story body is not repeated here
+  activities: {
+    label: "Actividades",
+    singular: "Actividad",
+    nameField: "title",
+    fields: [
+      { key: "title", label: "Título", kind: TEXT },
+      {
+        key: "status",
+        label: "Estado",
+        kind: {
+          type: "enum",
+          labels: {
+            draft: "Borrador",
+            review: "En revisión",
+            published: "Publicada",
+            archived: "Archivada",
+          },
+        },
+      },
+      { key: "published_at", label: "Fecha de publicación", kind: DATETIME },
+      { key: "starts_at", label: "Inicio", kind: DATETIME },
+      { key: "ends_at", label: "Fin", kind: DATETIME },
+      { key: "summary", label: "Resumen", kind: TEXT },
+      { key: "slug", label: "Slug", kind: TEXT },
+      { key: "cover_media_id", label: "Tiene portada", kind: { type: "present" } },
+    ],
+  },
+  activity_media: {
+    label: "Fotos de actividades",
+    singular: "Foto de actividad",
+    nameField: "__none__",
+    untitled: "Foto de una actividad",
+    fields: [{ key: "position", label: "Orden", kind: TEXT }],
+  },
+  activity_tags: {
+    label: "Etiquetas de actividades",
+    singular: "Etiqueta de actividad",
+    nameField: "__none__",
+    untitled: "Etiqueta de una actividad",
+    fields: [],
+  },
   tags: {
     label: "Etiquetas",
     singular: "Etiqueta",
@@ -253,6 +304,10 @@ function formatValue(kind: FieldKind, value: unknown, lookups: AuditLookups): st
         : String(value);
     case "person":
       return typeof value === "string" ? (lookups.people.get(value) ?? UNKNOWN_PERSON) : EMPTY;
+    case "datetime": {
+      const date = typeof value === "string" ? new Date(value) : null;
+      return date && !Number.isNaN(date.getTime()) ? dateTimeFormat.format(date) : String(value);
+    }
     case "text":
       return truncate(typeof value === "string" ? value : JSON.stringify(value));
   }

@@ -264,3 +264,42 @@ describe("authorization sections", () => {
     expect(describeChanges(link, lookups).changes).toEqual([]);
   });
 });
+
+describe("activity sections", () => {
+  it("shows a publication with the state in Spanish and the date in Colombia", () => {
+    const published = entry({
+      action: "publish",
+      tableName: "activities",
+      oldData: { title: "[DEMO] Siembra", status: "review", published_at: null, body: {} },
+      newData: {
+        title: "[DEMO] Siembra",
+        status: "published",
+        published_at: "2026-09-30T14:00:00Z",
+        body: {},
+      },
+      changedFields: ["status", "published_at", "body_text"],
+    });
+    expect(recordLabel(published)).toBe("Actividad: [DEMO] Siembra");
+    const result = describeChanges(published, lookups);
+    expect(result.changes.map(({ label, before, after }) => [label, before, after])).toEqual([
+      ["Estado", "En revisión", "Publicada"],
+      ["Fecha de publicación", "—", expect.stringMatching(/2026.*9:00/)],
+    ]);
+    expect(result.hidden).toBe(1);
+  });
+
+  it("names the photos and tags of an activity without ids", () => {
+    const photo = entry({
+      action: "insert",
+      tableName: "activity_media",
+      newData: { id: "x", activity_id: "a", media_id: "m", position: 2 },
+    });
+    expect(recordLabel(photo)).toBe("Foto de una actividad");
+    expect(describeChanges(photo, lookups).changes).toEqual([
+      { field: "position", label: "Orden", before: "—", after: "2" },
+    ]);
+    expect(
+      recordLabel(entry({ tableName: "activity_tags", newData: { id: "x", tag_id: "t" } })),
+    ).toBe("Etiqueta de una actividad");
+  });
+});

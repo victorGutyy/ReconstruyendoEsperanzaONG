@@ -4,15 +4,23 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { isAuthError } from "@/lib/auth/errors";
-import { ADMIN_HOME, LOGIN_PATH, MFA_PATH } from "@/lib/auth/rules";
+import { ADMIN_HOME, hasPermission, LOGIN_PATH, MFA_PATH } from "@/lib/auth/rules";
 import { getCurrentProfile, requireAal2 } from "@/lib/auth/session";
+import { activitiesHref, parseActivityFilters } from "@/modules/activities/list";
+import { countActivities } from "@/modules/activities/queries";
+import { countPendingPhotos } from "@/modules/media";
 import { navFor } from "@/modules/panel/navigation";
+
+type Pending = { href: string; count: number; label: string };
+
+const noFilters = parseActivityFilters({});
 
 export const metadata: Metadata = { title: "Inicio" };
 
 export default async function AdminHomePage() {
+  let userId: string;
   try {
-    await requireAal2();
+    userId = (await requireAal2()).id;
   } catch (error) {
     if (isAuthError(error)) redirect(error.code === "MFA_REQUIRED" ? MFA_PATH : LOGIN_PATH);
     throw error;
@@ -20,6 +28,7 @@ export default async function AdminHomePage() {
 
   const profile = await getCurrentProfile();
   const sections = navFor(profile).filter((item) => item.href !== ADMIN_HOME);
+  const pending = await pendingFor(profile, userId);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -27,10 +36,35 @@ export default async function AdminHomePage() {
       <h1 className="mt-2 font-serif text-3xl font-semibold text-green-900">
         Hola, {profile?.fullName ?? "equipo"}
       </h1>
-      <p className="mt-4 text-ink-muted">
-        Entraste con verificación en dos pasos. Las secciones de contenido se suman al panel en las
-        próximas fases.
-      </p>
+
+      {pending ? (
+        <section aria-labelledby="pending-title" className="mt-8">
+          <h2 id="pending-title" className="mb-4 font-serif text-xl font-semibold text-green-900">
+            Pendientes
+          </h2>
+          {pending.length > 0 ? (
+            <ul className="grid gap-3 sm:grid-cols-3">
+              {pending.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="flex h-full items-baseline gap-2 rounded-lg border border-gold-500 bg-card p-4 outline-none hover:border-green-700 focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="font-serif text-2xl font-semibold text-green-900">
+                      {item.count}
+                    </span>{" "}
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="rounded-lg border bg-card p-5 text-ink-muted">
+              Todo al día: no tienes pendientes.
+            </p>
+          )}
+        </section>
+      ) : null}
 
       {sections.length > 0 ? (
         <section aria-labelledby="sections-title" className="mt-10">
@@ -60,4 +94,50 @@ export default async function AdminHomePage() {
       ) : null}
     </div>
   );
+}
+
+/**
+ * What is waiting for this person, by permission. Null when the role has no
+ * content sections; zero counts are left out.
+ */
+async function pendingFor(
+  profile: Awaited<ReturnType<typeof getCurrentProfile>>,
+  userId: string,
+): Promise<Pending[] | null> {
+  const canRead = hasPermission(profile, "content.read");
+  const canUpload = hasPermission(profile, "media.upload");
+  if (!canRead && !canUpload) return null;
+
+  const [activities, photos] = await Promise.all([
+    canRead ? countActivities(userId) : null,
+    canUpload ? countPendingPhotos() : 0,
+  ]);
+
+  const items: Pending[] = [];
+  if (activities && hasPermission(profile, "content.publish")) {
+    items.push({
+      href: activitiesHref(noFilters, { status: "review" }),
+      count: activities.toReview,
+      label: activities.toReview === 1 ? "actividad por revisar" : "actividades por revisar",
+    });
+  } else if (activities) {
+    items.push({
+      href: activitiesHref(noFilters, { status: "review", mine: true }),
+      count: activities.myInReview,
+      label: activities.myInReview === 1 ? "tuya en revisión" : "tuyas en revisión",
+    });
+  }
+  if (activities) {
+    items.push({
+      href: activitiesHref(noFilters, { status: "draft", mine: true }),
+      count: activities.myDrafts,
+      label: activities.myDrafts === 1 ? "borrador tuyo" : "borradores tuyos",
+    });
+  }
+  items.push({
+    href: "/admin/medios?pending=1",
+    count: photos,
+    label: photos === 1 ? "foto con pendientes" : "fotos con pendientes",
+  });
+  return items.filter((item) => item.count > 0);
 }
