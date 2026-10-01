@@ -18,7 +18,8 @@ export {
   theType,
   thisType,
 } from "./registry";
+export { ownerColumns, ownerSchema, ownerValue } from "./ownership";
 export { type CheckItem, coverCheck, reviewOutcome } from "./review";
 export { optionalNoteSchema, reviewNoteSchema } from "./schema";
 export { parseSchedule } from "./schedule";
-export type { ActionResult, PublishResult, SaveResult } from "./types";
+export type { ActionResult, OwnerOptions, PublishResult, SaveResult } from "./types";

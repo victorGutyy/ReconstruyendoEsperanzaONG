@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { NativeSelect } from "@/components/ui/native-select";
-import { DraftRecovery, useDraftAutosave } from "@/modules/content/client";
+import {
+  DraftRecovery,
+  type OwnerOptions,
+  OwnerSelect,
+  useDraftAutosave,
+} from "@/modules/content/client";
 
 import { saveGallery } from "../actions";
-import type { OwnerOptions } from "../queries";
 import { GALLERIES_PATH, type GalleryValues } from "../schema";
 
 /**
@@ -82,31 +85,12 @@ export function GalleryEditor({
 
       <div className="space-y-2">
         <Label htmlFor="gallery-owner">Pertenece a (opcional)</Label>
-        <NativeSelect
+        <OwnerSelect
           id="gallery-owner"
           value={values.owner}
-          onChange={(event) => change("owner", event.target.value)}
-        >
-          <option value="">Ninguna actividad ni proyecto</option>
-          {owners.activities.length > 0 ? (
-            <optgroup label="Actividades">
-              {owners.activities.map((activity) => (
-                <option key={activity.id} value={`activity:${activity.id}`}>
-                  {activity.name}
-                </option>
-              ))}
-            </optgroup>
-          ) : null}
-          {owners.projects.length > 0 ? (
-            <optgroup label="Proyectos">
-              {owners.projects.map((project) => (
-                <option key={project.id} value={`project:${project.id}`}>
-                  {project.name}
-                </option>
-              ))}
-            </optgroup>
-          ) : null}
-        </NativeSelect>
+          onChange={(value) => change("owner", value)}
+          owners={owners}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

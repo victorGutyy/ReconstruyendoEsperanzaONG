@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { authorizePage } from "@/lib/auth/guard";
 import { GalleryEditor } from "@/modules/galleries/components/gallery-editor";
-import { listOwnerOptions } from "@/modules/galleries/queries";
+import { listOwnerOptions } from "@/modules/content";
 import { GALLERIES_PATH } from "@/modules/galleries/schema";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 

@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-import { type CheckItem, reviewOutcome } from "@/modules/content/shared";
+import { type CheckItem, ownerColumns, ownerSchema, reviewOutcome } from "@/modules/content/shared";
+
+export { ownerValue } from "@/modules/content/shared";
 
 // Galleries (step 7.6c, docs/06 §5). Pure: unit-tested in schema.test.ts.
 
@@ -11,13 +13,6 @@ export const GALLERIES_PATH = "/admin/contenido/galerias";
  * "project:<id>": a gallery belongs to one of them at most.
  */
 export type GalleryValues = { title: string; description: string; owner: string };
-
-const owner = z
-  .string()
-  .regex(/^((activity|project):[0-9a-f-]{36})?$/i, "Elige una actividad o un proyecto válido.")
-  .refine((value) => value === "" || z.uuid().safeParse(value.split(":")[1]).success, {
-    message: "Elige una actividad o un proyecto válido.",
-  });
 
 export const gallerySchema = z
   .object({
@@ -31,22 +26,15 @@ export const gallerySchema = z
       .trim()
       .max(1000, "La descripción es demasiado larga (máximo 1000 caracteres).")
       .transform((text) => (text === "" ? null : text)),
-    owner,
+    owner: ownerSchema,
   })
-  .transform((data) => {
-    const [kind, id] = data.owner ? data.owner.split(":") : [null, null];
-    return {
-      title: data.title,
-      description: data.description,
-      activity_id: kind === "activity" ? id! : null,
-      project_id: kind === "project" ? id! : null,
-    };
-  });
+  .transform((data) => ({
+    title: data.title,
+    description: data.description,
+    ...ownerColumns(data.owner),
+  }));
 
 export type GalleryInput = z.input<typeof gallerySchema>;
-
-export const ownerValue = (activityId: string | null, projectId: string | null) =>
-  activityId ? `activity:${activityId}` : projectId ? `project:${projectId}` : "";
 
 export type ReviewPhoto = { label: string; processing: boolean; issues: readonly string[] };
 

@@ -330,6 +330,42 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "review_note", label: "Nota de revisión", kind: TEXT },
     ],
   },
+  videos: {
+    label: "Videos",
+    singular: "Video",
+    nameField: "title",
+    fields: [
+      { key: "title", label: "Título", kind: TEXT },
+      {
+        key: "status",
+        label: "Estado",
+        kind: {
+          type: "enum",
+          labels: {
+            draft: "Borrador",
+            review: "En revisión",
+            published: "Publicado",
+            archived: "Archivado",
+          },
+        },
+      },
+      { key: "published_at", label: "Fecha de publicación", kind: DATETIME },
+      {
+        key: "provider",
+        label: "Plataforma",
+        kind: {
+          type: "enum",
+          labels: { youtube: "YouTube", vimeo: "Vimeo", facebook: "Facebook", tiktok: "TikTok" },
+        },
+      },
+      { key: "provider_video_id", label: "Identificador del video", kind: TEXT },
+      { key: "description", label: "Descripción", kind: TEXT },
+      { key: "activity_id", label: "De una actividad", kind: { type: "present" } },
+      { key: "project_id", label: "De un proyecto", kind: { type: "present" } },
+      { key: "cover_media_id", label: "Tiene imagen", kind: { type: "present" } },
+      { key: "review_note", label: "Nota de revisión", kind: TEXT },
+    ],
+  },
   gallery_items: {
     label: "Fotos de galerías",
     singular: "Foto de galería",

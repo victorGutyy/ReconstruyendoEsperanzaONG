@@ -3,3 +3,4 @@
 export * from "./client";
 export { contentTable, getContentCover, syncContentPhotos } from "./media";
 export { publishContent, saveContentRow, setContentCover, submitContent } from "./saving";
+export { listOwnerOptions } from "./owners";
