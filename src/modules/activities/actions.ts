@@ -7,6 +7,7 @@ import { authorizeAction } from "@/lib/auth/guard";
 import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, uniqueSlug } from "@/lib/utils/slug";
+import { syncPublicMedia } from "@/modules/media";
 
 import { type ActivityStatus, getActivityForWizard, getPhotosWithIssues } from "./queries";
 import { reviewActivity } from "./review";
@@ -44,6 +45,28 @@ async function freeSlug(supabase: Supabase, title: string, exceptId?: string): P
   if (exceptId) query = query.neq("id", exceptId);
   const { data } = await query;
   return uniqueSlug(base, new Set((data ?? []).map((row) => row.slug)));
+}
+
+/**
+ * Public copies of the photos follow the activity (step 7.5a). Runs after the
+ * action already succeeded; a failure here does not undo it (the daily sync
+ * retries). Skipped for drafts unless `always`, since nothing there is public.
+ */
+async function syncActivityPhotos(
+  supabase: Supabase,
+  activityId: string,
+  { extra = [], always = false }: { extra?: string[]; always?: boolean } = {},
+) {
+  const { data } = await supabase
+    .from("activities")
+    .select("status, cover_media_id, activity_media(media_id)")
+    .eq("id", activityId)
+    .maybeSingle();
+  if (!data || (!always && data.status !== "published")) return;
+  const ids = new Set(extra);
+  if (data.cover_media_id) ids.add(data.cover_media_id);
+  for (const link of data.activity_media) ids.add(link.media_id);
+  await syncPublicMedia([...ids]).catch(() => undefined);
 }
 
 /**
@@ -158,6 +181,7 @@ export async function attachPhoto(activityId: string, mediaId: string): Promise<
   if (!activity.cover_media_id) {
     await supabase.from("activities").update({ cover_media_id: mediaId }).eq("id", activityId);
   }
+  await syncActivityPhotos(supabase, activityId);
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true };
 }
@@ -250,6 +274,7 @@ export async function detachPhoto(activityId: string, mediaId: string): Promise<
       .update({ cover_media_id: next?.media_id ?? null })
       .eq("id", activityId);
   }
+  await syncActivityPhotos(supabase, activityId, { extra: [mediaId] });
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true };
 }
@@ -362,6 +387,7 @@ export async function publishActivity(
   if (data.length === 0)
     return { ok: false, error: "La actividad ya estaba publicada o archivada." };
 
+  await syncActivityPhotos(supabase, activityId);
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true, outcome: schedule ? "scheduled" : "published" };
 }
@@ -428,6 +454,7 @@ export async function changeActivityStatus(
   }
   if (data.length === 0) return { ok: false, error: stale };
 
+  await syncActivityPhotos(supabase, activityId, { always: true });
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true };
 }
@@ -507,6 +534,7 @@ export async function attachPhotos(
     if (!activity.cover_media_id) {
       await supabase.from("activities").update({ cover_media_id: fresh[0] }).eq("id", activityId);
     }
+    await syncActivityPhotos(supabase, activityId);
   }
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true, added: fresh.length };

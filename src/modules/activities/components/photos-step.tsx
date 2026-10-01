@@ -16,6 +16,7 @@ export type WizardPhoto = {
   altText: string | null;
   thumbnailUrl: string | null;
   processing: boolean;
+  isPublic: boolean;
 };
 
 function PhotoRow({
@@ -69,6 +70,11 @@ function PhotoRow({
         {isCover ? (
           <span className="absolute top-1 left-1 rounded-sm bg-green-700 px-1.5 py-0.5 text-xs font-semibold text-paper">
             Portada
+          </span>
+        ) : null}
+        {photo.isPublic ? (
+          <span className="absolute right-1 bottom-1 rounded-sm bg-paper px-1.5 py-0.5 text-xs font-semibold text-green-900">
+            En el sitio
           </span>
         ) : null}
       </div>

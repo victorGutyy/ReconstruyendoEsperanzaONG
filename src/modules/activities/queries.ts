@@ -103,6 +103,8 @@ export type ActivityPhoto = {
   altText: string | null;
   processingStatus: string;
   people: string | null;
+  /** Copied to public storage (step 7.5): visible on the site. */
+  isPublic: boolean;
 };
 
 export type ActivityForWizard = {
@@ -133,7 +135,7 @@ export async function getActivityForWizard(id: string): Promise<ActivityForWizar
   const { data } = await supabase
     .from("activities")
     .select(
-      "id, slug, status, published_at, title, summary, body, starts_at, ends_at, place_id, category_id, cover_media_id, created_by, updated_at, deleted_at, review_note, review_note_at, activity_tags(tag_id), activity_media(id, media_id, position, media(alt_text, processing_status, people_in_photo))",
+      "id, slug, status, published_at, title, summary, body, starts_at, ends_at, place_id, category_id, cover_media_id, created_by, updated_at, deleted_at, review_note, review_note_at, activity_tags(tag_id), activity_media(id, media_id, position, media(alt_text, processing_status, people_in_photo, public_key))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -147,6 +149,7 @@ export async function getActivityForWizard(id: string): Promise<ActivityForWizar
       altText: link.media?.alt_text ?? null,
       processingStatus: link.media?.processing_status ?? "failed",
       people: link.media?.people_in_photo ?? null,
+      isPublic: Boolean(link.media?.public_key),
     }))
     .sort((a, b) => a.position - b.position);
 

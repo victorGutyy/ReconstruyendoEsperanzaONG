@@ -170,6 +170,7 @@ async function StepPhotos({
         altText: photo.altText,
         thumbnailUrl: byId.get(photo.mediaId)?.thumbnailUrl ?? null,
         processing: photo.processingStatus !== "ready",
+        isPublic: photo.isPublic,
       }))}
     />
   );

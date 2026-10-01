@@ -1,8 +1,9 @@
 import "server-only";
 
+import { getPublicEnv } from "@/lib/env/public";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import type { PrivateBucket, PrivateStorage, SignedUpload } from "./types";
+import type { PrivateBucket, PrivateStorage, PublicStorage, SignedUpload } from "./types";
 
 /**
  * Supabase Storage with the secret key. The buckets have no API policies, so
@@ -48,5 +49,38 @@ export function supabasePrivateStorage(): PrivateStorage {
       }
       return urls;
     },
+  };
+}
+
+const PUBLIC_BUCKET = "media-public";
+/** One year: keys change whenever a photo becomes public again. */
+const PUBLIC_CACHE_SECONDS = String(60 * 60 * 24 * 365);
+
+/** URL of a public file (no secret needed; also used to render public pages). */
+export function supabasePublicUrl(key: string): string {
+  return `${getPublicEnv().NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PUBLIC_BUCKET}/${key}`;
+}
+
+/** The public bucket, written with the secret key (no API policies). */
+export function supabasePublicStorage(): PublicStorage {
+  const bucket = createAdminClient().storage.from(PUBLIC_BUCKET);
+
+  return {
+    async put(key, data, contentType) {
+      const { error } = await bucket.upload(key, data, {
+        contentType,
+        upsert: false,
+        cacheControl: PUBLIC_CACHE_SECONDS,
+      });
+      if (error) throw error;
+    },
+
+    async remove(keys) {
+      if (keys.length === 0) return;
+      const { error } = await bucket.remove(keys);
+      if (error) throw error;
+    },
+
+    publicUrl: supabasePublicUrl,
   };
 }

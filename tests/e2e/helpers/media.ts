@@ -27,6 +27,7 @@ export async function createTestPhoto(
   for (const [size, width] of [
     ["sm", 480],
     ["md", 800],
+    ["lg", 1200],
   ] as const) {
     const file = await image.clone().resize({ width }).webp().toBuffer();
     const { error: uploadError } = await admin.storage
