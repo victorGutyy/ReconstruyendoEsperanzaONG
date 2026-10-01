@@ -9,11 +9,14 @@ import { BasicsForm } from "@/modules/activities/components/basics-form";
 import { PeopleStep } from "@/modules/activities/components/people-step";
 import { PhotosStep } from "@/modules/activities/components/photos-step";
 import { ReviewStep } from "@/modules/activities/components/review-step";
+import { StatusActions } from "@/modules/activities/components/status-actions";
+import { TagsField } from "@/modules/activities/components/tags-field";
 import { WizardSteps } from "@/modules/activities/components/wizard-steps";
 import {
   getActivityForWizard,
   getPhotosWithIssues,
   listBasicsOptions,
+  listTags,
 } from "@/modules/activities/queries";
 import { reviewActivity } from "@/modules/activities/review";
 import { listConsentsForMedia } from "@/modules/consents";
@@ -27,6 +30,12 @@ import { getMediaCards } from "@/modules/media";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 
 export const metadata: Metadata = { title: "Editar actividad" };
+
+const noteDate = new Intl.DateTimeFormat("es-CO", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "America/Bogota",
+});
 
 export default async function EditActivityPage({
   params,
@@ -61,6 +70,27 @@ export default async function EditActivityPage({
         Actividad · {status}
       </p>
       <h1 className="mt-2 font-serif text-3xl font-semibold text-green-900">{activity.title}</h1>
+
+      {hasPermission(profile, "content.publish") && !activity.inTrash ? (
+        <div className="mt-6">
+          <StatusActions activityId={activity.id} status={activity.status} />
+        </div>
+      ) : null}
+
+      {activity.reviewNote && activity.status === "draft" ? (
+        <section
+          aria-labelledby="review-note-title"
+          className="mt-6 rounded-lg border-2 border-gold-500 bg-card p-4"
+        >
+          <h2 id="review-note-title" className="font-semibold text-green-900">
+            Nota de revisión
+            {activity.reviewNote.at
+              ? ` · ${noteDate.format(new Date(activity.reviewNote.at))}`
+              : ""}
+          </h2>
+          <p className="mt-1 whitespace-pre-line">{activity.reviewNote.text}</p>
+        </section>
+      ) : null}
 
       {!canEdit ? (
         <p role="status" className="mt-6 rounded-lg border bg-card p-5 text-ink-muted">
@@ -99,25 +129,28 @@ async function StepBasics({
 }: {
   activity: NonNullable<Awaited<ReturnType<typeof getActivityForWizard>>>;
 }) {
-  const { places, categories } = await listBasicsOptions();
+  const [{ places, categories }, tags] = await Promise.all([listBasicsOptions(), listTags()]);
   const start = fromBogotaInstant(activity.startsAt);
   return (
-    <BasicsForm
-      activityId={activity.id}
-      serverUpdatedAt={activity.updatedAt}
-      initial={{
-        title: activity.title,
-        date: start.date,
-        startTime: start.time,
-        endTime: activity.endsAt ? fromBogotaInstant(activity.endsAt).time : "",
-        placeId: activity.placeId ?? "",
-        categoryId: activity.categoryId ?? "",
-        summary: activity.summary ?? "",
-        body: activity.body,
-      }}
-      places={places}
-      categories={categories}
-    />
+    <div className="grid gap-8">
+      <BasicsForm
+        activityId={activity.id}
+        serverUpdatedAt={activity.updatedAt}
+        initial={{
+          title: activity.title,
+          date: start.date,
+          startTime: start.time,
+          endTime: activity.endsAt ? fromBogotaInstant(activity.endsAt).time : "",
+          placeId: activity.placeId ?? "",
+          categoryId: activity.categoryId ?? "",
+          summary: activity.summary ?? "",
+          body: activity.body,
+        }}
+        places={places}
+        categories={categories}
+      />
+      <TagsField activityId={activity.id} tags={tags} selected={activity.tagIds} />
+    </div>
   );
 }
 

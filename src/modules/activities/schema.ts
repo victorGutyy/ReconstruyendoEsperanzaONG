@@ -121,3 +121,16 @@ export type BasicsColumns = z.output<typeof basicsSchema>;
 export type SaveResult = { ok: true; id: string; savedAt: string } | { ok: false; error: string };
 
 export type PhotoResult = { ok: true } | { ok: false; error: string };
+
+/** What the Editor asks to fix when returning an activity (decision F7-D7). */
+export const reviewNoteSchema = z
+  .string()
+  .trim()
+  .min(1, "Escribe qué hay que corregir.")
+  .max(1000, "La nota es demasiado larga (máximo 1000 caracteres).");
+
+/** Optional note when retiring a published activity. */
+export const optionalNoteSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  reviewNoteSchema.optional(),
+);

@@ -122,6 +122,9 @@ export type ActivityForWizard = {
   updatedAt: string;
   inTrash: boolean;
   photos: ActivityPhoto[];
+  tagIds: string[];
+  /** What an Editor asked to fix when returning or retiring it. */
+  reviewNote: { text: string; at: string | null } | null;
 };
 
 /** One activity with its photos in order, or null when RLS hides it. */
@@ -130,7 +133,7 @@ export async function getActivityForWizard(id: string): Promise<ActivityForWizar
   const { data } = await supabase
     .from("activities")
     .select(
-      "id, slug, status, published_at, title, summary, body, starts_at, ends_at, place_id, category_id, cover_media_id, created_by, updated_at, deleted_at, activity_media(id, media_id, position, media(alt_text, processing_status, people_in_photo))",
+      "id, slug, status, published_at, title, summary, body, starts_at, ends_at, place_id, category_id, cover_media_id, created_by, updated_at, deleted_at, review_note, review_note_at, activity_tags(tag_id), activity_media(id, media_id, position, media(alt_text, processing_status, people_in_photo))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -164,6 +167,8 @@ export async function getActivityForWizard(id: string): Promise<ActivityForWizar
     updatedAt: data.updated_at,
     inTrash: data.deleted_at !== null,
     photos,
+    tagIds: data.activity_tags.map((link) => link.tag_id),
+    reviewNote: data.review_note ? { text: data.review_note, at: data.review_note_at } : null,
   };
 }
 
@@ -190,6 +195,18 @@ export async function listBasicsOptions(): Promise<{ places: Option[]; categorie
   if (places.error) throw places.error;
   if (categories.error) throw categories.error;
   return { places: places.data, categories: categories.data };
+}
+
+/** Tags that can be chosen (created in Categorías y lugares). */
+export async function listTags(): Promise<Option[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tags")
+    .select("id, name")
+    .is("deleted_at", null)
+    .order("name");
+  if (error) throw error;
+  return data;
 }
 
 /** Photos with what each still needs (codes from the database), in order. */

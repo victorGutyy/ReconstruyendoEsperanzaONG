@@ -17,6 +17,9 @@ export type Database = {
           place_id: string | null;
           published_at: string | null;
           results: string | null;
+          review_note: string | null;
+          review_note_at: string | null;
+          review_note_by: string | null;
           seo_description: string | null;
           seo_title: string | null;
           slug: string;
@@ -40,6 +43,9 @@ export type Database = {
           place_id?: string | null;
           published_at?: string | null;
           results?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
           seo_description?: string | null;
           seo_title?: string | null;
           slug: string;
@@ -63,6 +69,9 @@ export type Database = {
           place_id?: string | null;
           published_at?: string | null;
           results?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
           seo_description?: string | null;
           seo_title?: string | null;
           slug?: string;
@@ -100,6 +109,13 @@ export type Database = {
             columns: ["place_id"];
             isOneToOne: false;
             referencedRelation: "places";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activities_review_note_by_fkey";
+            columns: ["review_note_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
           {

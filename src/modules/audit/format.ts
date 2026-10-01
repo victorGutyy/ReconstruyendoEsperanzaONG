@@ -227,6 +227,7 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "summary", label: "Resumen", kind: TEXT },
       { key: "slug", label: "Slug", kind: TEXT },
       { key: "cover_media_id", label: "Tiene portada", kind: { type: "present" } },
+      { key: "review_note", label: "Nota de revisión", kind: TEXT },
     ],
   },
   activity_media: {

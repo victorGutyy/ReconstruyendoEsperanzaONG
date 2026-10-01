@@ -1,18 +1,21 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { authorizeAction } from "@/lib/auth/guard";
 import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, uniqueSlug } from "@/lib/utils/slug";
 
-import { getActivityForWizard, getPhotosWithIssues } from "./queries";
+import { type ActivityStatus, getActivityForWizard, getPhotosWithIssues } from "./queries";
 import { reviewActivity } from "./review";
 import {
   type BasicsInput,
   basicsSchema,
+  optionalNoteSchema,
   type PhotoResult,
+  reviewNoteSchema,
   type SaveResult,
   toBogotaInstant,
 } from "./schema";
@@ -21,6 +24,7 @@ const ACTIVITIES_PATH = "/admin/actividades";
 const SLUG_BASE_MAX = 110;
 const UNIQUE_VIOLATION = "23505";
 const FORBIDDEN = "42501";
+const idSchema = z.uuid();
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
@@ -360,4 +364,150 @@ export async function publishActivity(
 
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true, outcome: schedule ? "scheduled" : "published" };
+}
+
+export type StatusChange = "returned" | "retired" | "archived" | "reopened";
+export type StatusResult = { ok: true } | { ok: false; error: string };
+
+const STATUS_CHANGES: Record<
+  StatusChange,
+  { from: ActivityStatus[]; to: ActivityStatus; stale: string }
+> = {
+  returned: { from: ["review"], to: "draft", stale: "La actividad ya no está en revisión." },
+  retired: { from: ["published"], to: "draft", stale: "La actividad ya no está publicada." },
+  archived: { from: ["published"], to: "archived", stale: "La actividad ya no está publicada." },
+  reopened: { from: ["archived"], to: "draft", stale: "La actividad ya no está archivada." },
+};
+
+/**
+ * Editor actions on the state of an activity (step 7.4b, decision F7-D7):
+ * return from review with a required note, retire a published one to fix it
+ * (optional note), archive, reopen an archived one. The database checks the
+ * transition, the permission and the note again.
+ */
+export async function changeActivityStatus(
+  activityId: string,
+  change: StatusChange,
+  note?: string,
+): Promise<StatusResult> {
+  const authorized = await authorizeAction("content.publish");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+  if (!idSchema.safeParse(activityId).success || !Object.hasOwn(STATUS_CHANGES, change)) {
+    return { ok: false, error: "Datos no válidos." };
+  }
+
+  let reviewNote: string | undefined;
+  if (change === "returned" || change === "retired") {
+    const parsed = (change === "returned" ? reviewNoteSchema : optionalNoteSchema).safeParse(
+      note ?? "",
+    );
+    if (!parsed.success) return { ok: false, error: parsed.error.issues[0]!.message };
+    reviewNote = parsed.data;
+  }
+
+  const tooMany = await limited(authorized.auth.user.id);
+  if (tooMany) return { ok: false, error: tooMany };
+
+  const { from, to, stale } = STATUS_CHANGES[change];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("activities")
+    .update(reviewNote ? { status: to, review_note: reviewNote } : { status: to })
+    .eq("id", activityId)
+    .in("status", from)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) {
+    return {
+      ok: false,
+      error:
+        error.code === FORBIDDEN
+          ? "No tienes permiso para hacer esto."
+          : "No se pudo cambiar el estado. Vuelve a intentarlo.",
+    };
+  }
+  if (data.length === 0) return { ok: false, error: stale };
+
+  revalidatePath(ACTIVITIES_PATH, "layout");
+  return { ok: true };
+}
+
+/** Turns one existing tag on or off for the activity (RLS: who can edit it). */
+export async function setActivityTag(
+  activityId: string,
+  tagId: string,
+  on: boolean,
+): Promise<StatusResult> {
+  const context = await photoContext();
+  if ("error" in context) return { ok: false, error: context.error ?? "Sin permiso." };
+  if (!idSchema.safeParse(activityId).success || !idSchema.safeParse(tagId).success) {
+    return { ok: false, error: "Datos no válidos." };
+  }
+  const { supabase } = context;
+
+  const { error } = on
+    ? await supabase.from("activity_tags").insert({ activity_id: activityId, tag_id: tagId })
+    : await supabase
+        .from("activity_tags")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("tag_id", tagId);
+  // Already on (double tap): nothing to do
+  if (error && error.code !== UNIQUE_VIOLATION) {
+    return {
+      ok: false,
+      error:
+        error.code === FORBIDDEN
+          ? "No tienes permiso para cambiar las etiquetas de esta actividad."
+          : "No se pudo guardar la etiqueta.",
+    };
+  }
+  revalidatePath(ACTIVITIES_PATH, "layout");
+  return { ok: true };
+}
+
+const MAX_PICKED = 50;
+
+/**
+ * Adds photos chosen from the library at the end, in the order picked.
+ * Photos already in the activity are skipped.
+ */
+export async function attachPhotos(
+  activityId: string,
+  mediaIds: string[],
+): Promise<{ ok: true; added: number } | { ok: false; error: string }> {
+  const context = await photoContext();
+  if ("error" in context) return { ok: false, error: context.error ?? "Sin permiso." };
+  const ids = z.array(idSchema).min(1).max(MAX_PICKED).safeParse(mediaIds);
+  if (!idSchema.safeParse(activityId).success || !ids.success) {
+    return { ok: false, error: `Elige entre 1 y ${MAX_PICKED} fotos.` };
+  }
+  const { supabase } = context;
+
+  const { data: activity } = await supabase
+    .from("activities")
+    .select("cover_media_id, activity_media(media_id, position)")
+    .eq("id", activityId)
+    .maybeSingle();
+  if (!activity) return { ok: false, error: "No se encontró la actividad." };
+
+  const present = new Set(activity.activity_media.map((link) => link.media_id));
+  const fresh = [...new Set(ids.data)].filter((id) => !present.has(id));
+  if (fresh.length > 0) {
+    const last = Math.max(0, ...activity.activity_media.map((link) => link.position));
+    const { error } = await supabase.from("activity_media").insert(
+      fresh.map((mediaId, index) => ({
+        activity_id: activityId,
+        media_id: mediaId,
+        position: last + 1 + index,
+      })),
+    );
+    if (error) return { ok: false, error: photoError(error.code) };
+
+    if (!activity.cover_media_id) {
+      await supabase.from("activities").update({ cover_media_id: fresh[0] }).eq("id", activityId);
+    }
+  }
+  revalidatePath(ACTIVITIES_PATH, "layout");
+  return { ok: true, added: fresh.length };
 }

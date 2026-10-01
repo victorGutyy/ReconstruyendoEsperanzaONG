@@ -178,6 +178,7 @@ Todas incluyen las **columnas comunes** (§1.1).
 | `category_id` | `uuid` FK → `categories` (scope `activity`) | |
 | `project_id` | `uuid` FK → `projects`, nullable | Se agrega en el paso 7.6, con la tabla `projects` |
 | `results` | `text` | Resultados reportados por la organización (sin cifras inventadas) |
+| `review_note` · `review_note_by` · `review_note_at` | `text` (≤ 1000) · `uuid` FK → `profiles` · `timestamptz` | Nota del Editor al **devolver** (revisión → borrador, obligatoria) o al **retirar** (publicada → borrador, opcional). Solo la escribe quien tiene `content.publish`; quién y cuándo los pone el trigger `track_review_note`, que la borra al reenviar, publicar o archivar (paso 7.4b) |
 
 Regla RN-A-02 como `check`: si `status = 'published'` → `place_id` y `category_id` no nulos. Un trigger exige además que la categoría sea de `scope = 'activity'`, pone `published_at = now()` si se publica sin fecha y **congela el `slug`** desde que la actividad tiene `published_at` (enlaces públicos estables).
 
@@ -418,8 +419,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 9 | `media_publish_status_invoker` | La función anterior pasa a `security invoker` (lint 0029 del asesor) |
 | 10 | `consent_details` | `minor_opinion`, `valid_until` y regla de publicación que los tiene en cuenta (paso 6.5) |
 | 11 | `content_activities` | Estados de publicación, `guard_content_changes` (transiciones y permisos), bloqueo de publicación por fotos (HU-06), `activities`, `activity_media`, `activity_tags`, vista `content_media_usages`, `consent_records.activity_id` (paso 7.1). Los demás tipos de contenido llegan en el paso 7.6 |
-| 12 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 13 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 12 | `activity_review_note` | Nota de revisión al devolver o retirar una actividad (paso 7.4b) |
+| 13 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 14 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 
