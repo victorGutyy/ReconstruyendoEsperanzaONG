@@ -3,51 +3,50 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { FilterLink } from "@/components/ui/filter-link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { authorizePage } from "@/lib/auth/guard";
 import { hasPermission } from "@/lib/auth/rules";
-import {
-  ACTIVITIES_PATH,
-  activitiesHref,
-  hasFilters,
-  LIST_STATUSES,
-  parseActivityFilters,
-} from "@/modules/activities/list";
-import {
-  type ActivitySummary,
-  countActivities,
-  listActivities,
-  listBasicsOptions,
-} from "@/modules/activities/queries";
-import { displayStatus, STATUS_LABELS } from "@/modules/content/client";
-import { FilterLink } from "@/components/ui/filter-link";
+import { ContentTabs, displayStatus, STATUS_LABELS } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import {
+  hasPostFilters,
+  parsePostFilters,
+  POST_LIST_STATUSES,
+  postsHref,
+} from "@/modules/posts/list";
+import {
+  countPosts,
+  listPostCategories,
+  listPosts,
+  type PostSummary,
+} from "@/modules/posts/queries";
+import { POSTS_PATH } from "@/modules/posts/schema";
 
-export const metadata: Metadata = { title: "Actividades" };
+export const metadata: Metadata = { title: "Historias" };
 
 const dateFormat = new Intl.DateTimeFormat("es-CO", {
   dateStyle: "medium",
   timeZone: "America/Bogota",
 });
 
-function ActivityList({ items }: { items: ActivitySummary[] }) {
+function PostList({ items }: { items: PostSummary[] }) {
   return (
-    <ul aria-label="Actividades" className="divide-y rounded-lg border bg-card">
+    <ul aria-label="Historias" className="divide-y rounded-lg border bg-card">
       {items.map((item) => (
         <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 p-4">
           <div className="min-w-0">
             <Link
-              href={`${ACTIVITIES_PATH}/${item.id}/editar`}
+              href={`${POSTS_PATH}/${item.id}`}
               className="font-semibold text-green-900 underline-offset-4 hover:underline"
             >
               {item.title}
             </Link>
             <p className="text-sm text-ink-muted">
               {[
-                dateFormat.format(new Date(item.startsAt)),
-                item.placeName,
+                `Editada el ${dateFormat.format(new Date(item.updatedAt))}`,
                 item.categoryName,
                 item.isMine ? "tuya" : null,
               ]
@@ -56,9 +55,9 @@ function ActivityList({ items }: { items: ActivitySummary[] }) {
             </p>
           </div>
           <span className="flex flex-wrap gap-2">
-            {item.hasWithdrawnPhotos ? (
+            {item.coverWithdrawn ? (
               <span className="rounded-sm border border-gold-500 bg-card px-2 py-1 text-xs font-semibold text-gold-700">
-                Fotos retiradas
+                Portada retirada
               </span>
             ) : null}
             <span className="rounded-sm bg-paper-2 px-2 py-1 text-xs font-semibold">
@@ -71,19 +70,19 @@ function ActivityList({ items }: { items: ActivitySummary[] }) {
   );
 }
 
-export default async function ActivitiesPage({ searchParams }: PageProps<"/admin/actividades">) {
+export default async function PostsPage({ searchParams }: PageProps<"/admin/contenido/historias">) {
   const authorized = await authorizePage("content.read");
   if (!authorized) return <NoPermission reason="Tu rol no permite ver el contenido." />;
 
   const userId = authorized.user.id;
-  const filters = parseActivityFilters(await searchParams);
+  const filters = parsePostFilters(await searchParams);
   const canCreate = hasPermission(authorized.profile, "content.create");
   const canPublish = hasPermission(authorized.profile, "content.publish");
 
-  const [list, counts, options] = await Promise.all([
-    listActivities(filters, userId),
-    countActivities(userId),
-    listBasicsOptions(),
+  const [list, counts, categories] = await Promise.all([
+    listPosts(filters, userId),
+    countPosts(userId),
+    listPostCategories(),
   ]);
   const onlyReview = filters.status === "review" && !filters.mine;
 
@@ -91,46 +90,39 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/admin
     <div className="mx-auto max-w-4xl px-4 py-10">
       <p className="text-xs font-semibold tracking-[0.12em] text-gold-700 uppercase">Contenido</p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-        <h1 className="font-serif text-3xl font-semibold text-green-900">Actividades</h1>
+        <h1 className="font-serif text-3xl font-semibold text-green-900">Historias</h1>
         {canCreate ? (
           <Button asChild>
-            <Link href={`${ACTIVITIES_PATH}/nueva`}>
+            <Link href={`${POSTS_PATH}/nueva`}>
               <Plus aria-hidden="true" />
-              Nueva actividad
+              Nueva historia
             </Link>
           </Button>
         ) : null}
       </div>
+      <ContentTabs current="post" />
 
-      <nav aria-label="Vistas de actividades" className="mt-8 flex flex-wrap gap-2">
-        <FilterLink href={ACTIVITIES_PATH} active={!hasFilters(filters)}>
+      <nav aria-label="Vistas de historias" className="mt-6 flex flex-wrap gap-2">
+        <FilterLink href={POSTS_PATH} active={!hasPostFilters(filters)}>
           Todas
         </FilterLink>
         {canPublish ? (
           <FilterLink
-            href={activitiesHref(filters, { status: "review", mine: false })}
+            href={postsHref(filters, { status: "review", mine: false })}
             active={onlyReview}
           >
             Por revisar ({counts.toReview})
           </FilterLink>
         ) : null}
-        {canPublish ? (
-          <FilterLink
-            href={activitiesHref(filters, { withdrawn: !filters.withdrawn })}
-            active={filters.withdrawn}
-          >
-            Con fotos retiradas
-          </FilterLink>
-        ) : null}
-        <FilterLink href={activitiesHref(filters, { mine: !filters.mine })} active={filters.mine}>
+        <FilterLink href={postsHref(filters, { mine: !filters.mine })} active={filters.mine}>
           Mías
         </FilterLink>
       </nav>
 
       <form
-        action={ACTIVITIES_PATH}
+        action={POSTS_PATH}
         role="search"
-        aria-label="Buscar actividades"
+        aria-label="Buscar historias"
         className="mt-5 grid gap-4 rounded-lg border bg-card p-4 sm:grid-cols-2"
       >
         <div className="space-y-2 sm:col-span-2">
@@ -148,7 +140,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/admin
           <Label htmlFor="filter-status">Estado</Label>
           <NativeSelect id="filter-status" name="status" defaultValue={filters.status ?? ""}>
             <option value="">Todos</option>
-            {LIST_STATUSES.map((status) => (
+            {POST_LIST_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {STATUS_LABELS[status]}
               </option>
@@ -159,34 +151,22 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/admin
           <Label htmlFor="filter-category">Categoría</Label>
           <NativeSelect id="filter-category" name="category" defaultValue={filters.category ?? ""}>
             <option value="">Todas</option>
-            {options.categories.map((category) => (
+            {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
             ))}
           </NativeSelect>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="filter-place">Lugar</Label>
-          <NativeSelect id="filter-place" name="place" defaultValue={filters.place ?? ""}>
-            <option value="">Todos</option>
-            {options.places.map((place) => (
-              <option key={place.id} value={place.id}>
-                {place.name}
-              </option>
-            ))}
-          </NativeSelect>
-        </div>
         {filters.mine ? <input type="hidden" name="mine" value="1" /> : null}
-        {filters.withdrawn ? <input type="hidden" name="withdrawn" value="1" /> : null}
         <div className="flex flex-wrap items-end gap-3">
           <Button type="submit">
             <Search aria-hidden="true" />
             Filtrar
           </Button>
-          {hasFilters(filters) ? (
+          {hasPostFilters(filters) ? (
             <Link
-              href={ACTIVITIES_PATH}
+              href={POSTS_PATH}
               className="inline-flex min-h-11 items-center font-medium text-green-700 underline"
             >
               Quitar filtros
@@ -200,16 +180,14 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/admin
           {onlyReview ? "Por revisar" : "Resultados"} ({list.total})
         </h2>
         {list.items.length > 0 ? (
-          <ActivityList items={list.items} />
+          <PostList items={list.items} />
         ) : (
           <p className="rounded-lg border bg-card p-5 text-ink-muted">
-            {filters.withdrawn
-              ? "Ninguna actividad publicada tiene fotos retiradas."
-              : onlyReview
-                ? "No hay actividades esperando revisión."
-                : hasFilters(filters)
-                  ? "Ninguna actividad coincide con los filtros."
-                  : "Todavía no hay actividades."}
+            {onlyReview
+              ? "No hay historias esperando revisión."
+              : hasPostFilters(filters)
+                ? "Ninguna historia coincide con los filtros."
+                : "Todavía no hay historias."}
           </p>
         )}
 
@@ -217,7 +195,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/admin
           <nav aria-label="Páginas" className="mt-6 flex flex-wrap items-center gap-4">
             {filters.page > 1 ? (
               <Link
-                href={activitiesHref(filters, { page: filters.page - 1 })}
+                href={postsHref(filters, { page: filters.page - 1 })}
                 className="inline-flex min-h-11 items-center font-medium text-green-700 underline"
               >
                 Anterior
@@ -228,7 +206,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/admin
             </span>
             {filters.page < list.pageCount ? (
               <Link
-                href={activitiesHref(filters, { page: filters.page + 1 })}
+                href={postsHref(filters, { page: filters.page + 1 })}
                 className="inline-flex min-h-11 items-center font-medium text-green-700 underline"
               >
                 Siguiente

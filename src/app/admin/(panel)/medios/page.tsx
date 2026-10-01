@@ -7,7 +7,7 @@ import { LibraryGrid } from "@/modules/media/components/library-grid";
 import { MediaUploader } from "@/modules/media/components/media-uploader";
 import { libraryHref, type LibraryFilters, parseLibraryFilters } from "@/modules/media/library";
 import { listLibrary } from "@/modules/media/queries";
-import { FilterLink } from "@/modules/panel/components/filter-link";
+import { FilterLink } from "@/components/ui/filter-link";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 
 export const metadata: Metadata = { title: "Medios" };

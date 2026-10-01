@@ -322,3 +322,22 @@ describe("public photos", () => {
     expect(JSON.stringify(changes)).not.toContain("secret-prefix");
   });
 });
+
+describe("stories", () => {
+  it("names a story by its title and shows its state in Spanish", () => {
+    const story = entry({
+      action: "publish",
+      tableName: "posts",
+      oldData: { title: "[DEMO] La huerta", status: "review", byline: null },
+      newData: { title: "[DEMO] La huerta", status: "published", byline: "[DEMO] Equipo" },
+      changedFields: ["status", "byline", "body_text"],
+    });
+    expect(recordLabel(story)).toBe("Historia: [DEMO] La huerta");
+    const result = describeChanges(story, lookups);
+    expect(result.changes.map(({ label, after }) => [label, after])).toEqual([
+      ["Estado", "Publicada"],
+      ["Firma", "[DEMO] Equipo"],
+    ]);
+    expect(result.hidden).toBe(1);
+  });
+});

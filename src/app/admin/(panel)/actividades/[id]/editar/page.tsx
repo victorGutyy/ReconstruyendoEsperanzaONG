@@ -9,7 +9,6 @@ import { BasicsForm } from "@/modules/activities/components/basics-form";
 import { PeopleStep } from "@/modules/activities/components/people-step";
 import { PhotosStep } from "@/modules/activities/components/photos-step";
 import { ReviewStep } from "@/modules/activities/components/review-step";
-import { StatusActions } from "@/modules/activities/components/status-actions";
 import { TagsField } from "@/modules/activities/components/tags-field";
 import { WizardSteps } from "@/modules/activities/components/wizard-steps";
 import {
@@ -20,22 +19,12 @@ import {
 } from "@/modules/activities/queries";
 import { reviewActivity } from "@/modules/activities/review";
 import { listConsentsForMedia } from "@/modules/consents";
-import {
-  displayStatus,
-  fromBogotaInstant,
-  parseStep,
-  STATUS_LABELS,
-} from "@/modules/activities/schema";
+import { fromBogotaInstant, parseStep } from "@/modules/activities/schema";
 import { describeIssues, getMediaCards } from "@/modules/media";
+import { displayStatus, ReviewNote, STATUS_LABELS, StatusActions } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 
 export const metadata: Metadata = { title: "Editar actividad" };
-
-const noteDate = new Intl.DateTimeFormat("es-CO", {
-  dateStyle: "medium",
-  timeStyle: "short",
-  timeZone: "America/Bogota",
-});
 
 export default async function EditActivityPage({
   params,
@@ -73,23 +62,12 @@ export default async function EditActivityPage({
 
       {hasPermission(profile, "content.publish") && !activity.inTrash ? (
         <div className="mt-6">
-          <StatusActions activityId={activity.id} status={activity.status} />
+          <StatusActions type="activity" id={activity.id} status={activity.status} />
         </div>
       ) : null}
 
       {activity.reviewNote && activity.status === "draft" ? (
-        <section
-          aria-labelledby="review-note-title"
-          className="mt-6 rounded-lg border-2 border-gold-500 bg-card p-4"
-        >
-          <h2 id="review-note-title" className="font-semibold text-green-900">
-            Nota de revisión
-            {activity.reviewNote.at
-              ? ` · ${noteDate.format(new Date(activity.reviewNote.at))}`
-              : ""}
-          </h2>
-          <p className="mt-1 whitespace-pre-line">{activity.reviewNote.text}</p>
-        </section>
+        <ReviewNote note={activity.reviewNote} />
       ) : null}
 
       {activity.status === "published" && !activity.inTrash ? (

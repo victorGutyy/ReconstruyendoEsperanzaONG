@@ -3,6 +3,10 @@ import { generateSync } from "otplib";
 
 import type { TestUser } from "./users";
 
+/** 30-second window of the last code used per secret: never reuse one. */
+const usedWindows = new Map<string, number>();
+const currentWindow = () => Math.floor(Date.now() / 30_000);
+
 /**
  * Full sign-in for a user that has never enrolled MFA: password, QR enrollment
  * (using the plain-text secret) and the first code. Returns the TOTP secret.
@@ -25,8 +29,31 @@ export async function completeMfaEnrollment(page: Page): Promise<string> {
   await page.getByText("¿No puedes escanear? Escribe esta clave").click();
   const secret = (await page.getByTestId("mfa-secret").textContent())?.trim() ?? "";
 
+  usedWindows.set(secret, currentWindow());
   await page.getByLabel("Código de 6 números").fill(generateSync({ secret }));
   await page.getByRole("button", { name: "Activar y entrar" }).click();
   await expect(page).toHaveURL(/\/admin$/);
   return secret;
+}
+
+/** Sign-in for a user who already enrolled MFA (`secret` from the first sign-in). */
+export async function signInWithMfa(
+  page: Page,
+  user: Pick<TestUser, "email" | "password">,
+  secret: string,
+): Promise<void> {
+  await page.goto("/admin/login");
+  await page.getByLabel("Correo").fill(user.email);
+  await page.getByLabel("Contraseña").fill(user.password);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(page.getByRole("heading", { name: "Verificación en dos pasos" })).toBeVisible();
+
+  // A code already used in this window could be refused: wait for the next one
+  if (usedWindows.get(secret) === currentWindow()) {
+    await page.waitForTimeout(30_000 - (Date.now() % 30_000) + 500);
+  }
+  usedWindows.set(secret, currentWindow());
+  await page.getByLabel("Código de 6 números").fill(generateSync({ secret }));
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(page).toHaveURL(/\/admin$/);
 }

@@ -190,8 +190,10 @@ Regla RN-A-02 como `check`: si `status = 'published'` → `place_id` y `category
 | `title` · `excerpt` | `text` | |
 | `body` · `body_text` | `jsonb` · `text` | |
 | `category_id` | `uuid` FK → `categories` (scope `post`) | |
-| `author_id` | `uuid` FK → `profiles` | Quién la escribió (interno) |
-| `byline` | `text` | Firma pública, editable (p. ej. el nombre de la autora o "Equipo Reconstruyendo Esperanza"). Evita exponer la tabla `profiles` al público |
+| `byline` | `text` (≤ 120), nullable | Firma pública, editable (p. ej. el nombre de la autora o "Equipo Reconstruyendo Esperanza"). Evita exponer la tabla `profiles` al público. **Vacía = el sitio no muestra firma** (nunca se inventa un nombre) |
+| `review_note` · `review_note_by` · `review_note_at` | | Igual que en `activities` (paso 7.4b) |
+
+Quién la escribió es `created_by` (decisión del paso 7.6a: no se crea `author_id`, sería el mismo dato dos veces). Para publicar se exigen `excerpt` y `category_id` (check); la portada es opcional, pero si existe debe ser publicable (trigger `check_post`). Mismas reglas de estados, nota de revisión, permisos y auditoría que las actividades (paso 7.6a).
 
 ### `projects` — Proyectos (RF-A-05)
 | Columna | Tipo | Notas |
@@ -421,8 +423,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 11 | `content_activities` | Estados de publicación, `guard_content_changes` (transiciones y permisos), bloqueo de publicación por fotos (HU-06), `activities`, `activity_media`, `activity_tags`, vista `content_media_usages`, `consent_records.activity_id` (paso 7.1). Los demás tipos de contenido llegan en el paso 7.6 |
 | 12 | `activity_review_note` | Nota de revisión al devolver o retirar una actividad (paso 7.4b) |
 | 13 | `media_public` | Bucket público `media-public` y regla `media_public_targets` (paso 7.5a) |
-| 14 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 15 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 14 | `content_posts` | `posts` (historias) sobre el motor común; `content_media_usages` suma sus portadas y `private.content_is_published` decide para cualquier tipo (paso 7.6a) |
+| 15 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 16 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 
