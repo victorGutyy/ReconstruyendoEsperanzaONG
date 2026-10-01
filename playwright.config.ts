@@ -6,6 +6,9 @@ import { defineConfig, devices } from "@playwright/test";
 // Locally it comes from .env.local; in CI from the job environment.
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
+// Test-only value for the cron route (never the real one, which lives in Vercel)
+process.env.CRON_SECRET ??= "e2e-cron-secret-for-local-and-ci-only";
+
 const PORT = 3100;
 const baseURL = `http://127.0.0.1:${PORT}`;
 

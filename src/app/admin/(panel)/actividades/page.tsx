@@ -55,8 +55,15 @@ function ActivityList({ items }: { items: ActivitySummary[] }) {
                 .join(" · ")}
             </p>
           </div>
-          <span className="rounded-sm bg-paper-2 px-2 py-1 text-xs font-semibold">
-            {STATUS_LABELS[displayStatus(item.status, item.publishedAt)]}
+          <span className="flex flex-wrap gap-2">
+            {item.hasWithdrawnPhotos ? (
+              <span className="rounded-sm border border-gold-500 bg-card px-2 py-1 text-xs font-semibold text-gold-700">
+                Fotos retiradas
+              </span>
+            ) : null}
+            <span className="rounded-sm bg-paper-2 px-2 py-1 text-xs font-semibold">
+              {STATUS_LABELS[displayStatus(item.status, item.publishedAt)]}
+            </span>
           </span>
         </li>
       ))}
@@ -105,6 +112,14 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/admin
             active={onlyReview}
           >
             Por revisar ({counts.toReview})
+          </FilterLink>
+        ) : null}
+        {canPublish ? (
+          <FilterLink
+            href={activitiesHref(filters, { withdrawn: !filters.withdrawn })}
+            active={filters.withdrawn}
+          >
+            Con fotos retiradas
           </FilterLink>
         ) : null}
         <FilterLink href={activitiesHref(filters, { mine: !filters.mine })} active={filters.mine}>
@@ -163,6 +178,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/admin
           </NativeSelect>
         </div>
         {filters.mine ? <input type="hidden" name="mine" value="1" /> : null}
+        {filters.withdrawn ? <input type="hidden" name="withdrawn" value="1" /> : null}
         <div className="flex flex-wrap items-end gap-3">
           <Button type="submit">
             <Search aria-hidden="true" />
@@ -187,11 +203,13 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/admin
           <ActivityList items={list.items} />
         ) : (
           <p className="rounded-lg border bg-card p-5 text-ink-muted">
-            {onlyReview
-              ? "No hay actividades esperando revisión."
-              : hasFilters(filters)
-                ? "Ninguna actividad coincide con los filtros."
-                : "Todavía no hay actividades."}
+            {filters.withdrawn
+              ? "Ninguna actividad publicada tiene fotos retiradas."
+              : onlyReview
+                ? "No hay actividades esperando revisión."
+                : hasFilters(filters)
+                  ? "Ninguna actividad coincide con los filtros."
+                  : "Todavía no hay actividades."}
           </p>
         )}
 

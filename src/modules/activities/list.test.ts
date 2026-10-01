@@ -13,9 +13,18 @@ describe("parseActivityFilters", () => {
         place: ID,
         q: "  siembra  ",
         mine: "1",
+        withdrawn: "1",
         page: "3",
       }),
-    ).toEqual({ status: "review", category: ID, place: ID, q: "siembra", mine: true, page: 3 });
+    ).toEqual({
+      status: "review",
+      category: ID,
+      place: ID,
+      q: "siembra",
+      mine: true,
+      withdrawn: true,
+      page: 3,
+    });
   });
 
   it("ignores invalid values instead of failing", () => {
@@ -33,6 +42,7 @@ describe("parseActivityFilters", () => {
       place: undefined,
       q: "",
       mine: false,
+      withdrawn: false,
       page: 1,
     });
   });
@@ -56,6 +66,9 @@ describe("activitiesHref", () => {
     const filters = parseActivityFilters({ status: "draft", page: "4" });
     expect(activitiesHref(filters, { mine: true })).toBe("/admin/actividades?status=draft&mine=1");
     expect(activitiesHref(filters, { page: 5 })).toBe("/admin/actividades?status=draft&page=5");
+    expect(activitiesHref(filters, { withdrawn: true })).toBe(
+      "/admin/actividades?status=draft&withdrawn=1",
+    );
   });
 
   it("encodes the search text", () => {

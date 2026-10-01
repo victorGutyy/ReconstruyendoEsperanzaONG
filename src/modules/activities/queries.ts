@@ -19,6 +19,8 @@ export type ActivitySummary = {
   isMine: boolean;
   categoryName: string | null;
   placeName: string | null;
+  /** Published, with photos taken off the site (step 7.5b). */
+  hasWithdrawnPhotos: boolean;
 };
 
 const SUMMARY_COLUMNS =
@@ -51,6 +53,11 @@ export async function listActivities(
   if (filters.place) query = query.eq("place_id", filters.place);
   if (filters.q) query = query.ilike("title", `%${escapeLike(filters.q)}%`);
   if (filters.mine) query = query.eq("created_by", userId);
+  if (filters.withdrawn) {
+    const affected = [...(await findActivitiesWithWithdrawnPhotos())];
+    if (affected.length === 0) return { items: [], total: 0, pageCount: 1 };
+    query = query.in("id", affected);
+  }
 
   const offset = (filters.page - 1) * ACTIVITIES_PAGE_SIZE;
   const { data, error, count } = await query
@@ -61,8 +68,12 @@ export async function listActivities(
   if (error && error.code !== "PGRST103") throw error;
 
   const total = count ?? 0;
+  const rows = error ? [] : data;
+  const withdrawn = await findActivitiesWithWithdrawnPhotos(
+    rows.filter((row) => row.status === "published").map((row) => row.id),
+  );
   return {
-    items: (error ? [] : data).map((row) => ({
+    items: rows.map((row) => ({
       id: row.id,
       title: row.title,
       status: row.status,
@@ -72,10 +83,46 @@ export async function listActivities(
       isMine: row.created_by === userId,
       categoryName: row.category?.name ?? null,
       placeName: row.place?.name ?? null,
+      hasWithdrawnPhotos: withdrawn.has(row.id),
     })),
     total,
     pageCount: Math.max(1, Math.ceil(total / ACTIVITIES_PAGE_SIZE)),
   };
+}
+
+/**
+ * Published (or scheduled) activities that use photos which are no longer
+ * publishable, e.g. after an authorization was revoked: those photos left the
+ * site (step 7.5b). All of them, or only among `activityIds`.
+ */
+export async function findActivitiesWithWithdrawnPhotos(
+  activityIds?: string[],
+): Promise<Set<string>> {
+  if (activityIds && activityIds.length === 0) return new Set();
+  const supabase = await createClient();
+  let query = supabase
+    .from("activities")
+    .select("id, cover_media_id, activity_media(media_id)")
+    .eq("status", "published")
+    .is("deleted_at", null);
+  if (activityIds) query = query.in("id", activityIds);
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const photosOf = new Map(
+    data.map((row) => [
+      row.id,
+      [row.cover_media_id, ...row.activity_media.map((link) => link.media_id)].filter(
+        (id): id is string => id !== null,
+      ),
+    ]),
+  );
+  const issues = await getPublishIssues([...new Set([...photosOf.values()].flat())]);
+  return new Set(
+    [...photosOf]
+      .filter(([, photos]) => photos.some((id) => (issues.get(id) ?? []).length > 0))
+      .map(([id]) => id),
+  );
 }
 
 /** Counts for the dashboard and the "Por revisar" tab. */

@@ -11,6 +11,7 @@ export function getServerEnv(): ServerEnv {
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     RATE_LIMIT_DRIVER: process.env.RATE_LIMIT_DRIVER,
+    CRON_SECRET: process.env.CRON_SECRET,
   });
   return cached;
 }

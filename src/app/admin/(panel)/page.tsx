@@ -7,7 +7,7 @@ import { isAuthError } from "@/lib/auth/errors";
 import { ADMIN_HOME, hasPermission, LOGIN_PATH, MFA_PATH } from "@/lib/auth/rules";
 import { getCurrentProfile, requireAal2 } from "@/lib/auth/session";
 import { activitiesHref, parseActivityFilters } from "@/modules/activities/list";
-import { countActivities } from "@/modules/activities/queries";
+import { countActivities, findActivitiesWithWithdrawnPhotos } from "@/modules/activities/queries";
 import { countPendingPhotos } from "@/modules/media";
 import { navFor } from "@/modules/panel/navigation";
 
@@ -108,13 +108,22 @@ async function pendingFor(
   const canUpload = hasPermission(profile, "media.upload");
   if (!canRead && !canUpload) return null;
 
-  const [activities, photos] = await Promise.all([
+  const canPublish = hasPermission(profile, "content.publish");
+  const [activities, photos, withdrawn] = await Promise.all([
     canRead ? countActivities(userId) : null,
     canUpload ? countPendingPhotos() : 0,
+    canPublish ? findActivitiesWithWithdrawnPhotos().then((ids) => ids.size) : 0,
   ]);
 
   const items: Pending[] = [];
-  if (activities && hasPermission(profile, "content.publish")) {
+  if (withdrawn > 0) {
+    items.push({
+      href: activitiesHref(noFilters, { withdrawn: true }),
+      count: withdrawn,
+      label: withdrawn === 1 ? "actividad con fotos retiradas" : "actividades con fotos retiradas",
+    });
+  }
+  if (activities && canPublish) {
     items.push({
       href: activitiesHref(noFilters, { status: "review" }),
       count: activities.toReview,
