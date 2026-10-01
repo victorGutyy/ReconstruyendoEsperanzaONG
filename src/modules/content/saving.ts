@@ -168,10 +168,12 @@ export async function publishContent(
     return {
       ok: false,
       error: error.message?.includes("media_not_publishable")
-        ? "La portada no se puede publicar todavía: revisa su descripción y autorizaciones."
-        : error.code === FORBIDDEN
-          ? "No tienes permiso para publicar."
-          : "No se pudo publicar. Vuelve a intentarlo.",
+        ? "Una foto no se puede publicar todavía: revisa su descripción y autorizaciones."
+        : error.message?.includes("gallery_empty")
+          ? "La galería no tiene fotos."
+          : error.code === FORBIDDEN
+            ? "No tienes permiso para publicar."
+            : "No se pudo publicar. Vuelve a intentarlo.",
     };
   }
   if (data.length === 0) {

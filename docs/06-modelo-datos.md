@@ -207,8 +207,10 @@ Quién la escribió es `created_by` (decisión del paso 7.6a: no se crea `author
 Para publicar se exige `summary` (check); objetivo, fechas y portada son opcionales, pero la portada debe ser publicable (trigger `check_project`). Mismas reglas de estados, nota de revisión, permisos y auditoría que el resto del contenido (paso 7.6b).
 
 ### `galleries` y `gallery_items` — Galería (RF-A-06)
-`galleries`: columnas comunes + `title`, `description`, `activity_id` (nullable), `project_id` (nullable).
-`gallery_items`: PK (`gallery_id`, `media_id`), `position int`, `caption text`.
+`galleries`: columnas comunes + `title` (≤ 160), `description` (≤ 1000), `activity_id` o `project_id` (nullable; check: no las dos a la vez) y la nota de revisión.
+`gallery_items`: `id` propio (para la auditoría), `gallery_id` (cascade), `media_id`, `position int`, `caption text` (≤ 300); único (`gallery_id`, `media_id`).
+
+Para publicar, la galería debe tener al menos una foto (`gallery_empty`) y **todas** sus fotos y la portada deben ser publicables, como en las actividades; una foto agregada a una galería publicada también. Las fotos de las galerías publicadas pasan al bucket público. El trigger se llama `validate_gallery` para correr **después** de `guard_content_changes` y reportar primero la falta de permiso (paso 7.6c).
 
 ### `videos` — Videos (RF-A-07)
 | Columna | Tipo | Notas |
@@ -428,8 +430,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 13 | `media_public` | Bucket público `media-public` y regla `media_public_targets` (paso 7.5a) |
 | 14 | `content_posts` | `posts` (historias) sobre el motor común; `content_media_usages` suma sus portadas y `private.content_is_published` decide para cualquier tipo (paso 7.6a) |
 | 15 | `content_projects` | `projects` sobre el motor común y `activities.project_id` (paso 7.6b) |
-| 16 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 17 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 16 | `content_galleries` | `galleries` y `gallery_items` sobre el motor común (paso 7.6c) |
+| 17 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 18 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 

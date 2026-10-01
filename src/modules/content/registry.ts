@@ -23,6 +23,13 @@ export const CONTENT_TYPES = {
     listPath: "/admin/contenido/proyectos",
     editPath: (id: string) => `/admin/contenido/proyectos/${id}`,
   },
+  gallery: {
+    table: "galleries",
+    singular: "galería",
+    feminine: true,
+    listPath: "/admin/contenido/galerias",
+    editPath: (id: string) => `/admin/contenido/galerias/${id}`,
+  },
 } as const;
 
 export type ContentType = keyof typeof CONTENT_TYPES;
@@ -31,6 +38,7 @@ export type ContentType = keyof typeof CONTENT_TYPES;
 export const CONTENT_TABS = [
   { type: "post", label: "Historias" },
   { type: "project", label: "Proyectos" },
+  { type: "gallery", label: "Galerías" },
 ] as const satisfies readonly {
   type: ContentType;
   label: string;

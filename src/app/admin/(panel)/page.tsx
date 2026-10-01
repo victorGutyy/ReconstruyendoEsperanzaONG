@@ -13,6 +13,8 @@ import { parsePostFilters, postsHref } from "@/modules/posts/list";
 import { countPosts } from "@/modules/posts/queries";
 import { parseProjectFilters, projectsHref } from "@/modules/projects/list";
 import { countProjects } from "@/modules/projects/queries";
+import { galleriesHref, parseGalleryFilters } from "@/modules/galleries/list";
+import { countGalleries } from "@/modules/galleries/queries";
 import { navFor } from "@/modules/panel/navigation";
 
 type Pending = { href: string; count: number; label: string };
@@ -20,6 +22,7 @@ type Pending = { href: string; count: number; label: string };
 const noFilters = parseActivityFilters({});
 const noPostFilters = parsePostFilters({});
 const noProjectFilters = parseProjectFilters({});
+const noGalleryFilters = parseGalleryFilters({});
 
 export const metadata: Metadata = { title: "Inicio" };
 
@@ -115,10 +118,11 @@ async function pendingFor(
   if (!canRead && !canUpload) return null;
 
   const canPublish = hasPermission(profile, "content.publish");
-  const [activities, posts, projects, photos, withdrawn] = await Promise.all([
+  const [activities, posts, projects, galleries, photos, withdrawn] = await Promise.all([
     canRead ? countActivities(userId) : null,
     canRead ? countPosts(userId) : null,
     canRead ? countProjects(userId) : null,
+    canRead ? countGalleries(userId) : null,
     canUpload ? countPendingPhotos() : 0,
     canPublish ? findActivitiesWithWithdrawnPhotos().then((ids) => ids.size) : 0,
   ]);
@@ -177,6 +181,20 @@ async function pendingFor(
       href: projectsHref(noProjectFilters, { status: "draft", mine: true }),
       count: projects.myDrafts,
       label: projects.myDrafts === 1 ? "proyecto tuyo en borrador" : "proyectos tuyos en borrador",
+    });
+  }
+  if (galleries && canPublish) {
+    items.push({
+      href: galleriesHref(noGalleryFilters, { status: "review" }),
+      count: galleries.toReview,
+      label: galleries.toReview === 1 ? "galería por revisar" : "galerías por revisar",
+    });
+  }
+  if (galleries) {
+    items.push({
+      href: galleriesHref(noGalleryFilters, { status: "draft", mine: true }),
+      count: galleries.myDrafts,
+      label: galleries.myDrafts === 1 ? "galería tuya en borrador" : "galerías tuyas en borrador",
     });
   }
   items.push({
