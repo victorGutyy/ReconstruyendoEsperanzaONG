@@ -25,6 +25,9 @@ export const AUDIT_SECTIONS = [
   "media",
   "consent_records",
   "media_consents",
+  "activities",
+  "activity_media",
+  "activity_tags",
 ] as const;
 export type AuditSection = (typeof AUDIT_SECTIONS)[number];
 

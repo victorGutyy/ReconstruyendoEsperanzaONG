@@ -56,6 +56,20 @@ async function publishStatus(ids: string[]): Promise<Map<string, string[]>> {
   return statuses;
 }
 
+/** Photos outside the trash that still need something before they can be published. */
+export async function countPendingPhotos(): Promise<number> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("media")
+    .select("id")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(PENDING_SCAN_LIMIT);
+  if (error) throw error;
+  const statuses = await publishStatus(data.map((row) => row.id));
+  return data.filter((row) => (statuses.get(row.id) ?? []).length > 0).length;
+}
+
 /**
  * One page of the library, newest first, read through RLS. Call after
  * authorizePage('media.upload'); `canSeeTrash` only for media.update.

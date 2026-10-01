@@ -1,8 +1,11 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { escapeLike } from "@/lib/utils/like";
 import type { RichTextDoc } from "@/lib/rich-text/schema";
 import { getPublishIssues } from "@/modules/media";
+
+import { ACTIVITIES_PAGE_SIZE, type ActivityFilters } from "./list";
 
 export type ActivityStatus = "draft" | "review" | "published" | "archived";
 
@@ -14,55 +17,83 @@ export type ActivitySummary = {
   startsAt: string;
   updatedAt: string;
   isMine: boolean;
+  categoryName: string | null;
+  placeName: string | null;
 };
 
-const SUMMARY_COLUMNS = "id, title, status, published_at, starts_at, updated_at, created_by";
+const SUMMARY_COLUMNS =
+  "id, title, status, published_at, starts_at, updated_at, created_by, category:categories(name), place:places(name)";
 
-type SummaryRow = {
-  id: string;
-  title: string;
-  status: ActivityStatus;
-  published_at: string | null;
-  starts_at: string;
-  updated_at: string;
-  created_by: string | null;
-};
-
-const toSummary = (userId: string) => (row: SummaryRow) => ({
-  id: row.id,
-  title: row.title,
-  status: row.status,
-  publishedAt: row.published_at,
-  startsAt: row.starts_at,
-  updatedAt: row.updated_at,
-  isMine: row.created_by === userId,
-});
-
-/** The person's drafts and the latest activities (the full list and filters come in 7.4). */
-export async function listActivitiesForPanel(userId: string) {
+/**
+ * One page of the panel list (step 7.4), newest changes first. "Scheduled"
+ * and "published" are both stored as published: the date tells them apart.
+ */
+export async function listActivities(
+  filters: ActivityFilters,
+  userId: string,
+): Promise<{ items: ActivitySummary[]; total: number; pageCount: number }> {
   const supabase = await createClient();
-  const [mine, recent] = await Promise.all([
-    supabase
-      .from("activities")
-      .select(SUMMARY_COLUMNS)
-      .eq("created_by", userId)
-      .in("status", ["draft", "review"])
-      .is("deleted_at", null)
-      .order("updated_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("activities")
-      .select(SUMMARY_COLUMNS)
-      .is("deleted_at", null)
-      .order("updated_at", { ascending: false })
-      .limit(20),
-  ]);
-  if (mine.error) throw mine.error;
-  if (recent.error) throw recent.error;
+  const now = new Date().toISOString();
+
+  let query = supabase
+    .from("activities")
+    .select(SUMMARY_COLUMNS, { count: "exact" })
+    .is("deleted_at", null);
+
+  if (filters.status === "scheduled") {
+    query = query.eq("status", "published").gt("published_at", now);
+  } else if (filters.status === "published") {
+    query = query.eq("status", "published").lte("published_at", now);
+  } else if (filters.status) {
+    query = query.eq("status", filters.status);
+  }
+  if (filters.category) query = query.eq("category_id", filters.category);
+  if (filters.place) query = query.eq("place_id", filters.place);
+  if (filters.q) query = query.ilike("title", `%${escapeLike(filters.q)}%`);
+  if (filters.mine) query = query.eq("created_by", userId);
+
+  const offset = (filters.page - 1) * ACTIVITIES_PAGE_SIZE;
+  const { data, error, count } = await query
+    .order("updated_at", { ascending: false })
+    .order("id")
+    .range(offset, offset + ACTIVITIES_PAGE_SIZE - 1);
+  // A page past the end answers PGRST103: show it empty
+  if (error && error.code !== "PGRST103") throw error;
+
+  const total = count ?? 0;
   return {
-    mine: (mine.data as SummaryRow[]).map(toSummary(userId)),
-    recent: (recent.data as SummaryRow[]).map(toSummary(userId)),
+    items: (error ? [] : data).map((row) => ({
+      id: row.id,
+      title: row.title,
+      status: row.status,
+      publishedAt: row.published_at,
+      startsAt: row.starts_at,
+      updatedAt: row.updated_at,
+      isMine: row.created_by === userId,
+      categoryName: row.category?.name ?? null,
+      placeName: row.place?.name ?? null,
+    })),
+    total,
+    pageCount: Math.max(1, Math.ceil(total / ACTIVITIES_PAGE_SIZE)),
   };
+}
+
+/** Counts for the dashboard and the "Por revisar" tab. */
+export async function countActivities(userId: string) {
+  const supabase = await createClient();
+  const live = () =>
+    supabase.from("activities").select("id", { count: "exact", head: true }).is("deleted_at", null);
+
+  const results = await Promise.all([
+    live().eq("status", "review"),
+    live().eq("status", "draft").eq("created_by", userId),
+    live().eq("status", "review").eq("created_by", userId),
+  ]);
+  const [toReview, myDrafts, myInReview] = results.map(({ count, error }) => {
+    if (error) throw error;
+    return count ?? 0;
+  });
+  return { toReview: toReview!, myDrafts: myDrafts!, myInReview: myInReview! };
 }
 
 export type ActivityPhoto = {

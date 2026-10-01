@@ -3,37 +3,14 @@ import Link from "next/link";
 
 import { authorizePage } from "@/lib/auth/guard";
 import { hasPermission } from "@/lib/auth/rules";
-import { cn } from "@/lib/utils";
 import { LibraryGrid } from "@/modules/media/components/library-grid";
 import { MediaUploader } from "@/modules/media/components/media-uploader";
 import { libraryHref, type LibraryFilters, parseLibraryFilters } from "@/modules/media/library";
 import { listLibrary } from "@/modules/media/queries";
+import { FilterLink } from "@/modules/panel/components/filter-link";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 
 export const metadata: Metadata = { title: "Medios" };
-
-function FilterLink({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "inline-flex min-h-11 items-center rounded-md border px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        active ? "border-green-700 bg-green-50 text-green-900" : "bg-card hover:border-green-700",
-      )}
-    >
-      {children}
-    </Link>
-  );
-}
 
 export default async function MediaPage({ searchParams }: PageProps<"/admin/medios">) {
   const authorized = await authorizePage("media.upload");
