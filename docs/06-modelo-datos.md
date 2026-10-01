@@ -399,7 +399,7 @@ Abreviaturas: **pub** = `status = 'published' and published_at <= now() and dele
 | Supabase Storage | `media-incoming` | Privado; subida solo con URL firmada (60 s); 15 MB; JPEG, PNG, WebP | Originales temporales; se borran al procesar |
 | Supabase Storage | `media-private` | Privado; el panel ve con URL firmada | Versiones procesadas (sin EXIF/GPS) |
 | Supabase Storage | `consent-documents` | Privado; solo `consent.manage` con URL firmada | Formatos de autorización firmados |
-| Cloudflare R2 | `media-public` | Público de solo lectura | `media/{uuid}/{tamaño}.webp` de contenido publicado y autorizado |
+| Supabase Storage (local y staging) → Cloudflare R2 (producción) | `media-public` | Público de solo lectura; solo escribe el servidor (clave secreta); 2 MB; WebP | `{clave al azar}/{sm,md,lg}.webp` de fotos en contenido publicado o programado **y** publicables. La clave se guarda en `media.public_key` y cambia cada vez que la foto vuelve a ser pública. Regla: `public.media_public_targets` (solo `service_role`), paso 7.5a |
 | Cloudflare R2 | `backups` | Privado | Backups cifrados de la BD |
 
 Los tres buckets de Supabase Storage se crean en la migración `media_and_consents` (paso 6.2) y **no tienen políticas** en `storage.objects`: solo el servidor (clave secreta), después de verificar el permiso en la app, los lee o escribe y entrega URLs firmadas temporales.
@@ -420,8 +420,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 10 | `consent_details` | `minor_opinion`, `valid_until` y regla de publicación que los tiene en cuenta (paso 6.5) |
 | 11 | `content_activities` | Estados de publicación, `guard_content_changes` (transiciones y permisos), bloqueo de publicación por fotos (HU-06), `activities`, `activity_media`, `activity_tags`, vista `content_media_usages`, `consent_records.activity_id` (paso 7.1). Los demás tipos de contenido llegan en el paso 7.6 |
 | 12 | `activity_review_note` | Nota de revisión al devolver o retirar una actividad (paso 7.4b) |
-| 13 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 14 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 13 | `media_public` | Bucket público `media-public` y regla `media_public_targets` (paso 7.5a) |
+| 14 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 15 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 

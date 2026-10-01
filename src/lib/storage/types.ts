@@ -24,3 +24,16 @@ export interface PrivateStorage {
     expiresInSeconds: number,
   ): Promise<Map<string, string>>;
 }
+
+/**
+ * Public files (step 7.5): processed photos of published content. Supabase's
+ * public bucket now; Cloudflare R2 in production (docs/03), same interface.
+ * Keys are random and never reused, so files can be cached forever.
+ */
+export interface PublicStorage {
+  /** Fails if the key already exists: a key is never overwritten. */
+  put(key: string, data: Buffer, contentType: string): Promise<void>;
+  remove(keys: string[]): Promise<void>;
+  /** Permanent URL that anyone can open. */
+  publicUrl(key: string): string;
+}

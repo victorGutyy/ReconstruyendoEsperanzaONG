@@ -650,6 +650,14 @@ export type Database = {
       };
     };
     Functions: {
+      media_public_targets: {
+        Args: { p_media_ids?: string[] };
+        Returns: {
+          media_id: string;
+          public_key: string;
+          should_be_public: boolean;
+        }[];
+      };
       media_publish_status: {
         Args: { p_media_ids: string[] };
         Returns: {
