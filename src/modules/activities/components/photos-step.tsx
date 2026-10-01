@@ -7,9 +7,9 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { MediaUploader, updateMediaDescription } from "@/modules/media/client";
+import { LibraryPicker, MediaUploader, updateMediaDescription } from "@/modules/media/client";
 
-import { attachPhoto, detachPhoto, movePhoto, setCover } from "../actions";
+import { attachPhoto, attachPhotos, detachPhoto, movePhoto, setCover } from "../actions";
 
 export type WizardPhoto = {
   mediaId: string;
@@ -150,7 +150,8 @@ function PhotoRow({
 
 /**
  * Step 2 · Fotos: upload from the phone (same pipeline as Medios: no EXIF or
- * GPS), describe each photo, choose the cover and the order.
+ * GPS) or pick from the library, describe each photo, choose the cover and
+ * the order.
  */
 export function PhotosStep({
   activityId,
@@ -169,9 +170,22 @@ export function PhotosStep({
     return result.ok ? null : result.error;
   };
 
+  const onPick = async (mediaIds: string[]) => {
+    const result = await attachPhotos(activityId, mediaIds);
+    router.refresh();
+    return result.ok ? null : result.error;
+  };
+
   return (
     <div className="grid gap-6">
       <MediaUploader title="Tomar o elegir fotos" onUploaded={onUploaded} />
+      <div>
+        <LibraryPicker
+          exclude={photos.map((photo) => photo.mediaId)}
+          onPick={onPick}
+          confirmLabel="Agregar a la actividad"
+        />
+      </div>
 
       <section aria-labelledby="activity-photos-title">
         <h2

@@ -9,7 +9,8 @@ import { supabasePrivateStorage } from "@/lib/storage/supabase";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-import { type MediaFormState, updateMediaSchema } from "./library";
+import { type MediaFormState, parseLibraryFilters, updateMediaSchema } from "./library";
+import { type LibraryItem, listLibrary } from "./queries";
 import {
   mediaIdSchema,
   mediaPaths,
@@ -321,4 +322,27 @@ export async function updateMediaPeople(
 
   revalidateMedia();
   return { ok: true };
+}
+
+export type PickerPage =
+  { ok: true; items: LibraryItem[]; pageCount: number } | { ok: false; error: string };
+
+/**
+ * A page of the library for choosing photos from another section (e.g. an
+ * activity). Same rules as Medios: media.upload, no trash.
+ */
+export async function browseLibrary(input: { mine: boolean; page: number }): Promise<PickerPage> {
+  const authorized = await authorizeAction("media.upload");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+
+  const filters = parseLibraryFilters({
+    mine: input.mine ? "1" : undefined,
+    page: String(input.page),
+  });
+  try {
+    const page = await listLibrary(filters, authorized.auth.user.id, false);
+    return { ok: true, items: page.items, pageCount: page.pageCount };
+  } catch {
+    return { ok: false, error: "No se pudo cargar la biblioteca." };
+  }
 }
