@@ -26,7 +26,7 @@ import {
   parseStep,
   STATUS_LABELS,
 } from "@/modules/activities/schema";
-import { getMediaCards } from "@/modules/media";
+import { describeIssues, getMediaCards } from "@/modules/media";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 
 export const metadata: Metadata = { title: "Editar actividad" };
@@ -90,6 +90,10 @@ export default async function EditActivityPage({
           </h2>
           <p className="mt-1 whitespace-pre-line">{activity.reviewNote.text}</p>
         </section>
+      ) : null}
+
+      {activity.status === "published" && !activity.inTrash ? (
+        <WithdrawnPhotos activity={activity} />
       ) : null}
 
       {!canEdit ? (
@@ -239,5 +243,53 @@ async function StepReview({
       publisher={publisher}
       status={activity.status}
     />
+  );
+}
+
+/**
+ * Photos of a published activity that are no longer publishable (e.g. a
+ * revoked authorization): they already left the site (step 7.5b).
+ */
+async function WithdrawnPhotos({ activity }: { activity: WizardActivity }) {
+  const withdrawn = (await getPhotosWithIssues(activity)).filter(
+    (photo) => photo.issues.length > 0,
+  );
+  if (withdrawn.length === 0) return null;
+  return (
+    <section
+      aria-labelledby="withdrawn-title"
+      className="mt-6 rounded-lg border-2 border-danger/60 bg-card p-4"
+    >
+      <h2 id="withdrawn-title" className="font-semibold text-green-900">
+        Fotos retiradas del sitio ({withdrawn.length})
+      </h2>
+      <p className="mt-1 text-sm text-ink-muted">
+        La actividad sigue publicada sin estas fotos. Vuelven solas al sitio cuando se resuelve lo
+        que falta.
+      </p>
+      <ul className="mt-3 grid gap-2">
+        {withdrawn.map((photo) => (
+          <li
+            key={photo.mediaId}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3"
+          >
+            <span>
+              <span className="font-medium">{photo.label}</span>
+              <span className="block text-sm text-ink-muted">
+                {describeIssues(photo.issues)
+                  .map((issue) => issue.badge)
+                  .join(" · ")}
+              </span>
+            </span>
+            <Link
+              href={`/admin/medios/${photo.mediaId}`}
+              className="inline-flex min-h-11 items-center text-sm font-medium text-green-700 underline"
+            >
+              Resolver<span className="sr-only">: {photo.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

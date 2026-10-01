@@ -14,6 +14,8 @@ export const serverEnvSchema = z.object({
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
   // Only for local development and CI (single process). Never set it on Vercel.
   RATE_LIMIT_DRIVER: z.enum(["memory"]).optional(),
+  // Vercel Cron (step 7.5b); jobs refuse to run without a strong one
+  CRON_SECRET: z.string().min(1).optional(),
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;

@@ -10,6 +10,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 import { type MediaFormState, parseLibraryFilters, updateMediaSchema } from "./library";
+import { syncPublicMediaAfter } from "./publishing";
 import { type LibraryItem, listLibrary } from "./queries";
 import {
   mediaIdSchema,
@@ -227,6 +228,8 @@ export async function updateMedia(
   if (error) return { error: "No se pudieron guardar los cambios." };
   if (data.length === 0) return { error: "No tienes permiso para editar esta foto." };
 
+  // A photo without description or newly with people may have to leave the site
+  await syncPublicMediaAfter([parsed.data.id]);
   revalidateMedia();
   return { notice: "Cambios guardados." };
 }
@@ -255,6 +258,7 @@ export async function trashMedia(
   if (error) return { error: "No se pudo enviar a la papelera." };
   if (data.length === 0) return { error: "No tienes permiso para enviar esta foto a la papelera." };
 
+  await syncPublicMediaAfter([id.data]);
   revalidateMedia();
   return { notice: "Foto enviada a la papelera." };
 }
@@ -290,6 +294,7 @@ export async function updateMediaDescription(
   if (error) return { ok: false, error: "No se pudo guardar la descripción." };
   if (data.length === 0) return { ok: false, error: "No tienes permiso para editar esta foto." };
 
+  await syncPublicMediaAfter([parsed.data.id]);
   revalidateMedia();
   return { ok: true };
 }
@@ -320,6 +325,7 @@ export async function updateMediaPeople(
   if (error) return { ok: false, error: "No se pudo guardar." };
   if (data.length === 0) return { ok: false, error: "No tienes permiso para editar esta foto." };
 
+  await syncPublicMediaAfter([parsed.data.id]);
   revalidateMedia();
   return { ok: true };
 }

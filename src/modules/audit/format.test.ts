@@ -303,3 +303,22 @@ describe("activity sections", () => {
     ).toBe("Etiqueta de una actividad");
   });
 });
+
+describe("public photos", () => {
+  it("says whether a photo is on the site without showing its public key", () => {
+    const { changes } = describeChanges(
+      entry({
+        actorId: null,
+        tableName: "media",
+        oldData: { alt_text: "Árboles", public_key: "4b1d0c3e-secret-prefix" },
+        newData: { alt_text: "Árboles", public_key: null },
+        changedFields: ["public_key"],
+      }),
+      lookups,
+    );
+    expect(changes).toEqual([
+      { field: "public_key", label: "En el sitio", before: "Sí", after: "—" },
+    ]);
+    expect(JSON.stringify(changes)).not.toContain("secret-prefix");
+  });
+});

@@ -148,6 +148,8 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
           labels: { processing: "En proceso", ready: "Lista", failed: "Falló" },
         },
       },
+      // Only whether it is public: the public key itself is never shown
+      { key: "public_key", label: "En el sitio", kind: { type: "present" } },
     ],
   },
   // Authorizations: personal data, read only by audit.read (admins, who also

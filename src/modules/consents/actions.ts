@@ -10,6 +10,7 @@ import { ImageRejectedError, processImage } from "@/lib/images/process";
 import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { supabasePrivateStorage } from "@/lib/storage/supabase";
 import { createClient } from "@/lib/supabase/server";
+import { syncPublicMediaAfter } from "@/modules/media";
 
 import {
   consentPaths,
@@ -27,6 +28,20 @@ import {
 const CONSENTS_PATH = "/admin/autorizaciones";
 const UPLOAD_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+
+/**
+ * Photos follow their authorizations on the public site (step 7.5b): a
+ * revoked, expired or unlinked one takes them out; a valid new one brings
+ * them back. Runs after the change succeeded.
+ */
+async function syncLinkedPhotos(consentId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("media_consents")
+    .select("media_id")
+    .eq("consent_record_id", consentId);
+  await syncPublicMediaAfter((data ?? []).map((link) => link.media_id));
+}
 
 const firstIssue = (issues: { message: string }[]) => issues[0]?.message ?? "Revisa los datos.";
 
@@ -160,6 +175,7 @@ export async function createConsentForPhoto(
   const { error } = await supabase
     .from("media_consents")
     .insert({ media_id: mediaId.data, consent_record_id: result.id });
+  if (!error) await syncPublicMediaAfter([mediaId.data]);
   revalidateLinks();
   if (error) {
     return {
@@ -199,6 +215,8 @@ export async function updateConsent(
     .select("id");
   if (error || data.length === 0) return { error: "No se pudieron guardar los cambios." };
 
+  // The validity or the minor's opinion may have changed
+  await syncLinkedPhotos(id.data);
   revalidatePath(CONSENTS_PATH, "layout");
   return { notice: "Cambios guardados." };
 }
@@ -227,6 +245,7 @@ export async function revokeConsent(
     .select("id");
   if (error || data.length === 0) return { error: "No se pudo revocar la autorización." };
 
+  await syncLinkedPhotos(parsed.data.id);
   revalidatePath(CONSENTS_PATH, "layout");
   revalidatePath("/admin/medios", "layout");
   return { notice: "Autorización revocada." };
@@ -325,6 +344,7 @@ export async function linkConsent(
     };
   }
 
+  await syncPublicMediaAfter([media.data]);
   revalidateLinks();
   return { ok: true };
 }
@@ -344,9 +364,10 @@ export async function unlinkConsent(
     .from("media_consents")
     .delete()
     .eq("id", link.data)
-    .select("id");
+    .select("media_id");
   if (error || data.length === 0) return { ok: false, error: "No se pudo desvincular." };
 
+  await syncPublicMediaAfter(data.map((row) => row.media_id));
   revalidateLinks();
   return { ok: true };
 }

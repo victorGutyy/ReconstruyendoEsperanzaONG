@@ -113,3 +113,11 @@ export async function syncPublicMedia(mediaIds?: string[]): Promise<SyncReport> 
   }
   return report;
 }
+
+/**
+ * For panel actions: runs after the action succeeded and never makes it fail.
+ * Anything left behind is retried by the daily sync (step 7.5b).
+ */
+export async function syncPublicMediaAfter(mediaIds: string[]): Promise<void> {
+  await syncPublicMedia(mediaIds).catch(() => undefined);
+}

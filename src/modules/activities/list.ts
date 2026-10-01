@@ -28,6 +28,8 @@ export const activityFiltersSchema = z.object({
     .transform((text) => text.slice(0, MAX_QUERY))
     .catch(""),
   mine: z.preprocess((value) => value === "1", z.boolean()),
+  /** Published activities with photos taken off the site (step 7.5b). */
+  withdrawn: z.preprocess((value) => value === "1", z.boolean()),
   page: z.coerce.number().int().min(1).max(MAX_PAGE).catch(1),
 });
 export type ActivityFilters = z.output<typeof activityFiltersSchema>;
@@ -43,6 +45,7 @@ export function parseActivityFilters(
     place: first(searchParams.place),
     q: first(searchParams.q) ?? "",
     mine: first(searchParams.mine),
+    withdrawn: first(searchParams.withdrawn),
     page: first(searchParams.page),
   });
 }
@@ -59,10 +62,18 @@ export function activitiesHref(
   if (next.place) params.set("place", next.place);
   if (next.q) params.set("q", next.q);
   if (next.mine) params.set("mine", "1");
+  if (next.withdrawn) params.set("withdrawn", "1");
   if (next.page > 1) params.set("page", String(next.page));
   const query = params.toString();
   return query ? `${ACTIVITIES_PATH}?${query}` : ACTIVITIES_PATH;
 }
 
 export const hasFilters = (filters: ActivityFilters) =>
-  Boolean(filters.status || filters.category || filters.place || filters.q || filters.mine);
+  Boolean(
+    filters.status ||
+    filters.category ||
+    filters.place ||
+    filters.q ||
+    filters.mine ||
+    filters.withdrawn,
+  );
