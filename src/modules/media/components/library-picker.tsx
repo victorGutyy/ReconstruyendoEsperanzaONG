@@ -13,16 +13,21 @@ import type { LibraryItem } from "../queries";
 /**
  * "Elegir de la biblioteca": a sheet with the library, newest first, to pick
  * photos already uploaded. `exclude` hides the ones already in use there.
- * `onPick` returns an error message or null.
+ * `onPick` returns an error message or null. With `single`, choosing a photo
+ * replaces the previous choice (e.g. a cover).
  */
 export function LibraryPicker({
   exclude,
   onPick,
   confirmLabel = "Agregar",
+  triggerLabel = "Elegir de la biblioteca",
+  single = false,
 }: {
   exclude: readonly string[];
   onPick: (mediaIds: string[]) => Promise<string | null>;
   confirmLabel?: string;
+  triggerLabel?: string;
+  single?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [mine, setMine] = useState(false);
@@ -46,7 +51,11 @@ export function LibraryPicker({
 
   const toggle = (id: string) =>
     setPicked((current) =>
-      current.includes(id) ? current.filter((other) => other !== id) : [...current, id],
+      current.includes(id)
+        ? current.filter((other) => other !== id)
+        : single
+          ? [id]
+          : [...current, id],
     );
 
   const add = () =>
@@ -73,7 +82,7 @@ export function LibraryPicker({
       <Dialog.Trigger asChild>
         <Button type="button" variant="outline">
           <Images aria-hidden="true" />
-          Elegir de la biblioteca
+          {triggerLabel}
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BookOpen,
   CalendarDays,
   History,
   House,
@@ -24,6 +25,7 @@ import { isActivePath, type NavIcon, type NavItem } from "../navigation";
 const ICONS: Record<NavIcon, typeof House> = {
   home: House,
   calendar: CalendarDays,
+  book: BookOpen,
   image: Image,
   shield: ShieldCheck,
   tags: Tags,

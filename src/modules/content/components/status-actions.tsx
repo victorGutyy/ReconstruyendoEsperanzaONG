@@ -7,69 +7,75 @@ import { useId, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-import { changeActivityStatus, type StatusChange } from "../actions";
+import { changeContentStatus } from "../actions";
+import {
+  AVAILABLE_CHANGES,
+  CONTENT_TYPES,
+  type ContentStatus,
+  type ContentType,
+  type StatusChange,
+} from "../registry";
 
-type Status = "draft" | "review" | "published" | "archived";
-
-const CHANGES: Record<
-  StatusChange,
-  {
-    button: string;
-    title: string;
-    explain: string;
-    confirm: string;
-    note: "required" | "optional" | null;
-    danger: boolean;
-  }
-> = {
-  returned: {
-    button: "Devolver con nota",
-    title: "Devolver a borrador",
-    explain:
-      "La actividad vuelve a borrador para que quien la escribió la corrija. Verá tu nota arriba del asistente.",
-    confirm: "Devolver a borrador",
-    note: "required",
-    danger: false,
-  },
-  retired: {
-    button: "Retirar para corregir",
-    title: "Retirar para corregir",
-    explain:
-      "La actividad sale del sitio público y vuelve a borrador. Cuando esté corregida, se publica de nuevo con la misma dirección.",
-    confirm: "Retirar del sitio",
-    note: "optional",
-    danger: true,
-  },
-  archived: {
-    button: "Archivar",
-    title: "Archivar la actividad",
-    explain:
-      "La actividad sale del sitio público pero se conserva en el panel. Se puede reabrir como borrador más adelante.",
-    confirm: "Archivar",
-    note: null,
-    danger: true,
-  },
-  reopened: {
-    button: "Reabrir como borrador",
-    title: "Reabrir como borrador",
-    explain: "La actividad vuelve a borrador para editarla y publicarla otra vez.",
-    confirm: "Reabrir",
-    note: null,
-    danger: false,
-  },
+type ChangeText = {
+  button: string;
+  title: string;
+  explain: string;
+  confirm: string;
+  note: "required" | "optional" | null;
+  danger: boolean;
 };
 
-const AVAILABLE: Record<Status, StatusChange[]> = {
-  draft: [],
-  review: ["returned"],
-  published: ["retired", "archived"],
-  archived: ["reopened"],
-};
+function changesFor(type: ContentType): Record<StatusChange, ChangeText> {
+  const { singular } = CONTENT_TYPES[type];
+  const what = `La ${singular}`;
+  return {
+    returned: {
+      button: "Devolver con nota",
+      title: "Devolver a borrador",
+      explain: `${what} vuelve a borrador para que quien la escribió la corrija. Verá tu nota arriba del editor.`,
+      confirm: "Devolver a borrador",
+      note: "required",
+      danger: false,
+    },
+    retired: {
+      button: "Retirar para corregir",
+      title: "Retirar para corregir",
+      explain: `${what} sale del sitio público y vuelve a borrador. Cuando esté corregida, se publica de nuevo con la misma dirección.`,
+      confirm: "Retirar del sitio",
+      note: "optional",
+      danger: true,
+    },
+    archived: {
+      button: "Archivar",
+      title: `Archivar la ${singular}`,
+      explain: `${what} sale del sitio público pero se conserva en el panel. Se puede reabrir como borrador más adelante.`,
+      confirm: "Archivar",
+      note: null,
+      danger: true,
+    },
+    reopened: {
+      button: "Reabrir como borrador",
+      title: "Reabrir como borrador",
+      explain: `${what} vuelve a borrador para editarla y publicarla otra vez.`,
+      confirm: "Reabrir",
+      note: null,
+      danger: false,
+    },
+  };
+}
 
-function ChangeDialog({ activityId, change }: { activityId: string; change: StatusChange }) {
+function ChangeDialog({
+  type,
+  id,
+  change,
+}: {
+  type: ContentType;
+  id: string;
+  change: StatusChange;
+}) {
   const router = useRouter();
   const noteId = useId();
-  const config = CHANGES[change];
+  const config = changesFor(type)[change];
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +84,7 @@ function ChangeDialog({ activityId, change }: { activityId: string; change: Stat
   const confirm = () =>
     startTransition(async () => {
       setError(null);
-      const result = await changeActivityStatus(activityId, change, note);
+      const result = await changeContentStatus(type, id, change, note);
       if (!result.ok) return setError(result.error);
       setOpen(false);
       setNote("");
@@ -149,14 +155,22 @@ function ChangeDialog({ activityId, change }: { activityId: string; change: Stat
   );
 }
 
-/** Editor actions on the state of an activity (step 7.4b, decision F7-D7). */
-export function StatusActions({ activityId, status }: { activityId: string; status: Status }) {
-  const changes = AVAILABLE[status];
+/** Editor actions on the state of any content (steps 7.4b and 7.6a, decision F7-D7). */
+export function StatusActions({
+  type,
+  id,
+  status,
+}: {
+  type: ContentType;
+  id: string;
+  status: ContentStatus;
+}) {
+  const changes = AVAILABLE_CHANGES[status];
   if (changes.length === 0) return null;
   return (
     <section aria-label="Acciones del editor" className="flex flex-wrap gap-3">
       {changes.map((change) => (
-        <ChangeDialog key={change} activityId={activityId} change={change} />
+        <ChangeDialog key={change} type={type} id={id} change={change} />
       ))}
     </section>
   );

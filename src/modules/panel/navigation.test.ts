@@ -19,6 +19,7 @@ describe("navFor", () => {
     ).toEqual([
       "Inicio",
       "Actividades",
+      "Contenido",
       "Medios",
       "Autorizaciones",
       "Categorías y lugares",
@@ -31,6 +32,7 @@ describe("navFor", () => {
     expect(labels(["content.read", "media.upload", "taxonomy.manage", "consent.manage"])).toEqual([
       "Inicio",
       "Actividades",
+      "Contenido",
       "Medios",
       "Autorizaciones",
       "Categorías y lugares",
@@ -41,6 +43,7 @@ describe("navFor", () => {
     expect(labels(["content.read", "content.create", "media.upload"])).toEqual([
       "Inicio",
       "Actividades",
+      "Contenido",
       "Medios",
     ]);
   });

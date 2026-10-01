@@ -232,6 +232,34 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "review_note", label: "Nota de revisión", kind: TEXT },
     ],
   },
+  // Stories: what a person reads; the story body is not repeated here
+  posts: {
+    label: "Historias",
+    singular: "Historia",
+    nameField: "title",
+    fields: [
+      { key: "title", label: "Título", kind: TEXT },
+      {
+        key: "status",
+        label: "Estado",
+        kind: {
+          type: "enum",
+          labels: {
+            draft: "Borrador",
+            review: "En revisión",
+            published: "Publicada",
+            archived: "Archivada",
+          },
+        },
+      },
+      { key: "published_at", label: "Fecha de publicación", kind: DATETIME },
+      { key: "excerpt", label: "Extracto", kind: TEXT },
+      { key: "byline", label: "Firma", kind: TEXT },
+      { key: "slug", label: "Slug", kind: TEXT },
+      { key: "cover_media_id", label: "Tiene portada", kind: { type: "present" } },
+      { key: "review_note", label: "Nota de revisión", kind: TEXT },
+    ],
+  },
   activity_media: {
     label: "Fotos de actividades",
     singular: "Foto de actividad",

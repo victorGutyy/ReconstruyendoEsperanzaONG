@@ -514,6 +514,114 @@ export type Database = {
         };
         Relationships: [];
       };
+      posts: {
+        Row: {
+          body: Json | null;
+          body_text: string | null;
+          byline: string | null;
+          category_id: string | null;
+          cover_media_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          excerpt: string | null;
+          id: string;
+          published_at: string | null;
+          review_note: string | null;
+          review_note_at: string | null;
+          review_note_by: string | null;
+          seo_description: string | null;
+          seo_title: string | null;
+          slug: string;
+          status: Database["public"]["Enums"]["content_status"];
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          body?: Json | null;
+          body_text?: string | null;
+          byline?: string | null;
+          category_id?: string | null;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          excerpt?: string | null;
+          id?: string;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          slug: string;
+          status?: Database["public"]["Enums"]["content_status"];
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: Json | null;
+          body_text?: string | null;
+          byline?: string | null;
+          category_id?: string | null;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          excerpt?: string | null;
+          id?: string;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          slug?: string;
+          status?: Database["public"]["Enums"]["content_status"];
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "posts_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "posts_cover_media_id_fkey";
+            columns: ["cover_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "posts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "posts_review_note_by_fkey";
+            columns: ["review_note_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "posts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;

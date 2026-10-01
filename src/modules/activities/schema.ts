@@ -18,24 +18,6 @@ export function parseStep(value: string | string[] | undefined): WizardStep {
   return step === 2 || step === 3 || step === 4 ? step : 1;
 }
 
-export const STATUS_LABELS = {
-  draft: "Borrador",
-  review: "En revisión",
-  published: "Publicada",
-  scheduled: "Programada",
-  archived: "Archivada",
-} as const;
-
-/** "Scheduled" is published with a future date (docs/06 §1.1). */
-export function displayStatus(
-  status: "draft" | "review" | "published" | "archived",
-  publishedAt: string | null,
-  now = new Date(),
-): keyof typeof STATUS_LABELS {
-  if (status === "published" && publishedAt && new Date(publishedAt) > now) return "scheduled";
-  return status;
-}
-
 // Colombia has no daylight saving time: always UTC-5
 const BOGOTA_OFFSET = "-05:00";
 
@@ -121,16 +103,3 @@ export type BasicsColumns = z.output<typeof basicsSchema>;
 export type SaveResult = { ok: true; id: string; savedAt: string } | { ok: false; error: string };
 
 export type PhotoResult = { ok: true } | { ok: false; error: string };
-
-/** What the Editor asks to fix when returning an activity (decision F7-D7). */
-export const reviewNoteSchema = z
-  .string()
-  .trim()
-  .min(1, "Escribe qué hay que corregir.")
-  .max(1000, "La nota es demasiado larga (máximo 1000 caracteres).");
-
-/** Optional note when retiring a published activity. */
-export const optionalNoteSchema = z.preprocess(
-  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
-  reviewNoteSchema.optional(),
-);

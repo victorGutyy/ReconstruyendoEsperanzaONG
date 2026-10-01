@@ -28,6 +28,7 @@ export const AUDIT_SECTIONS = [
   "activities",
   "activity_media",
   "activity_tags",
+  "posts",
 ] as const;
 export type AuditSection = (typeof AUDIT_SECTIONS)[number];
 

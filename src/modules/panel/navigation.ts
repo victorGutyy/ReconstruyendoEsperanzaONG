@@ -2,7 +2,8 @@
 
 import { ADMIN_HOME, hasPermission, type Permission, type ProfileAccess } from "@/lib/auth/rules";
 
-export type NavIcon = "home" | "calendar" | "image" | "shield" | "tags" | "users" | "history";
+export type NavIcon =
+  "home" | "calendar" | "book" | "image" | "shield" | "tags" | "users" | "history";
 
 export type NavItem = {
   href: string;
@@ -28,6 +29,13 @@ export const PANEL_NAV: readonly NavItem[] = [
     label: "Actividades",
     description: "Crear y publicar las actividades de la organización, con sus fotos.",
     icon: "calendar",
+    permission: "content.read",
+  },
+  {
+    href: "/admin/contenido",
+    label: "Contenido",
+    description: "Historias y el resto del contenido del sitio.",
+    icon: "book",
     permission: "content.read",
   },
   {

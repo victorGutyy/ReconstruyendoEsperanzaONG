@@ -7,16 +7,14 @@ import { authorizeAction } from "@/lib/auth/guard";
 import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, uniqueSlug } from "@/lib/utils/slug";
-import { syncPublicMedia } from "@/modules/media";
+import { syncContentPhotos } from "@/modules/content";
 
-import { type ActivityStatus, getActivityForWizard, getPhotosWithIssues } from "./queries";
+import { getActivityForWizard, getPhotosWithIssues } from "./queries";
 import { reviewActivity } from "./review";
 import {
   type BasicsInput,
   basicsSchema,
-  optionalNoteSchema,
   type PhotoResult,
-  reviewNoteSchema,
   type SaveResult,
   toBogotaInstant,
 } from "./schema";
@@ -47,27 +45,12 @@ async function freeSlug(supabase: Supabase, title: string, exceptId?: string): P
   return uniqueSlug(base, new Set((data ?? []).map((row) => row.slug)));
 }
 
-/**
- * Public copies of the photos follow the activity (step 7.5a). Runs after the
- * action already succeeded; a failure here does not undo it (the daily sync
- * retries). Skipped for drafts unless `always`, since nothing there is public.
- */
-async function syncActivityPhotos(
+/** Public copies of the photos follow the activity (step 7.5a). */
+const syncActivityPhotos = (
   supabase: Supabase,
   activityId: string,
-  { extra = [], always = false }: { extra?: string[]; always?: boolean } = {},
-) {
-  const { data } = await supabase
-    .from("activities")
-    .select("status, cover_media_id, activity_media(media_id)")
-    .eq("id", activityId)
-    .maybeSingle();
-  if (!data || (!always && data.status !== "published")) return;
-  const ids = new Set(extra);
-  if (data.cover_media_id) ids.add(data.cover_media_id);
-  for (const link of data.activity_media) ids.add(link.media_id);
-  await syncPublicMedia([...ids]).catch(() => undefined);
-}
+  options?: { extra?: string[]; always?: boolean },
+) => syncContentPhotos(supabase, "activity", activityId, options);
 
 /**
  * Step 1 (create or update). Also used by the autosave. Place and category
@@ -392,72 +375,7 @@ export async function publishActivity(
   return { ok: true, outcome: schedule ? "scheduled" : "published" };
 }
 
-export type StatusChange = "returned" | "retired" | "archived" | "reopened";
 export type StatusResult = { ok: true } | { ok: false; error: string };
-
-const STATUS_CHANGES: Record<
-  StatusChange,
-  { from: ActivityStatus[]; to: ActivityStatus; stale: string }
-> = {
-  returned: { from: ["review"], to: "draft", stale: "La actividad ya no está en revisión." },
-  retired: { from: ["published"], to: "draft", stale: "La actividad ya no está publicada." },
-  archived: { from: ["published"], to: "archived", stale: "La actividad ya no está publicada." },
-  reopened: { from: ["archived"], to: "draft", stale: "La actividad ya no está archivada." },
-};
-
-/**
- * Editor actions on the state of an activity (step 7.4b, decision F7-D7):
- * return from review with a required note, retire a published one to fix it
- * (optional note), archive, reopen an archived one. The database checks the
- * transition, the permission and the note again.
- */
-export async function changeActivityStatus(
-  activityId: string,
-  change: StatusChange,
-  note?: string,
-): Promise<StatusResult> {
-  const authorized = await authorizeAction("content.publish");
-  if (!authorized.ok) return { ok: false, error: authorized.error };
-  if (!idSchema.safeParse(activityId).success || !Object.hasOwn(STATUS_CHANGES, change)) {
-    return { ok: false, error: "Datos no válidos." };
-  }
-
-  let reviewNote: string | undefined;
-  if (change === "returned" || change === "retired") {
-    const parsed = (change === "returned" ? reviewNoteSchema : optionalNoteSchema).safeParse(
-      note ?? "",
-    );
-    if (!parsed.success) return { ok: false, error: parsed.error.issues[0]!.message };
-    reviewNote = parsed.data;
-  }
-
-  const tooMany = await limited(authorized.auth.user.id);
-  if (tooMany) return { ok: false, error: tooMany };
-
-  const { from, to, stale } = STATUS_CHANGES[change];
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("activities")
-    .update(reviewNote ? { status: to, review_note: reviewNote } : { status: to })
-    .eq("id", activityId)
-    .in("status", from)
-    .is("deleted_at", null)
-    .select("id");
-  if (error) {
-    return {
-      ok: false,
-      error:
-        error.code === FORBIDDEN
-          ? "No tienes permiso para hacer esto."
-          : "No se pudo cambiar el estado. Vuelve a intentarlo.",
-    };
-  }
-  if (data.length === 0) return { ok: false, error: stale };
-
-  await syncActivityPhotos(supabase, activityId, { always: true });
-  revalidatePath(ACTIVITIES_PATH, "layout");
-  return { ok: true };
-}
 
 /** Turns one existing tag on or off for the activity (RLS: who can edit it). */
 export async function setActivityTag(

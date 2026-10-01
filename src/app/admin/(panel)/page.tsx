@@ -9,11 +9,14 @@ import { getCurrentProfile, requireAal2 } from "@/lib/auth/session";
 import { activitiesHref, parseActivityFilters } from "@/modules/activities/list";
 import { countActivities, findActivitiesWithWithdrawnPhotos } from "@/modules/activities/queries";
 import { countPendingPhotos } from "@/modules/media";
+import { parsePostFilters, postsHref } from "@/modules/posts/list";
+import { countPosts } from "@/modules/posts/queries";
 import { navFor } from "@/modules/panel/navigation";
 
 type Pending = { href: string; count: number; label: string };
 
 const noFilters = parseActivityFilters({});
+const noPostFilters = parsePostFilters({});
 
 export const metadata: Metadata = { title: "Inicio" };
 
@@ -109,8 +112,9 @@ async function pendingFor(
   if (!canRead && !canUpload) return null;
 
   const canPublish = hasPermission(profile, "content.publish");
-  const [activities, photos, withdrawn] = await Promise.all([
+  const [activities, posts, photos, withdrawn] = await Promise.all([
     canRead ? countActivities(userId) : null,
+    canRead ? countPosts(userId) : null,
     canUpload ? countPendingPhotos() : 0,
     canPublish ? findActivitiesWithWithdrawnPhotos().then((ids) => ids.size) : 0,
   ]);
@@ -141,6 +145,20 @@ async function pendingFor(
       href: activitiesHref(noFilters, { status: "draft", mine: true }),
       count: activities.myDrafts,
       label: activities.myDrafts === 1 ? "borrador tuyo" : "borradores tuyos",
+    });
+  }
+  if (posts && canPublish) {
+    items.push({
+      href: postsHref(noPostFilters, { status: "review" }),
+      count: posts.toReview,
+      label: posts.toReview === 1 ? "historia por revisar" : "historias por revisar",
+    });
+  }
+  if (posts) {
+    items.push({
+      href: postsHref(noPostFilters, { status: "draft", mine: true }),
+      count: posts.myDrafts,
+      label: posts.myDrafts === 1 ? "historia tuya en borrador" : "historias tuyas en borrador",
     });
   }
   items.push({

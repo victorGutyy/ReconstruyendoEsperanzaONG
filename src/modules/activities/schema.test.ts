@@ -1,14 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  basicsSchema,
-  displayStatus,
-  fromBogotaInstant,
-  optionalNoteSchema,
-  parseStep,
-  reviewNoteSchema,
-  toBogotaInstant,
-} from "./schema";
+import { basicsSchema, fromBogotaInstant, parseStep, toBogotaInstant } from "./schema";
 
 const body = {
   type: "doc",
@@ -83,26 +75,5 @@ describe("wizard helpers", () => {
     expect(parseStep(["4"])).toBe(4);
     expect(parseStep("9")).toBe(1);
     expect(parseStep(undefined)).toBe(1);
-  });
-
-  it("shows published content with a future date as scheduled", () => {
-    const now = new Date("2026-09-28T12:00:00Z");
-    expect(displayStatus("published", "2026-10-01T12:00:00Z", now)).toBe("scheduled");
-    expect(displayStatus("published", "2026-09-01T12:00:00Z", now)).toBe("published");
-    expect(displayStatus("review", null, now)).toBe("review");
-  });
-});
-
-describe("review notes", () => {
-  it("requires a note to return an activity, trimmed and up to 1000 characters", () => {
-    expect(reviewNoteSchema.safeParse("  Falta la portada. ").data).toBe("Falta la portada.");
-    expect(reviewNoteSchema.safeParse("   ").success).toBe(false);
-    expect(reviewNoteSchema.safeParse("a".repeat(1001)).success).toBe(false);
-  });
-
-  it("treats a blank note as no note when retiring", () => {
-    expect(optionalNoteSchema.safeParse("  ").data).toBeUndefined();
-    expect(optionalNoteSchema.safeParse("Corregir la fecha").data).toBe("Corregir la fecha");
-    expect(optionalNoteSchema.safeParse("a".repeat(1001)).success).toBe(false);
   });
 });
