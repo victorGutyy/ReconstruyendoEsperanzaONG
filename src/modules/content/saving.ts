@@ -48,6 +48,39 @@ export async function saveContentRow(
   const table = () => contentTable(supabase, type);
   const what = CONTENT_TYPES[type].singular;
 
+  const duplicate = `${agree(type, "Esa", "Ese")} ${what} ya está ${agree(type, "registrada", "registrado")}.`;
+
+  // Content without a page of its own has no slug (videos)
+  if (!CONTENT_TYPES[type].hasSlug) {
+    const { data, error } = id
+      ? await table()
+          .update(columns as never)
+          .eq("id", id)
+          .is("deleted_at", null)
+          .select("id, updated_at")
+          .maybeSingle()
+      : await table()
+          .insert(columns as never)
+          .select("id, updated_at")
+          .single();
+    if (error) {
+      return {
+        ok: false,
+        error:
+          error.code === UNIQUE_VIOLATION
+            ? duplicate
+            : error.code === FORBIDDEN
+              ? `No tienes permiso para editar ${agree(type, "esta", "este")} ${what}.`
+              : "No se pudieron guardar los cambios.",
+      };
+    }
+    if (!data) {
+      return { ok: false, error: `No puedes editar ${agree(type, "esta", "este")} ${what}.` };
+    }
+    revalidatePath(CONTENT_TYPES[type].listPath, "layout");
+    return { ok: true, id: data.id, savedAt: data.updated_at };
+  }
+
   if (!id) {
     // Two tries: another row could take the same slug in between
     for (let attempt = 0; attempt < 2; attempt += 1) {

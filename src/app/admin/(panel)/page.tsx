@@ -15,6 +15,8 @@ import { parseProjectFilters, projectsHref } from "@/modules/projects/list";
 import { countProjects } from "@/modules/projects/queries";
 import { galleriesHref, parseGalleryFilters } from "@/modules/galleries/list";
 import { countGalleries } from "@/modules/galleries/queries";
+import { parseVideoFilters, videosHref } from "@/modules/videos/list";
+import { countVideos } from "@/modules/videos/queries";
 import { navFor } from "@/modules/panel/navigation";
 
 type Pending = { href: string; count: number; label: string };
@@ -23,6 +25,7 @@ const noFilters = parseActivityFilters({});
 const noPostFilters = parsePostFilters({});
 const noProjectFilters = parseProjectFilters({});
 const noGalleryFilters = parseGalleryFilters({});
+const noVideoFilters = parseVideoFilters({});
 
 export const metadata: Metadata = { title: "Inicio" };
 
@@ -118,11 +121,12 @@ async function pendingFor(
   if (!canRead && !canUpload) return null;
 
   const canPublish = hasPermission(profile, "content.publish");
-  const [activities, posts, projects, galleries, photos, withdrawn] = await Promise.all([
+  const [activities, posts, projects, galleries, videos, photos, withdrawn] = await Promise.all([
     canRead ? countActivities(userId) : null,
     canRead ? countPosts(userId) : null,
     canRead ? countProjects(userId) : null,
     canRead ? countGalleries(userId) : null,
+    canRead ? countVideos(userId) : null,
     canUpload ? countPendingPhotos() : 0,
     canPublish ? findActivitiesWithWithdrawnPhotos().then((ids) => ids.size) : 0,
   ]);
@@ -195,6 +199,20 @@ async function pendingFor(
       href: galleriesHref(noGalleryFilters, { status: "draft", mine: true }),
       count: galleries.myDrafts,
       label: galleries.myDrafts === 1 ? "galería tuya en borrador" : "galerías tuyas en borrador",
+    });
+  }
+  if (videos && canPublish) {
+    items.push({
+      href: videosHref(noVideoFilters, { status: "review" }),
+      count: videos.toReview,
+      label: videos.toReview === 1 ? "video por revisar" : "videos por revisar",
+    });
+  }
+  if (videos) {
+    items.push({
+      href: videosHref(noVideoFilters, { status: "draft", mine: true }),
+      count: videos.myDrafts,
+      label: videos.myDrafts === 1 ? "video tuyo en borrador" : "videos tuyos en borrador",
     });
   }
   items.push({

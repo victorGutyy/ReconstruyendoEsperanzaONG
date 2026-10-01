@@ -3,33 +3,34 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { escapeLike } from "@/lib/utils/like";
 import type { ContentStatus } from "@/modules/content";
-import { getMediaCards, getPublishIssues } from "@/modules/media";
+import { getPublishIssues } from "@/modules/media";
 
-import { type GalleryFilters, GALLERIES_PAGE_SIZE } from "./list";
+import { type VideoFilters, VIDEOS_PAGE_SIZE } from "./list";
+import type { Provider } from "./parse";
 
-export type GallerySummary = {
+export type VideoSummary = {
   id: string;
   title: string;
   status: ContentStatus;
   publishedAt: string | null;
   updatedAt: string;
   isMine: boolean;
-  photoCount: number;
-  /** Published with photos taken off the site (step 7.5b). */
-  hasWithdrawnPhotos: boolean;
+  provider: Provider;
+  /** Published with a cover that is no longer publishable (step 7.5b). */
+  coverWithdrawn: boolean;
 };
 
 /** One page of the panel list, newest changes first. */
-export async function listGalleries(
-  filters: GalleryFilters,
+export async function listVideos(
+  filters: VideoFilters,
   userId: string,
-): Promise<{ items: GallerySummary[]; total: number; pageCount: number }> {
+): Promise<{ items: VideoSummary[]; total: number; pageCount: number }> {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
   let query = supabase
-    .from("galleries")
-    .select("id, title, status, published_at, updated_at, created_by, gallery_items(media_id)", {
+    .from("videos")
+    .select("id, title, status, published_at, updated_at, created_by, cover_media_id, provider", {
       count: "exact",
     })
     .is("deleted_at", null);
@@ -40,21 +41,23 @@ export async function listGalleries(
   } else if (filters.status) {
     query = query.eq("status", filters.status);
   }
+  if (filters.provider) query = query.eq("provider", filters.provider);
   if (filters.q) query = query.ilike("title", `%${escapeLike(filters.q)}%`);
   if (filters.mine) query = query.eq("created_by", userId);
 
-  const offset = (filters.page - 1) * GALLERIES_PAGE_SIZE;
+  const offset = (filters.page - 1) * VIDEOS_PAGE_SIZE;
   const { data, error, count } = await query
     .order("updated_at", { ascending: false })
     .order("id")
-    .range(offset, offset + GALLERIES_PAGE_SIZE - 1);
+    .range(offset, offset + VIDEOS_PAGE_SIZE - 1);
   if (error && error.code !== "PGRST103") throw error;
 
   const rows = error ? [] : data;
-  const published = rows.filter((row) => row.status === "published");
-  const issues = await getPublishIssues([
-    ...new Set(published.flatMap((row) => row.gallery_items.map((item) => item.media_id))),
-  ]);
+  const issues = await getPublishIssues(
+    rows
+      .filter((row) => row.status === "published" && row.cover_media_id)
+      .map((row) => row.cover_media_id!),
+  );
   const total = count ?? 0;
   return {
     items: rows.map((row) => ({
@@ -64,21 +67,22 @@ export async function listGalleries(
       publishedAt: row.published_at,
       updatedAt: row.updated_at,
       isMine: row.created_by === userId,
-      photoCount: row.gallery_items.length,
-      hasWithdrawnPhotos:
+      provider: row.provider as Provider,
+      coverWithdrawn:
         row.status === "published" &&
-        row.gallery_items.some((item) => (issues.get(item.media_id) ?? []).length > 0),
+        row.cover_media_id !== null &&
+        (issues.get(row.cover_media_id) ?? []).length > 0,
     })),
     total,
-    pageCount: Math.max(1, Math.ceil(total / GALLERIES_PAGE_SIZE)),
+    pageCount: Math.max(1, Math.ceil(total / VIDEOS_PAGE_SIZE)),
   };
 }
 
 /** Counts for the dashboard and the "Por revisar" tab. */
-export async function countGalleries(userId: string) {
+export async function countVideos(userId: string) {
   const supabase = await createClient();
   const live = () =>
-    supabase.from("galleries").select("id", { count: "exact", head: true }).is("deleted_at", null);
+    supabase.from("videos").select("id", { count: "exact", head: true }).is("deleted_at", null);
   const results = await Promise.all([
     live().eq("status", "review"),
     live().eq("status", "draft").eq("created_by", userId),
@@ -90,24 +94,14 @@ export async function countGalleries(userId: string) {
   return { toReview: toReview!, myDrafts: myDrafts! };
 }
 
-export type GalleryPhoto = {
-  mediaId: string;
-  position: number;
-  caption: string | null;
-  altText: string | null;
-  label: string;
-  processing: boolean;
-  isPublic: boolean;
-  thumbnailUrl: string | null;
-  issues: string[];
-};
-
-export type GalleryForEditor = {
+export type VideoForEditor = {
   id: string;
   status: ContentStatus;
   publishedAt: string | null;
   title: string;
   description: string | null;
+  provider: Provider;
+  providerVideoId: string;
   activityId: string | null;
   projectId: string | null;
   coverMediaId: string | null;
@@ -115,32 +109,27 @@ export type GalleryForEditor = {
   updatedAt: string;
   inTrash: boolean;
   reviewNote: { text: string; at: string | null } | null;
-  photos: GalleryPhoto[];
 };
 
-/** One gallery with its photos in order, or null when RLS hides it. */
-export async function getGallery(id: string): Promise<GalleryForEditor | null> {
+/** One video, or null when RLS hides it. */
+export async function getVideo(id: string): Promise<VideoForEditor | null> {
   const supabase = await createClient();
   const { data } = await supabase
-    .from("galleries")
+    .from("videos")
     .select(
-      "id, status, published_at, title, description, activity_id, project_id, cover_media_id, created_by, updated_at, deleted_at, review_note, review_note_at, gallery_items(media_id, position, caption, media(alt_text, processing_status, public_key))",
+      "id, status, published_at, title, description, provider, provider_video_id, activity_id, project_id, cover_media_id, created_by, updated_at, deleted_at, review_note, review_note_at",
     )
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
-
-  const items = [...data.gallery_items].sort((a, b) => a.position - b.position);
-  const ids = items.map((item) => item.media_id);
-  const [cards, issues] = await Promise.all([getMediaCards(ids), getPublishIssues(ids)]);
-  const thumbnails = new Map(cards.map((card) => [card.id, card.thumbnailUrl]));
-
   return {
     id: data.id,
     status: data.status,
     publishedAt: data.published_at,
     title: data.title,
     description: data.description,
+    provider: data.provider as Provider,
+    providerVideoId: data.provider_video_id,
     activityId: data.activity_id,
     projectId: data.project_id,
     coverMediaId: data.cover_media_id,
@@ -148,19 +137,5 @@ export async function getGallery(id: string): Promise<GalleryForEditor | null> {
     updatedAt: data.updated_at,
     inTrash: data.deleted_at !== null,
     reviewNote: data.review_note ? { text: data.review_note, at: data.review_note_at } : null,
-    photos: items.map((item, index) => {
-      const altText = item.media?.alt_text ?? null;
-      return {
-        mediaId: item.media_id,
-        position: item.position,
-        caption: item.caption,
-        altText,
-        label: altText ? `Foto ${index + 1} («${altText}»)` : `Foto ${index + 1}`,
-        processing: item.media?.processing_status !== "ready",
-        isPublic: Boolean(item.media?.public_key),
-        thumbnailUrl: thumbnails.get(item.media_id) ?? null,
-        issues: issues.get(item.media_id) ?? [],
-      };
-    }),
   };
 }

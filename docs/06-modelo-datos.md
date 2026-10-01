@@ -217,10 +217,11 @@ Para publicar, la galería debe tener al menos una foto (`gallery_empty`) y **to
 |---|---|---|
 | `title` · `description` | `text` | |
 | `provider` | `text` check (`youtube`, `vimeo`, `facebook`, `tiktok`) | |
-| `provider_video_id` | `text` not null | Se extrae de la URL en el servidor; **nunca** se guarda HTML/iframe |
-| `activity_id` · `project_id` | `uuid` nullable | |
+| `provider_video_id` | `text` not null, check `^[A-Za-z0-9_-]{1,64}$` | Se extrae de la URL en el servidor (`modules/videos/parse.ts`, lista cerrada de dominios y rutas); **nunca** se guarda HTML, iframe ni el enlace pegado |
+| `activity_id` · `project_id` | `uuid` nullable | Check: no las dos a la vez |
+| `cover_media_id` | `uuid` FK → `media`, nullable | Imagen propia de la biblioteca (debe ser publicable). No se usan miniaturas de las plataformas: le dirían a esas empresas quién visita el sitio |
 
-Único (`provider`, `provider_video_id`) entre no borrados.
+Único (`provider`, `provider_video_id`) entre no borrados. **Sin `slug`**: los videos no tienen página propia, se muestran en la sección de videos y dentro de su actividad o proyecto (decisión 7.6c). Los enlaces cortos (`fb.watch`, `vm.tiktok.com`) se rechazan en lugar de seguirlos (sin peticiones a terceros desde el servidor). Mismas reglas de estados, nota de revisión, permisos y auditoría que el resto del contenido.
 
 ### `testimonials` — Testimonios
 Columnas comunes (sin `slug`) + `quote text`, `author_display_name text`, `author_context text` (descripción breve aprobada por la persona), `photo_media_id uuid`, **`consent_record_id uuid not null`**: no existe testimonio sin autorización.
@@ -431,8 +432,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 14 | `content_posts` | `posts` (historias) sobre el motor común; `content_media_usages` suma sus portadas y `private.content_is_published` decide para cualquier tipo (paso 7.6a) |
 | 15 | `content_projects` | `projects` sobre el motor común y `activities.project_id` (paso 7.6b) |
 | 16 | `content_galleries` | `galleries` y `gallery_items` sobre el motor común (paso 7.6c) |
-| 17 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 18 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 17 | `content_videos` | `videos` sobre el motor común (paso 7.6c) |
+| 18 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 19 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 

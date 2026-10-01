@@ -4,6 +4,7 @@
 export const CONTENT_TYPES = {
   activity: {
     table: "activities",
+    hasSlug: true,
     singular: "actividad",
     feminine: true,
     listPath: "/admin/actividades",
@@ -11,6 +12,7 @@ export const CONTENT_TYPES = {
   },
   post: {
     table: "posts",
+    hasSlug: true,
     singular: "historia",
     feminine: true,
     listPath: "/admin/contenido/historias",
@@ -18,6 +20,7 @@ export const CONTENT_TYPES = {
   },
   project: {
     table: "projects",
+    hasSlug: true,
     singular: "proyecto",
     feminine: false,
     listPath: "/admin/contenido/proyectos",
@@ -25,10 +28,20 @@ export const CONTENT_TYPES = {
   },
   gallery: {
     table: "galleries",
+    hasSlug: true,
     singular: "galería",
     feminine: true,
     listPath: "/admin/contenido/galerias",
     editPath: (id: string) => `/admin/contenido/galerias/${id}`,
+  },
+  // No page of its own: no slug (decision 7.6c)
+  video: {
+    table: "videos",
+    hasSlug: false,
+    singular: "video",
+    feminine: false,
+    listPath: "/admin/contenido/videos",
+    editPath: (id: string) => `/admin/contenido/videos/${id}`,
   },
 } as const;
 
@@ -39,6 +52,7 @@ export const CONTENT_TABS = [
   { type: "post", label: "Historias" },
   { type: "project", label: "Proyectos" },
   { type: "gallery", label: "Galerías" },
+  { type: "video", label: "Videos" },
 ] as const satisfies readonly {
   type: ContentType;
   label: string;

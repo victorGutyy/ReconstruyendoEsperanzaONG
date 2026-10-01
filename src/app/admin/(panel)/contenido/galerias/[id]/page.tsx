@@ -9,7 +9,8 @@ import { ContentReview, ReviewNote, statusLabel, StatusActions } from "@/modules
 import { publishGallery, submitGallery } from "@/modules/galleries/actions";
 import { GalleryEditor } from "@/modules/galleries/components/gallery-editor";
 import { GalleryPhotos } from "@/modules/galleries/components/gallery-photos";
-import { getGallery, listOwnerOptions } from "@/modules/galleries/queries";
+import { listOwnerOptions } from "@/modules/content";
+import { getGallery } from "@/modules/galleries/queries";
 import { GALLERIES_PATH, ownerValue, reviewGallery } from "@/modules/galleries/schema";
 import { describeIssues } from "@/modules/media";
 import { NoPermission } from "@/modules/panel/components/no-permission";
