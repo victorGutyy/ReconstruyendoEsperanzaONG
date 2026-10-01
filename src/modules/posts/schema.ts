@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { validateRichText } from "@/lib/rich-text/schema";
+import { type CheckItem, coverCheck, reviewOutcome } from "@/modules/content/shared";
 import type { Json } from "@/types/database";
 
 // Stories (posts, step 7.6a, docs/06 §5). Pure: unit-tested in schema.test.ts.
@@ -60,9 +61,6 @@ export const postSchema = z
 
 export type PostInput = z.input<typeof postSchema>;
 
-export type CheckLevel = "ok" | "warn" | "error";
-export type CheckItem = { key: string; level: CheckLevel; text: string };
-
 export type PostReviewInput = {
   excerpt: string | null;
   categoryId: string | null;
@@ -70,23 +68,9 @@ export type PostReviewInput = {
   coverIssues: readonly string[] | null;
 };
 
-const COVER_ISSUES: Record<string, string> = {
-  in_trash: "la foto está en la papelera",
-  not_processed: "la foto no terminó de procesarse",
-  missing_alt_text: "falta su descripción",
-  people_unclassified: "falta indicar si aparecen personas",
-  missing_consent: "aparecen personas y falta su autorización",
-  missing_guardian_consent: "hay menores y falta la autorización de su representante",
-};
-
-/**
- * Before sending or publishing (same idea as the activity wizard): red blocks,
- * yellow warns. Authors may send with a cover that still needs something;
- * editors cannot publish it. The database checks everything again.
- */
+/** Before sending or publishing: excerpt and category are required. */
 export function reviewPost(input: PostReviewInput, publisher: boolean) {
   const items: CheckItem[] = [];
-
   if (!input.excerpt?.trim()) {
     items.push({
       key: "excerpt",
@@ -100,28 +84,6 @@ export function reviewPost(input: PostReviewInput, publisher: boolean) {
   if (input.excerpt?.trim() && input.categoryId) {
     items.push({ key: "basics", level: "ok", text: "El extracto y la categoría están listos." });
   }
-
-  if (input.coverIssues === null) {
-    items.push({
-      key: "no-cover",
-      level: "warn",
-      text: "La historia no tiene portada. Se puede publicar, pero una foto ayuda a contarla.",
-    });
-  } else if (input.coverIssues.length > 0) {
-    const reasons = input.coverIssues.map((code) => COVER_ISSUES[code] ?? "tiene un pendiente");
-    items.push({
-      key: "cover",
-      level: publisher ? "error" : "warn",
-      text: `La portada no se puede publicar todavía: ${reasons.join("; ")}.`,
-    });
-  } else {
-    items.push({ key: "cover", level: "ok", text: "La portada está lista para publicarse." });
-  }
-
-  const blocking = items.filter((item) => item.level === "error");
-  return {
-    items,
-    canSubmit: blocking.length === 0,
-    canPublish: publisher && blocking.length === 0,
-  };
+  items.push(coverCheck("post", input.coverIssues, publisher));
+  return reviewOutcome(items, publisher);
 }

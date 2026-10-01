@@ -4,8 +4,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 
 import { createTestPhoto } from "./helpers/media";
-import { goToSection, signOutFromPanel } from "./helpers/panel";
-import { signInEnrollingMfa, signInWithMfa } from "./helpers/session";
+import { goToSection } from "./helpers/panel";
+import { sessionSwitcher, signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
 
 // Stories on the shared content engine (step 7.6a)
@@ -21,19 +21,6 @@ async function axe(page: Page) {
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
       .analyze()
   ).violations;
-}
-
-/** Signs out and in as another person; enrolls MFA the first time only. */
-async function switchUser(
-  page: Page,
-  user: { email: string; password: string },
-  secrets: Map<string, string>,
-) {
-  await signOutFromPanel(page);
-  await expect(page).toHaveURL(/\/admin\/login$/);
-  const secret = secrets.get(user.email);
-  if (secret) await signInWithMfa(page, user, secret);
-  else secrets.set(user.email, await signInEnrollingMfa(page, user));
 }
 
 async function storyOf(id: string) {
@@ -71,7 +58,8 @@ test("an author writes a story, an editor returns it, then publishes and retires
   const title = `[DEMO] La huerta del barrio ${tag}`;
 
   // The author writes the draft
-  const secrets = new Map([[author.email, await signInEnrollingMfa(page, author)]]);
+  const people = sessionSwitcher();
+  await people.signIn(page, author);
   await goToSection(page, "Contenido");
   await expect(page).toHaveURL(/\/admin\/contenido\/historias$/);
   await page.getByRole("link", { name: "Nueva historia" }).click();
@@ -102,7 +90,7 @@ test("an author writes a story, an editor returns it, then publishes and retires
   expect((await storyOf(id)).status).toBe("review");
 
   // The editor finds it in Pendientes and returns it with a note
-  await switchUser(page, editor, secrets);
+  await people.switchTo(page, editor);
   await page
     .getByRole("region", { name: "Pendientes" })
     .getByRole("link", { name: /historias? por revisar/ })
@@ -116,7 +104,7 @@ test("an author writes a story, an editor returns it, then publishes and retires
   await expect(page.getByText("Historia · Borrador")).toBeVisible();
 
   // The author reads the note and sends it again
-  await switchUser(page, author, secrets);
+  await people.switchTo(page, author);
   await page.goto(`/admin/contenido/historias/${id}`);
   await expect(page.getByRole("region", { name: /Nota de revisión/ })).toContainText(
     "Cuenta cuántas familias participaron.",
@@ -126,7 +114,7 @@ test("an author writes a story, an editor returns it, then publishes and retires
   expect(await storyOf(id)).toMatchObject({ status: "review", review_note: null });
 
   // The editor publishes it: the cover goes to the site
-  await switchUser(page, editor, secrets);
+  await people.switchTo(page, editor);
   await page.goto(`/admin/contenido/historias/${id}`);
   await page.getByRole("button", { name: "Publicar ahora" }).click();
   await expect(page.getByText("Historia · Publicada")).toBeVisible();

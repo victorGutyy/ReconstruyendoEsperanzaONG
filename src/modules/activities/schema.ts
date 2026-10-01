@@ -63,6 +63,8 @@ export const basicsSchema = z
     endTime: z.preprocess((value) => (value === "" ? null : value), time.nullable()),
     placeId: optionalUuid,
     categoryId: optionalUuid,
+    /** Optional; the project may still be a draft (decision 7.6b). */
+    projectId: optionalUuid.optional(),
     summary: z
       .string()
       .trim()
@@ -90,6 +92,7 @@ export const basicsSchema = z
       ends_at: data.endTime ? toBogotaInstant(data.date, data.endTime) : null,
       place_id: data.placeId,
       category_id: data.categoryId,
+      project_id: data.projectId ?? null,
       summary: data.summary,
       // Validated above against the closed allow-list: safe to store as JSON
       body: doc as unknown as Json | null,

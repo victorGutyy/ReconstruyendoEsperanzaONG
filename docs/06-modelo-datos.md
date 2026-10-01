@@ -176,7 +176,7 @@ Todas incluyen las **columnas comunes** (§1.1).
 | `ends_at` | `timestamptz` | check `ends_at >= starts_at` |
 | `place_id` | `uuid` FK → `places` | |
 | `category_id` | `uuid` FK → `categories` (scope `activity`) | |
-| `project_id` | `uuid` FK → `projects`, nullable | Se agrega en el paso 7.6, con la tabla `projects` |
+| `project_id` | `uuid` FK → `projects`, nullable | Paso 7.6b. Puede apuntar a un proyecto todavía en borrador (el sitio solo enlaza proyectos publicados); el selector del panel no ofrece proyectos archivados ni en la papelera |
 | `results` | `text` | Resultados reportados por la organización (sin cifras inventadas) |
 | `review_note` · `review_note_by` · `review_note_at` | `text` (≤ 1000) · `uuid` FK → `profiles` · `timestamptz` | Nota del Editor al **devolver** (revisión → borrador, obligatoria) o al **retirar** (publicada → borrador, opcional). Solo la escribe quien tiene `content.publish`; quién y cuándo los pone el trigger `track_review_note`, que la borra al reenviar, publicar o archivar (paso 7.4b) |
 
@@ -198,10 +198,13 @@ Quién la escribió es `created_by` (decisión del paso 7.6a: no se crea `author
 ### `projects` — Proyectos (RF-A-05)
 | Columna | Tipo | Notas |
 |---|---|---|
-| `title` · `summary` · `objective` | `text` | |
+| `title` · `summary` · `objective` | `text` (≤ 160 · ≤ 300 · ≤ 1000) | |
 | `body` · `body_text` | `jsonb` · `text` | |
-| `project_status` | `text` check (`planned`, `active`, `paused`, `completed`) | Estado del proyecto (distinto del estado de publicación) |
-| `start_date` · `end_date` | `date` | check `end_date >= start_date` |
+| `project_status` | `text` check (`planned`, `active`, `paused`, `completed`), por defecto `planned` | Estado del proyecto (distinto del estado de publicación) |
+| `start_date` · `end_date` | `date`, opcionales | check `end_date >= start_date` |
+| `review_note` · `review_note_by` · `review_note_at` | | Igual que en `activities` (paso 7.4b) |
+
+Para publicar se exige `summary` (check); objetivo, fechas y portada son opcionales, pero la portada debe ser publicable (trigger `check_project`). Mismas reglas de estados, nota de revisión, permisos y auditoría que el resto del contenido (paso 7.6b).
 
 ### `galleries` y `gallery_items` — Galería (RF-A-06)
 `galleries`: columnas comunes + `title`, `description`, `activity_id` (nullable), `project_id` (nullable).
@@ -424,8 +427,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 12 | `activity_review_note` | Nota de revisión al devolver o retirar una actividad (paso 7.4b) |
 | 13 | `media_public` | Bucket público `media-public` y regla `media_public_targets` (paso 7.5a) |
 | 14 | `content_posts` | `posts` (historias) sobre el motor común; `content_media_usages` suma sus portadas y `private.content_is_published` decide para cualquier tipo (paso 7.6a) |
-| 15 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 16 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 15 | `content_projects` | `projects` sobre el motor común y `activities.project_id` (paso 7.6b) |
+| 16 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 17 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 

@@ -53,7 +53,7 @@ flowchart LR
 - *¿Por qué no microservicios?* Para una persona y un sitio de este tamaño serían más despliegues, más costos y más puntos de falla sin ningún beneficio.
 - *¿Por qué módulos?* Cada módulo (historias, actividades, medios…) tiene sus validaciones, lecturas y acciones juntas. Si en la Etapa B algo necesita separarse, ya está aislado.
 
-Regla de dependencia: `app/` (rutas) → usa `modules/` → usa `lib/`. **Nunca al revés**, y un módulo no importa archivos internos de otro (solo lo que este exporte en su `index.ts`).
+Regla de dependencia: `app/` (rutas) → usa `modules/` → usa `lib/`. **Nunca al revés**, y un módulo no importa archivos internos de otro (solo lo que este exporte en su `index.ts`, `client.ts` o `shared.ts`).
 
 ## 3. Estructura de carpetas
 
@@ -120,7 +120,9 @@ reconstruyendo-esperanza/
 | `queries.ts` | Lecturas de BD. Empieza con `import 'server-only'` | Solo servidor |
 | `actions.ts` | Server Actions (crear, editar, publicar…) | Solo servidor |
 | `components/` | Componentes de UI del módulo | Según el componente |
-| `index.ts` | Lo que el módulo expone a los demás | — |
+| `index.ts` | Lo que el módulo expone a los demás (lado servidor) | Solo servidor |
+| `client.ts` | Componentes y Server Actions que otros módulos o páginas usan en el navegador | Navegador |
+| `shared.ts` | Solo funciones y tipos **puros** (sin código de servidor ni de navegador), para que otros archivos puros y las pruebas unitarias los importen sin arrastrar `server-only` (p. ej. `modules/content/shared.ts`, paso 7.6b) | Servidor y navegador |
 
 ## 4. Cómo viaja una petición
 

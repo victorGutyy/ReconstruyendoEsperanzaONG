@@ -11,12 +11,15 @@ import { countActivities, findActivitiesWithWithdrawnPhotos } from "@/modules/ac
 import { countPendingPhotos } from "@/modules/media";
 import { parsePostFilters, postsHref } from "@/modules/posts/list";
 import { countPosts } from "@/modules/posts/queries";
+import { parseProjectFilters, projectsHref } from "@/modules/projects/list";
+import { countProjects } from "@/modules/projects/queries";
 import { navFor } from "@/modules/panel/navigation";
 
 type Pending = { href: string; count: number; label: string };
 
 const noFilters = parseActivityFilters({});
 const noPostFilters = parsePostFilters({});
+const noProjectFilters = parseProjectFilters({});
 
 export const metadata: Metadata = { title: "Inicio" };
 
@@ -112,9 +115,10 @@ async function pendingFor(
   if (!canRead && !canUpload) return null;
 
   const canPublish = hasPermission(profile, "content.publish");
-  const [activities, posts, photos, withdrawn] = await Promise.all([
+  const [activities, posts, projects, photos, withdrawn] = await Promise.all([
     canRead ? countActivities(userId) : null,
     canRead ? countPosts(userId) : null,
+    canRead ? countProjects(userId) : null,
     canUpload ? countPendingPhotos() : 0,
     canPublish ? findActivitiesWithWithdrawnPhotos().then((ids) => ids.size) : 0,
   ]);
@@ -159,6 +163,20 @@ async function pendingFor(
       href: postsHref(noPostFilters, { status: "draft", mine: true }),
       count: posts.myDrafts,
       label: posts.myDrafts === 1 ? "historia tuya en borrador" : "historias tuyas en borrador",
+    });
+  }
+  if (projects && canPublish) {
+    items.push({
+      href: projectsHref(noProjectFilters, { status: "review" }),
+      count: projects.toReview,
+      label: projects.toReview === 1 ? "proyecto por revisar" : "proyectos por revisar",
+    });
+  }
+  if (projects) {
+    items.push({
+      href: projectsHref(noProjectFilters, { status: "draft", mine: true }),
+      count: projects.myDrafts,
+      label: projects.myDrafts === 1 ? "proyecto tuyo en borrador" : "proyectos tuyos en borrador",
     });
   }
   items.push({

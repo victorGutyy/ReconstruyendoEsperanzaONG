@@ -15,6 +15,7 @@ export type Database = {
           ends_at: string | null;
           id: string;
           place_id: string | null;
+          project_id: string | null;
           published_at: string | null;
           results: string | null;
           review_note: string | null;
@@ -41,6 +42,7 @@ export type Database = {
           ends_at?: string | null;
           id?: string;
           place_id?: string | null;
+          project_id?: string | null;
           published_at?: string | null;
           results?: string | null;
           review_note?: string | null;
@@ -67,6 +69,7 @@ export type Database = {
           ends_at?: string | null;
           id?: string;
           place_id?: string | null;
+          project_id?: string | null;
           published_at?: string | null;
           results?: string | null;
           review_note?: string | null;
@@ -109,6 +112,13 @@ export type Database = {
             columns: ["place_id"];
             isOneToOne: false;
             referencedRelation: "places";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activities_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
             referencedColumns: ["id"];
           },
           {
@@ -666,6 +676,113 @@ export type Database = {
             columns: ["role_id"];
             isOneToOne: false;
             referencedRelation: "roles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      projects: {
+        Row: {
+          body: Json | null;
+          body_text: string | null;
+          cover_media_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          end_date: string | null;
+          id: string;
+          objective: string | null;
+          project_status: string;
+          published_at: string | null;
+          review_note: string | null;
+          review_note_at: string | null;
+          review_note_by: string | null;
+          seo_description: string | null;
+          seo_title: string | null;
+          slug: string;
+          start_date: string | null;
+          status: Database["public"]["Enums"]["content_status"];
+          summary: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          body?: Json | null;
+          body_text?: string | null;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          end_date?: string | null;
+          id?: string;
+          objective?: string | null;
+          project_status?: string;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          slug: string;
+          start_date?: string | null;
+          status?: Database["public"]["Enums"]["content_status"];
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: Json | null;
+          body_text?: string | null;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          end_date?: string | null;
+          id?: string;
+          objective?: string | null;
+          project_status?: string;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          slug?: string;
+          start_date?: string | null;
+          status?: Database["public"]["Enums"]["content_status"];
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "projects_cover_media_id_fkey";
+            columns: ["cover_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_review_note_by_fkey";
+            columns: ["review_note_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];

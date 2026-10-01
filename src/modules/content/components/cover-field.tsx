@@ -7,17 +7,34 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { describeIssues, LibraryPicker } from "@/modules/media/client";
 
-import { setPostCover } from "../actions";
-import type { CoverInfo } from "../queries";
+import type { ActionResult } from "../types";
 
-/** The story's cover, chosen from the library (one photo). */
-export function CoverField({ postId, cover }: { postId: string; cover: CoverInfo | null }) {
+export type CoverInfo = {
+  mediaId: string;
+  altText: string | null;
+  thumbnailUrl: string | null;
+  issues: string[];
+};
+
+/**
+ * The cover of any content, chosen from the library (one photo). `setCover`
+ * is the module's Server Action (it authorizes and syncs public photos).
+ */
+export function CoverField({
+  contentId,
+  cover,
+  setCover,
+}: {
+  contentId: string;
+  cover: CoverInfo | null;
+  setCover: (contentId: string, mediaId: string | null) => Promise<ActionResult>;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const choose = async (mediaIds: string[]) => {
-    const result = await setPostCover(postId, mediaIds[0] ?? null);
+    const result = await setCover(contentId, mediaIds[0] ?? null);
     if (!result.ok) return result.error;
     router.refresh();
     return null;
@@ -26,7 +43,7 @@ export function CoverField({ postId, cover }: { postId: string; cover: CoverInfo
   const remove = () =>
     startTransition(async () => {
       setError(null);
-      const result = await setPostCover(postId, null);
+      const result = await setCover(contentId, null);
       if (!result.ok) return setError(result.error);
       router.refresh();
     });

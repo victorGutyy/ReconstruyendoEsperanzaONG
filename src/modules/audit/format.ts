@@ -260,6 +260,48 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "review_note", label: "Nota de revisión", kind: TEXT },
     ],
   },
+  projects: {
+    label: "Proyectos",
+    singular: "Proyecto",
+    nameField: "title",
+    fields: [
+      { key: "title", label: "Nombre", kind: TEXT },
+      {
+        key: "status",
+        label: "Publicación",
+        kind: {
+          type: "enum",
+          labels: {
+            draft: "Borrador",
+            review: "En revisión",
+            published: "Publicado",
+            archived: "Archivado",
+          },
+        },
+      },
+      {
+        key: "project_status",
+        label: "Estado del proyecto",
+        kind: {
+          type: "enum",
+          labels: {
+            planned: "Planeado",
+            active: "Activo",
+            paused: "Pausado",
+            completed: "Terminado",
+          },
+        },
+      },
+      { key: "published_at", label: "Fecha de publicación", kind: DATETIME },
+      { key: "summary", label: "Resumen", kind: TEXT },
+      { key: "objective", label: "Objetivo", kind: TEXT },
+      { key: "start_date", label: "Inicio", kind: TEXT },
+      { key: "end_date", label: "Fin", kind: TEXT },
+      { key: "slug", label: "Slug", kind: TEXT },
+      { key: "cover_media_id", label: "Tiene portada", kind: { type: "present" } },
+      { key: "review_note", label: "Nota de revisión", kind: TEXT },
+    ],
+  },
   activity_media: {
     label: "Fotos de actividades",
     singular: "Foto de actividad",

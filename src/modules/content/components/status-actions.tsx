@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 
 import { changeContentStatus } from "../actions";
 import {
+  agree,
   AVAILABLE_CHANGES,
-  CONTENT_TYPES,
   type ContentStatus,
   type ContentType,
   type StatusChange,
+  theType,
 } from "../registry";
 
 type ChangeText = {
@@ -26,13 +27,13 @@ type ChangeText = {
 };
 
 function changesFor(type: ContentType): Record<StatusChange, ChangeText> {
-  const { singular } = CONTENT_TYPES[type];
-  const what = `La ${singular}`;
+  const what = theType(type);
+  const it = agree(type, "la", "lo");
   return {
     returned: {
       button: "Devolver con nota",
       title: "Devolver a borrador",
-      explain: `${what} vuelve a borrador para que quien la escribió la corrija. Verá tu nota arriba del editor.`,
+      explain: `${what} vuelve a borrador para que quien ${it} escribió ${it} corrija. Verá tu nota arriba del editor.`,
       confirm: "Devolver a borrador",
       note: "required",
       danger: false,
@@ -40,14 +41,14 @@ function changesFor(type: ContentType): Record<StatusChange, ChangeText> {
     retired: {
       button: "Retirar para corregir",
       title: "Retirar para corregir",
-      explain: `${what} sale del sitio público y vuelve a borrador. Cuando esté corregida, se publica de nuevo con la misma dirección.`,
+      explain: `${what} sale del sitio público y vuelve a borrador. Cuando esté ${agree(type, "corregida", "corregido")}, se publica de nuevo con la misma dirección.`,
       confirm: "Retirar del sitio",
       note: "optional",
       danger: true,
     },
     archived: {
       button: "Archivar",
-      title: `Archivar la ${singular}`,
+      title: `Archivar ${what.toLowerCase()}`,
       explain: `${what} sale del sitio público pero se conserva en el panel. Se puede reabrir como borrador más adelante.`,
       confirm: "Archivar",
       note: null,
@@ -56,7 +57,7 @@ function changesFor(type: ContentType): Record<StatusChange, ChangeText> {
     reopened: {
       button: "Reabrir como borrador",
       title: "Reabrir como borrador",
-      explain: `${what} vuelve a borrador para editarla y publicarla otra vez.`,
+      explain: `${what} vuelve a borrador para editar${it} y publicar${it} otra vez.`,
       confirm: "Reabrir",
       note: null,
       danger: false,

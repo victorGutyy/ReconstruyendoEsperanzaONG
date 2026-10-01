@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { generateSync } from "otplib";
 
+import { signOutFromPanel } from "./panel";
 import type { TestUser } from "./users";
 
 /** 30-second window of the last code used per secret: never reuse one. */
@@ -56,4 +57,25 @@ export async function signInWithMfa(
   await page.getByLabel("Código de 6 números").fill(generateSync({ secret }));
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page).toHaveURL(/\/admin$/);
+}
+
+/**
+ * Several people in one test: remembers each one's TOTP secret, so the first
+ * sign-in enrolls MFA and the next ones only ask for the code.
+ */
+export function sessionSwitcher() {
+  const secrets = new Map<string, string>();
+  const signIn = async (page: Page, user: Pick<TestUser, "email" | "password">) => {
+    const secret = secrets.get(user.email);
+    if (secret) await signInWithMfa(page, user, secret);
+    else secrets.set(user.email, await signInEnrollingMfa(page, user));
+  };
+  return {
+    signIn,
+    async switchTo(page: Page, user: Pick<TestUser, "email" | "password">) {
+      await signOutFromPanel(page);
+      await expect(page).toHaveURL(/\/admin\/login$/);
+      await signIn(page, user);
+    },
+  };
 }
