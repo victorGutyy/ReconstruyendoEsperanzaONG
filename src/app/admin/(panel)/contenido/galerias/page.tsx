@@ -90,7 +90,10 @@ export default async function GalleriesPage({
           </Button>
         ) : null}
       </div>
-      <ContentTabs current="gallery" />
+      <ContentTabs
+        current="gallery"
+        canManageConsents={hasPermission(authorized.profile, "consent.manage")}
+      />
 
       <nav aria-label="Vistas de galerías" className="mt-6 flex flex-wrap gap-2">
         <FilterLink href={GALLERIES_PATH} active={!hasGalleryFilters(filters)}>
