@@ -100,7 +100,10 @@ export default async function PostsPage({ searchParams }: PageProps<"/admin/cont
           </Button>
         ) : null}
       </div>
-      <ContentTabs current="post" />
+      <ContentTabs
+        current="post"
+        canManageConsents={hasPermission(authorized.profile, "consent.manage")}
+      />
 
       <nav aria-label="Vistas de historias" className="mt-6 flex flex-wrap gap-2">
         <FilterLink href={POSTS_PATH} active={!hasPostFilters(filters)}>

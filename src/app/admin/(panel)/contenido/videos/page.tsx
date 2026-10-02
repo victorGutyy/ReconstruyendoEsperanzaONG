@@ -83,7 +83,10 @@ export default async function VideosPage({ searchParams }: PageProps<"/admin/con
           </Button>
         ) : null}
       </div>
-      <ContentTabs current="video" />
+      <ContentTabs
+        current="video"
+        canManageConsents={hasPermission(authorized.profile, "consent.manage")}
+      />
 
       <nav aria-label="Vistas de videos" className="mt-6 flex flex-wrap gap-2">
         <FilterLink href={VIDEOS_PATH} active={!hasVideoFilters(filters)}>

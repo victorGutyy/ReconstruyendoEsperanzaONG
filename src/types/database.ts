@@ -1013,6 +1013,125 @@ export type Database = {
         };
         Relationships: [];
       };
+      testimonials: {
+        Row: {
+          activity_id: string | null;
+          author_context: string | null;
+          author_display_name: string;
+          consent_record_id: string;
+          consent_valid_until: string | null;
+          consent_withdrawn: boolean;
+          cover_media_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          project_id: string | null;
+          published_at: string | null;
+          quote: string;
+          review_note: string | null;
+          review_note_at: string | null;
+          review_note_by: string | null;
+          status: Database["public"]["Enums"]["content_status"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          activity_id?: string | null;
+          author_context?: string | null;
+          author_display_name: string;
+          consent_record_id: string;
+          consent_valid_until?: string | null;
+          consent_withdrawn?: boolean;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          project_id?: string | null;
+          published_at?: string | null;
+          quote: string;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          status?: Database["public"]["Enums"]["content_status"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          activity_id?: string | null;
+          author_context?: string | null;
+          author_display_name?: string;
+          consent_record_id?: string;
+          consent_valid_until?: string | null;
+          consent_withdrawn?: boolean;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          project_id?: string | null;
+          published_at?: string | null;
+          quote?: string;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          status?: Database["public"]["Enums"]["content_status"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "testimonials_activity_id_fkey";
+            columns: ["activity_id"];
+            isOneToOne: false;
+            referencedRelation: "activities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "testimonials_consent_record_id_fkey";
+            columns: ["consent_record_id"];
+            isOneToOne: false;
+            referencedRelation: "consent_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "testimonials_cover_media_id_fkey";
+            columns: ["cover_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "testimonials_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "testimonials_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "testimonials_review_note_by_fkey";
+            columns: ["review_note_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "testimonials_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       videos: {
         Row: {
           activity_id: string | null;

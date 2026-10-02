@@ -42,7 +42,8 @@ async function freeSlug(
 export async function saveContentRow(
   supabase: Supabase,
   type: ContentType,
-  columns: { title: string } & Record<string, unknown>,
+  /** With a slug, `title` names it; content without a page may have no title. */
+  columns: Record<string, unknown> & { title?: string },
   id?: string,
 ): Promise<SaveResult> {
   const table = () => contentTable(supabase, type);
@@ -84,7 +85,7 @@ export async function saveContentRow(
   if (!id) {
     // Two tries: another row could take the same slug in between
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      const slug = await freeSlug(supabase, type, columns.title);
+      const slug = await freeSlug(supabase, type, columns.title ?? "");
       const { data, error } = await table()
         .insert({ ...columns, slug } as never)
         .select("id, updated_at")
@@ -103,7 +104,7 @@ export async function saveContentRow(
 
   const slug =
     current.published_at === null && current.title !== columns.title
-      ? await freeSlug(supabase, type, columns.title, id)
+      ? await freeSlug(supabase, type, columns.title ?? "", id)
       : undefined;
 
   const { data, error } = await table()

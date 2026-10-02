@@ -202,3 +202,38 @@ export async function listMediaIdsForConsent(consentId: string): Promise<string[
   if (error) throw error;
   return data.map((link) => link.media_id);
 }
+
+export type PersonConsentStatus = {
+  id: string;
+  subjectName: string;
+  status: ConsentStatus;
+  isMinor: boolean;
+};
+
+/**
+ * The authorization behind a testimonial or a team profile, with its current
+ * state. Null when it does not exist or the caller cannot read it (RLS:
+ * consent.manage + MFA).
+ */
+export async function getPersonConsent(id: string): Promise<PersonConsentStatus | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("consent_records")
+    .select("id, subject_name, is_minor, minor_opinion, valid_until, revoked_at, deleted_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    id: data.id,
+    subjectName: data.subject_name,
+    isMinor: data.is_minor,
+    status: data.deleted_at
+      ? "revoked"
+      : consentStatus({
+          revokedAt: data.revoked_at,
+          validUntil: data.valid_until,
+          isMinor: data.is_minor,
+          minorOpinion: data.minor_opinion as MinorOpinion | null,
+        }),
+  };
+}

@@ -36,11 +36,19 @@ const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
  */
 async function syncLinkedPhotos(consentId: string) {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("media_consents")
-    .select("media_id")
-    .eq("consent_record_id", consentId);
-  await syncPublicMediaAfter((data ?? []).map((link) => link.media_id));
+  const [links, testimonials] = await Promise.all([
+    supabase.from("media_consents").select("media_id").eq("consent_record_id", consentId),
+    // The photo of a testimonial follows its authorization even if not linked to it (7.6d)
+    supabase
+      .from("testimonials")
+      .select("cover_media_id")
+      .eq("consent_record_id", consentId)
+      .not("cover_media_id", "is", null),
+  ]);
+  await syncPublicMediaAfter([
+    ...(links.data ?? []).map((link) => link.media_id),
+    ...(testimonials.data ?? []).map((row) => row.cover_media_id!),
+  ]);
 }
 
 const firstIssue = (issues: { message: string }[]) => issues[0]?.message ?? "Revisa los datos.";
@@ -370,4 +378,54 @@ export async function unlinkConsent(
   await syncPublicMediaAfter(data.map((row) => row.media_id));
   revalidateLinks();
   return { ok: true };
+}
+
+export type PersonConsent = {
+  id: string;
+  subjectName: string;
+  grantedOn: string;
+  validUntil: string | null;
+};
+
+/**
+ * Authorizations that can back a testimonial or a team profile (step 7.6d):
+ * adults only, not revoked, not expired, not in the trash. Search by name.
+ */
+export async function searchPersonConsents(
+  query: string,
+): Promise<{ ok: true; options: PersonConsent[] } | { ok: false; error: string }> {
+  const authorized = await authorizeAction("consent.manage");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+  const text = query.trim().slice(0, 80);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("consent_records")
+    .select("id, subject_name, is_minor, minor_opinion, granted_on, valid_until, revoked_at")
+    .is("deleted_at", null)
+    .is("revoked_at", null)
+    .eq("is_minor", false)
+    .ilike("subject_name", `%${escapeLike(text)}%`)
+    .order("granted_on", { ascending: false })
+    .limit(LINK_SEARCH_LIMIT * 2);
+  if (error) return { ok: false, error: "No se pudo buscar." };
+
+  const options = data
+    .filter(
+      (row) =>
+        consentStatus({
+          revokedAt: row.revoked_at,
+          validUntil: row.valid_until,
+          isMinor: row.is_minor,
+          minorOpinion: row.minor_opinion as MinorOpinion | null,
+        }) === "active",
+    )
+    .slice(0, LINK_SEARCH_LIMIT)
+    .map((row) => ({
+      id: row.id,
+      subjectName: row.subject_name,
+      grantedOn: row.granted_on,
+      validUntil: row.valid_until,
+    }));
+  return { ok: true, options };
 }

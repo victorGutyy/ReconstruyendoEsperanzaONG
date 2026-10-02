@@ -366,6 +366,35 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "review_note", label: "Nota de revisión", kind: TEXT },
     ],
   },
+  // Personal data, like authorizations: read only by audit.read (admins)
+  testimonials: {
+    label: "Testimonios",
+    singular: "Testimonio",
+    nameField: "author_display_name",
+    fields: [
+      { key: "author_display_name", label: "Nombre que se muestra", kind: TEXT },
+      { key: "quote", label: "Testimonio", kind: TEXT },
+      { key: "author_context", label: "Contexto", kind: TEXT },
+      {
+        key: "status",
+        label: "Estado",
+        kind: {
+          type: "enum",
+          labels: {
+            draft: "Borrador",
+            review: "En revisión",
+            published: "Publicado",
+            archived: "Archivado",
+          },
+        },
+      },
+      { key: "published_at", label: "Fecha de publicación", kind: DATETIME },
+      { key: "consent_record_id", label: "Autorización vinculada", kind: { type: "present" } },
+      { key: "consent_withdrawn", label: "Autorización retirada", kind: { type: "yesNo" } },
+      { key: "cover_media_id", label: "Tiene foto", kind: { type: "present" } },
+      { key: "review_note", label: "Nota de revisión", kind: TEXT },
+    ],
+  },
   gallery_items: {
     label: "Fotos de galerías",
     singular: "Foto de galería",

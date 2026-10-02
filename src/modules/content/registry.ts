@@ -43,19 +43,31 @@ export const CONTENT_TYPES = {
     listPath: "/admin/contenido/videos",
     editPath: (id: string) => `/admin/contenido/videos/${id}`,
   },
+  // Personal data: only people who manage authorizations (decision 7.6d)
+  testimonial: {
+    table: "testimonials",
+    hasSlug: false,
+    singular: "testimonio",
+    feminine: false,
+    listPath: "/admin/contenido/testimonios",
+    editPath: (id: string) => `/admin/contenido/testimonios/${id}`,
+  },
 } as const;
 
 export type ContentType = keyof typeof CONTENT_TYPES;
 
 /** Tabs of the "Contenido" section (activities have their own menu item). */
 export const CONTENT_TABS = [
-  { type: "post", label: "Historias" },
-  { type: "project", label: "Proyectos" },
-  { type: "gallery", label: "Galerías" },
-  { type: "video", label: "Videos" },
+  { type: "post", label: "Historias", consentManagersOnly: false },
+  { type: "project", label: "Proyectos", consentManagersOnly: false },
+  { type: "gallery", label: "Galerías", consentManagersOnly: false },
+  { type: "video", label: "Videos", consentManagersOnly: false },
+  { type: "testimonial", label: "Testimonios", consentManagersOnly: true },
 ] as const satisfies readonly {
   type: ContentType;
   label: string;
+  /** Personal data behind an authorization (step 7.6d). */
+  consentManagersOnly: boolean;
 }[];
 export type ContentTable = (typeof CONTENT_TYPES)[ContentType]["table"];
 export type ContentStatus = "draft" | "review" | "published" | "archived";

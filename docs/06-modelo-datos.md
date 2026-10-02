@@ -224,7 +224,13 @@ Para publicar, la galería debe tener al menos una foto (`gallery_empty`) y **to
 Único (`provider`, `provider_video_id`) entre no borrados. **Sin `slug`**: los videos no tienen página propia, se muestran en la sección de videos y dentro de su actividad o proyecto (decisión 7.6c). Los enlaces cortos (`fb.watch`, `vm.tiktok.com`) se rechazan en lugar de seguirlos (sin peticiones a terceros desde el servidor). Mismas reglas de estados, nota de revisión, permisos y auditoría que el resto del contenido.
 
 ### `testimonials` — Testimonios
-Columnas comunes (sin `slug`) + `quote text`, `author_display_name text`, `author_context text` (descripción breve aprobada por la persona), `photo_media_id uuid`, **`consent_record_id uuid not null`**: no existe testimonio sin autorización.
+Columnas comunes (sin `slug`) + `quote text` (≤ 600), `author_display_name text` (≤ 80; puede ser solo el nombre o las iniciales), `author_context text` (≤ 160, descripción breve aprobada por la persona), la foto de la persona en `cover_media_id` (opcional, publicable como toda foto con personas), `activity_id` o `project_id` (opcional) y **`consent_record_id uuid not null`**: no existe testimonio sin autorización (paso 7.6d).
+
+- **Solo quien tiene `consent.manage`** los lee en borrador, los crea y los edita (RLS); los autores no.
+- **No se aceptan autorizaciones de menores** (`consent_is_minor`).
+- **Copia de la autorización**: el visitante no puede leer `consent_records`, así que el testimonio guarda `consent_withdrawn` (revocada, en la papelera o de un menor) y `consent_valid_until`, que los triggers mantienen al día (`validate_testimonial` al guardar y `sync_consent_to_content` cuando cambia la autorización). No se escriben desde la API.
+- **El visitante solo ve** testimonios publicados cuya autorización sigue vigente (comparando con la fecha de hoy en Colombia): al revocarse o vencerse, desaparece del sitio en ese momento, y su foto sale del bucket público (`content_is_published` usa `private.consent_is_valid`).
+- Publicar exige una autorización vigente (`consent_not_valid`).
 
 ### `team_members` — Equipo
 Columnas comunes (sin `slug`) + `full_name`, `role_title`, `bio`, `photo_media_id`, `position int`, `consent_record_id uuid`.
@@ -433,8 +439,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 15 | `content_projects` | `projects` sobre el motor común y `activities.project_id` (paso 7.6b) |
 | 16 | `content_galleries` | `galleries` y `gallery_items` sobre el motor común (paso 7.6c) |
 | 17 | `content_videos` | `videos` sobre el motor común (paso 7.6c) |
-| 18 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 19 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 18 | `content_testimonials` | `testimonials`, `private.consent_is_valid` y la copia de la autorización (paso 7.6d) |
+| 19 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 20 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 
