@@ -233,8 +233,8 @@ Columnas comunes (sin `slug`) + `quote text` (≤ 600), `author_display_name tex
 - Publicar exige una autorización vigente (`consent_not_valid`).
 
 ### `team_members` — Equipo
-Columnas comunes (sin `slug`) + `full_name`, `role_title`, `bio`, `photo_media_id`, `position int`, `consent_record_id uuid`.
-Check: si `status = 'published'` → `consent_record_id` no nulo.
+Columnas comunes (sin `slug`) + `full_name` (≤ 120), `role_title` (≤ 120), `bio` (texto simple ≤ 600, sin editor enriquecido), la foto en `cover_media_id`, `position int` (orden manual) y `consent_record_id uuid` (puede faltar en borrador).
+Check: si `status = 'published'` → `consent_record_id` no nulo. Igual que los testimonios (paso 7.6d): solo `consent.manage`, sin menores, copia del estado de la autorización (`consent_withdrawn`, `consent_valid_until`, mantenida por `validate_team_member` y `sync_consent_to_content`) y el visitante deja de ver el perfil, y su foto, en cuanto la autorización se revoca o vence.
 
 ### `pages` — Páginas institucionales y legales
 Columnas comunes + `key text unique` (`about`, `support`, `privacy-policy`, `privacy-notice`), `title`, `body`, `body_text`, `version text` (obligatorio en las legales: el formulario de contacto guarda qué versión aceptó la persona).
@@ -440,8 +440,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 16 | `content_galleries` | `galleries` y `gallery_items` sobre el motor común (paso 7.6c) |
 | 17 | `content_videos` | `videos` sobre el motor común (paso 7.6c) |
 | 18 | `content_testimonials` | `testimonials`, `private.consent_is_valid` y la copia de la autorización (paso 7.6d) |
-| 19 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 20 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 19 | `content_team` | `team_members` sobre el motor común (paso 7.6d) |
+| 20 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 21 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 

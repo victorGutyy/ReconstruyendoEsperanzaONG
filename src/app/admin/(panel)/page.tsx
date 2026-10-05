@@ -19,6 +19,8 @@ import { parseVideoFilters, videosHref } from "@/modules/videos/list";
 import { countVideos } from "@/modules/videos/queries";
 import { parseTestimonialFilters, testimonialsHref } from "@/modules/testimonials/list";
 import { countTestimonials } from "@/modules/testimonials/queries";
+import { countTeam } from "@/modules/team/queries";
+import { TEAM_PATH } from "@/modules/team/schema";
 import { navFor } from "@/modules/panel/navigation";
 
 type Pending = { href: string; count: number; label: string };
@@ -125,7 +127,7 @@ async function pendingFor(
 
   const canPublish = hasPermission(profile, "content.publish");
   const canManageConsents = hasPermission(profile, "consent.manage");
-  const [activities, posts, projects, galleries, videos, testimonials, photos, withdrawn] =
+  const [activities, posts, projects, galleries, videos, testimonials, team, photos, withdrawn] =
     await Promise.all([
       canRead ? countActivities(userId) : null,
       canRead ? countPosts(userId) : null,
@@ -133,6 +135,7 @@ async function pendingFor(
       canRead ? countGalleries(userId) : null,
       canRead ? countVideos(userId) : null,
       canRead && canManageConsents ? countTestimonials(userId) : null,
+      canRead && canManageConsents ? countTeam(userId) : null,
       canUpload ? countPendingPhotos() : 0,
       canPublish ? findActivitiesWithWithdrawnPhotos().then((ids) => ids.size) : 0,
     ]);
@@ -244,6 +247,33 @@ async function pendingFor(
         testimonials.myDrafts === 1
           ? "testimonio tuyo en borrador"
           : "testimonios tuyos en borrador",
+    });
+  }
+  if (team) {
+    // The team is short: every card leads to the whole list
+    items.push({
+      href: TEAM_PATH,
+      count: team.withdrawn,
+      label:
+        team.withdrawn === 1
+          ? "perfil del equipo con autorización revocada o vencida"
+          : "perfiles del equipo con autorización revocada o vencida",
+    });
+    if (canPublish) {
+      items.push({
+        href: TEAM_PATH,
+        count: team.toReview,
+        label:
+          team.toReview === 1 ? "perfil del equipo por revisar" : "perfiles del equipo por revisar",
+      });
+    }
+    items.push({
+      href: TEAM_PATH,
+      count: team.myDrafts,
+      label:
+        team.myDrafts === 1
+          ? "perfil del equipo tuyo en borrador"
+          : "perfiles del equipo tuyos en borrador",
     });
   }
   items.push({

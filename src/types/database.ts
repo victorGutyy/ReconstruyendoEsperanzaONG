@@ -1013,6 +1013,108 @@ export type Database = {
         };
         Relationships: [];
       };
+      team_members: {
+        Row: {
+          bio: string | null;
+          consent_record_id: string | null;
+          consent_valid_until: string | null;
+          consent_withdrawn: boolean;
+          cover_media_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          full_name: string;
+          id: string;
+          position: number;
+          published_at: string | null;
+          review_note: string | null;
+          review_note_at: string | null;
+          review_note_by: string | null;
+          role_title: string;
+          status: Database["public"]["Enums"]["content_status"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          bio?: string | null;
+          consent_record_id?: string | null;
+          consent_valid_until?: string | null;
+          consent_withdrawn?: boolean;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          full_name: string;
+          id?: string;
+          position?: number;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          role_title: string;
+          status?: Database["public"]["Enums"]["content_status"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          bio?: string | null;
+          consent_record_id?: string | null;
+          consent_valid_until?: string | null;
+          consent_withdrawn?: boolean;
+          cover_media_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          full_name?: string;
+          id?: string;
+          position?: number;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          role_title?: string;
+          status?: Database["public"]["Enums"]["content_status"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_members_consent_record_id_fkey";
+            columns: ["consent_record_id"];
+            isOneToOne: false;
+            referencedRelation: "consent_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_members_cover_media_id_fkey";
+            columns: ["cover_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_members_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_members_review_note_by_fkey";
+            columns: ["review_note_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_members_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       testimonials: {
         Row: {
           activity_id: string | null;

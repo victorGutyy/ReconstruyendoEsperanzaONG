@@ -52,6 +52,14 @@ export const CONTENT_TYPES = {
     listPath: "/admin/contenido/testimonios",
     editPath: (id: string) => `/admin/contenido/testimonios/${id}`,
   },
+  team_member: {
+    table: "team_members",
+    hasSlug: false,
+    singular: "persona del equipo",
+    feminine: true,
+    listPath: "/admin/contenido/equipo",
+    editPath: (id: string) => `/admin/contenido/equipo/${id}`,
+  },
 } as const;
 
 export type ContentType = keyof typeof CONTENT_TYPES;
@@ -63,6 +71,7 @@ export const CONTENT_TABS = [
   { type: "gallery", label: "Galerías", consentManagersOnly: false },
   { type: "video", label: "Videos", consentManagersOnly: false },
   { type: "testimonial", label: "Testimonios", consentManagersOnly: true },
+  { type: "team_member", label: "Equipo", consentManagersOnly: true },
 ] as const satisfies readonly {
   type: ContentType;
   label: string;

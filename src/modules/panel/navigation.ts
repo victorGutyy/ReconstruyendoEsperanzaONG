@@ -34,7 +34,7 @@ export const PANEL_NAV: readonly NavItem[] = [
   {
     href: "/admin/contenido",
     label: "Contenido",
-    description: "Historias, proyectos, galerías, videos y el resto del contenido del sitio.",
+    description: "Historias, proyectos, galerías, videos, testimonios y equipo.",
     icon: "book",
     permission: "content.read",
   },

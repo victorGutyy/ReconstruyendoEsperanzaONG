@@ -34,6 +34,7 @@ export const AUDIT_SECTIONS = [
   "gallery_items",
   "videos",
   "testimonials",
+  "team_members",
 ] as const;
 export type AuditSection = (typeof AUDIT_SECTIONS)[number];
 
