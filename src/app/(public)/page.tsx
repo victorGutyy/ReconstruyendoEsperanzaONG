@@ -1,30 +1,19 @@
-import { HandHeart, Mail } from "lucide-react";
+import { getSiteSettings, isPending } from "@/modules/settings";
 
-import { Button } from "@/components/ui/button";
+export const revalidate = 300;
 
-// Temporary home page: checks fonts, design tokens and UI components until F8 builds the real one.
-export default function Home() {
+// Temporary home page inside the site frame; step 8.5 builds the editorial one.
+export default async function Home() {
+  const settings = await getSiteSettings();
+  const tagline = isPending(settings.tagline) ? null : settings.tagline;
+
   return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center px-4 py-16">
-      <p className="text-xs font-semibold tracking-[0.12em] text-gold-700 uppercase">
-        Calarcá, Quindío
-      </p>
-      <h1 className="mt-2 border-b-[3px] border-double border-gold-500 pb-4 font-serif text-4xl font-semibold text-green-900 md:text-6xl">
-        Reconstruyendo Esperanza
+    <div className="mx-auto max-w-3xl px-4 py-16">
+      <h1 className="font-serif text-4xl font-semibold text-green-900 md:text-5xl">
+        {settings.organizationName}
       </h1>
+      {tagline ? <p className="mt-4 text-lg text-ink-muted">{tagline}</p> : null}
       <p className="mt-6 text-ink-muted">Sitio en construcción.</p>
-
-      <div className="mt-10 flex flex-wrap gap-3">
-        <Button>
-          <HandHeart aria-hidden="true" />
-          Apóyanos
-        </Button>
-        <Button variant="outline">
-          <Mail aria-hidden="true" />
-          Escríbenos
-        </Button>
-        <Button variant="ghost">Ver actividades</Button>
-      </div>
-    </main>
+    </div>
   );
 }
