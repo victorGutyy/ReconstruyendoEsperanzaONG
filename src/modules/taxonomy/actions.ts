@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { authorizeAction } from "@/lib/auth/guard";
 import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
+import { revalidatePublicSite } from "@/lib/site/revalidate";
 import { createClient } from "@/lib/supabase/server";
 
 import {
@@ -66,6 +67,7 @@ export async function createPlace(_prev: ActionState, formData: FormData): Promi
   }
 
   revalidatePath(TAXONOMY_PATH);
+  revalidatePublicSite();
   return { notice: `Lugar «${parsed.data.name}» agregado.` };
 }
 
@@ -92,6 +94,7 @@ export async function updatePlace(_prev: ActionState, formData: FormData): Promi
   if (error || data.length === 0) return { error: "No se pudo guardar el lugar." };
 
   revalidatePath(TAXONOMY_PATH);
+  revalidatePublicSite();
   return { notice: "Cambios guardados." };
 }
 
@@ -134,6 +137,7 @@ export async function createCategory(_prev: ActionState, formData: FormData): Pr
   }
 
   revalidatePath(TAXONOMY_PATH);
+  revalidatePublicSite();
   return { notice: `Categoría «${parsed.data.name}» agregada.` };
 }
 
@@ -158,6 +162,7 @@ export async function updateCategory(_prev: ActionState, formData: FormData): Pr
   if (error || data.length === 0) return { error: "No se pudo guardar la categoría." };
 
   revalidatePath(TAXONOMY_PATH);
+  revalidatePublicSite();
   return { notice: "Cambios guardados." };
 }
 
@@ -204,6 +209,7 @@ export async function moveCategory(_prev: ActionState, formData: FormData): Prom
   }
 
   revalidatePath(TAXONOMY_PATH);
+  revalidatePublicSite();
   return {};
 }
 
@@ -228,5 +234,6 @@ export async function trashTaxonomyItem(
   if (error || data.length === 0) return { error: "No se pudo enviar a la papelera." };
 
   revalidatePath(TAXONOMY_PATH);
+  revalidatePublicSite();
   return { notice: "Enviado a la papelera." };
 }

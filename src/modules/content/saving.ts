@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { createClient } from "@/lib/supabase/server";
 import { slugify, uniqueSlug } from "@/lib/utils/slug";
 
-import { contentTable, syncContentPhotos } from "./media";
+import { contentTable, refreshPublicIfPublished, syncContentPhotos } from "./media";
 import { agree, CONTENT_TYPES, type ContentType, theType } from "./registry";
 import type { ActionResult, PublishResult, SaveResult } from "./types";
 
@@ -78,6 +78,7 @@ export async function saveContentRow(
     if (!data) {
       return { ok: false, error: `No puedes editar ${agree(type, "esta", "este")} ${what}.` };
     }
+    if (id) await refreshPublicIfPublished(supabase, type, id);
     revalidatePath(CONTENT_TYPES[type].listPath, "layout");
     return { ok: true, id: data.id, savedAt: data.updated_at };
   }
@@ -127,6 +128,7 @@ export async function saveContentRow(
       error: `No puedes editar ${agree(type, "esta", "este")} ${what} (ya fue ${agree(type, "publicada", "publicado")} o no es ${agree(type, "tuya", "tuyo")}).`,
     };
   }
+  await refreshPublicIfPublished(supabase, type, id);
   revalidatePath(CONTENT_TYPES[type].listPath, "layout");
   return { ok: true, id: data[0]!.id, savedAt: data[0]!.updated_at };
 }

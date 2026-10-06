@@ -265,7 +265,9 @@ Cambiar de proveedor = escribir otra implementación de la interfaz, sin tocar l
 
 | Tipo de página | Estrategia | Por qué |
 |---|---|---|
-| Público (inicio, listados, detalle) | Render en servidor **con caché** (ISR, `export const revalidate = 300`) + `revalidatePublicSite()` (`lib/site/revalidate.ts`) al publicar, retirar, enviar a la papelera o cambiar la Configuración | Rápido, bueno para SEO, pocas consultas; lo programado aparece a su hora con el refresco de 5 minutos |
+| Público (inicio, detalle) | Render en servidor **con caché** (ISR, `export const revalidate = 300`; los detalles con `generateStaticParams` vacío se generan en la primera visita) | Rápido, bueno para SEO, pocas consultas; lo programado aparece a su hora con el refresco de 5 minutos |
+| Público con filtros (`/actividades?ano=…`) | Página dinámica (lee la dirección) con **consultas en caché** 5 min (`unstable_cache`, etiqueta `public-content`) | Cada visita es rápida y casi no toca la base |
+| Actualización al momento | `revalidatePublicSite()` (`lib/site/revalidate.ts`): expira la etiqueta `public-content` y las páginas. La llaman `syncContentPhotos` (publicar, programar, retirar, archivar, papelera, cambios de fotos), `refreshPublicIfPublished` (editar texto, etiquetas, orden o pies de foto de algo publicado), `syncPublicMedia` cuando una foto entra o sale (también el cron diario), la Configuración, la taxonomía y el orden del equipo | Paso 8.2 |
 | Búsqueda | Dinámica (sin caché) | Depende de lo que escribe el usuario |
 | Panel `/admin` | Dinámico, nunca en caché compartida | Datos privados y siempre actuales |
 | Imágenes | R2 con caché larga (nombre UUID inmutable) | Si la imagen cambia, cambia el nombre |

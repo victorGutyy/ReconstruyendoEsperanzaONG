@@ -3,6 +3,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 
 import { MEDIA_WIDTHS, type MediaSize } from "@/lib/images/process";
+import { revalidatePublicSite } from "@/lib/site/revalidate";
 import type { PublicStorage } from "@/lib/storage/types";
 import { supabasePrivateStorage, supabasePublicStorage } from "@/lib/storage/supabase";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -111,6 +112,8 @@ export async function syncPublicMedia(mediaIds?: string[]): Promise<SyncReport> 
       }),
     );
   }
+  // A photo appeared or left: pages that show it must change (step 8.2)
+  if (report.published + report.withdrawn > 0) revalidatePublicSite();
   return report;
 }
 
