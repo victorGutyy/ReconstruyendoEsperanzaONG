@@ -21,6 +21,8 @@ import { parseTestimonialFilters, testimonialsHref } from "@/modules/testimonial
 import { countTestimonials } from "@/modules/testimonials/queries";
 import { countTeam } from "@/modules/team/queries";
 import { TEAM_PATH } from "@/modules/team/schema";
+import { countPendingPages } from "@/modules/pages/queries";
+import { PAGES_PATH } from "@/modules/pages/schema";
 import { navFor } from "@/modules/panel/navigation";
 
 type Pending = { href: string; count: number; label: string };
@@ -127,18 +129,30 @@ async function pendingFor(
 
   const canPublish = hasPermission(profile, "content.publish");
   const canManageConsents = hasPermission(profile, "consent.manage");
-  const [activities, posts, projects, galleries, videos, testimonials, team, photos, withdrawn] =
-    await Promise.all([
-      canRead ? countActivities(userId) : null,
-      canRead ? countPosts(userId) : null,
-      canRead ? countProjects(userId) : null,
-      canRead ? countGalleries(userId) : null,
-      canRead ? countVideos(userId) : null,
-      canRead && canManageConsents ? countTestimonials(userId) : null,
-      canRead && canManageConsents ? countTeam(userId) : null,
-      canUpload ? countPendingPhotos() : 0,
-      canPublish ? findActivitiesWithWithdrawnPhotos().then((ids) => ids.size) : 0,
-    ]);
+  const canEditPages = hasPermission(profile, "content.update_any");
+  const [
+    activities,
+    posts,
+    projects,
+    galleries,
+    videos,
+    testimonials,
+    team,
+    pendingPages,
+    photos,
+    withdrawn,
+  ] = await Promise.all([
+    canRead ? countActivities(userId) : null,
+    canRead ? countPosts(userId) : null,
+    canRead ? countProjects(userId) : null,
+    canRead ? countGalleries(userId) : null,
+    canRead ? countVideos(userId) : null,
+    canRead && canManageConsents ? countTestimonials(userId) : null,
+    canRead && canManageConsents ? countTeam(userId) : null,
+    canRead && canEditPages ? countPendingPages() : 0,
+    canUpload ? countPendingPhotos() : 0,
+    canPublish ? findActivitiesWithWithdrawnPhotos().then((ids) => ids.size) : 0,
+  ]);
 
   const items: Pending[] = [];
   if (withdrawn > 0) {
@@ -276,6 +290,11 @@ async function pendingFor(
           : "perfiles del equipo tuyos en borrador",
     });
   }
+  items.push({
+    href: PAGES_PATH,
+    count: pendingPages,
+    label: pendingPages === 1 ? "página con texto pendiente" : "páginas con texto pendiente",
+  });
   items.push({
     href: "/admin/medios?pending=1",
     count: photos,

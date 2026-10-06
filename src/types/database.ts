@@ -627,6 +627,142 @@ export type Database = {
           },
         ];
       };
+      page_versions: {
+        Row: {
+          body: Json | null;
+          body_text: string | null;
+          id: string;
+          key: string;
+          page_id: string;
+          published_at: string;
+          published_by: string | null;
+          title: string;
+          version: string;
+        };
+        Insert: {
+          body?: Json | null;
+          body_text?: string | null;
+          id?: string;
+          key: string;
+          page_id: string;
+          published_at?: string;
+          published_by?: string | null;
+          title: string;
+          version: string;
+        };
+        Update: {
+          body?: Json | null;
+          body_text?: string | null;
+          id?: string;
+          key?: string;
+          page_id?: string;
+          published_at?: string;
+          published_by?: string | null;
+          title?: string;
+          version?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "page_versions_page_id_fkey";
+            columns: ["page_id"];
+            isOneToOne: false;
+            referencedRelation: "pages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "page_versions_published_by_fkey";
+            columns: ["published_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pages: {
+        Row: {
+          body: Json | null;
+          body_text: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          key: string;
+          published_at: string | null;
+          review_note: string | null;
+          review_note_at: string | null;
+          review_note_by: string | null;
+          seo_description: string | null;
+          seo_title: string | null;
+          status: Database["public"]["Enums"]["content_status"];
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          version: string | null;
+        };
+        Insert: {
+          body?: Json | null;
+          body_text?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          key: string;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          status?: Database["public"]["Enums"]["content_status"];
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: string | null;
+        };
+        Update: {
+          body?: Json | null;
+          body_text?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          key?: string;
+          published_at?: string | null;
+          review_note?: string | null;
+          review_note_at?: string | null;
+          review_note_by?: string | null;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          status?: Database["public"]["Enums"]["content_status"];
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pages_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pages_review_note_by_fkey";
+            columns: ["review_note_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pages_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       permissions: {
         Row: {
           description: string;
