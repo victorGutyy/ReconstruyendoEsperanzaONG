@@ -147,7 +147,10 @@ Si Upstash no responde, las acciones sensibles (login, contacto) **fallan cerrad
 
 - `package-lock.json` versionado; en CI se instala con `npm ci` (exactamente lo del lockfile).
 - Antes de agregar un paquete: ¿es necesario?, ¿mantenido?, ¿popular?, ¿qué permisos/scripts de instalación tiene? (regla del `CLAUDE.md`: se pide confirmación).
-- `npm audit` en CI; vulnerabilidades altas/críticas bloquean el merge.
+- `npm audit` en CI, en dos niveles (desde el 2026-10-05):
+  - **Dependencias de producción** (lo que llega al visitante, `--omit=dev`): vulnerabilidades altas o críticas bloquean el merge.
+  - **Todas las dependencias**, incluidas las herramientas de desarrollo: solo las críticas bloquean.
+  - **Riesgo aceptado**: `braces` (GHSA-vfj7-8cjw-p6xm, alta, denegación de servicio con patrones muy anidados) no tiene versión corregida y solo llega por herramientas de desarrollo (CLI de shadcn, plugin de ESLint de Next, `ts-morph`). Los patrones los escribe el proyecto, no los usuarios. **Cuando salga la corrección se vuelve a exigir nivel alto para todo** (revisar en cada actualización de dependencias y antes del lanzamiento).
 - GitHub Actions fijadas por versión (idealmente por SHA) y con `permissions:` mínimos por workflow.
 
 ## 11. Auditoría y registros
