@@ -60,6 +60,15 @@ export const CONTENT_TYPES = {
     listPath: "/admin/contenido/equipo",
     editPath: (id: string) => `/admin/contenido/equipo/${id}`,
   },
+  // Four fixed pages, each with its own address (no slug)
+  page: {
+    table: "pages",
+    hasSlug: false,
+    singular: "página",
+    feminine: true,
+    listPath: "/admin/contenido/paginas",
+    editPath: (id: string) => `/admin/contenido/paginas/${id}`,
+  },
 } as const;
 
 export type ContentType = keyof typeof CONTENT_TYPES;
@@ -72,6 +81,7 @@ export const CONTENT_TABS = [
   { type: "video", label: "Videos", consentManagersOnly: false },
   { type: "testimonial", label: "Testimonios", consentManagersOnly: true },
   { type: "team_member", label: "Equipo", consentManagersOnly: true },
+  { type: "page", label: "Páginas", consentManagersOnly: false },
 ] as const satisfies readonly {
   type: ContentType;
   label: string;

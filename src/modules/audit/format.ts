@@ -424,6 +424,30 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "review_note", label: "Nota de revisión", kind: TEXT },
     ],
   },
+  pages: {
+    label: "Páginas",
+    singular: "Página",
+    nameField: "title",
+    fields: [
+      { key: "title", label: "Título", kind: TEXT },
+      {
+        key: "status",
+        label: "Estado",
+        kind: {
+          type: "enum",
+          labels: {
+            draft: "Borrador",
+            review: "En revisión",
+            published: "Publicada",
+            archived: "Archivada",
+          },
+        },
+      },
+      { key: "version", label: "Versión", kind: TEXT },
+      { key: "published_at", label: "Fecha de publicación", kind: DATETIME },
+      { key: "review_note", label: "Nota de revisión", kind: TEXT },
+    ],
+  },
   gallery_items: {
     label: "Fotos de galerías",
     singular: "Foto de galería",

@@ -237,9 +237,15 @@ Columnas comunes (sin `slug`) + `full_name` (≤ 120), `role_title` (≤ 120), `
 Check: si `status = 'published'` → `consent_record_id` no nulo. Igual que los testimonios (paso 7.6d): solo `consent.manage`, sin menores, copia del estado de la autorización (`consent_withdrawn`, `consent_valid_until`, mantenida por `validate_team_member` y `sync_consent_to_content`) y el visitante deja de ver el perfil, y su foto, en cuanto la autorización se revoca o vence.
 
 ### `pages` — Páginas institucionales y legales
-Columnas comunes + `key text unique` (`about`, `support`, `privacy-policy`, `privacy-notice`), `title`, `body`, `body_text`, `version text` (obligatorio en las legales: el formulario de contacto guarda qué versión aceptó la persona).
+Columnas comunes (sin `slug` ni portada: cada página tiene su dirección fija) + `key text unique` (`about`, `support`, `privacy-policy`, `privacy-notice`), `title`, `body`, `body_text`, `version text` (obligatorio para publicar las legales: el formulario de contacto guarda qué versión aceptó la persona).
 
-Contenido inicial: marcadores `[PENDIENTE: …]`, nunca texto que parezca real.
+Contenido inicial: marcadores `[PENDIENTE: …]`, nunca texto que parezca real (los crea la migración).
+
+Reglas (paso 7.6e):
+- **Las cuatro son fijas**: la API no puede crear ni borrar páginas, ni cambiar su `key`.
+- **Quién edita**: institucionales, quien tiene `content.update_any`; legales, **solo `settings.manage`** (Administrador).
+- **No se publica texto pendiente** (`page_pending_text`) en ninguna de las cuatro.
+- **`page_versions`** (solo inserción, sin permisos de escritura en la API): cada vez que se publica una página legal, o cambia su texto publicado, se guarda una copia exacta (`version`, `title`, `body`, `body_text`, `published_at`, `published_by`). Una versión no se puede reutilizar (`legal_version_used`), así que cambiar el texto publicado exige una versión nueva.
 
 ## 6. Medios y autorizaciones
 
@@ -441,8 +447,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 17 | `content_videos` | `videos` sobre el motor común (paso 7.6c) |
 | 18 | `content_testimonials` | `testimonials`, `private.consent_is_valid` y la copia de la autorización (paso 7.6d) |
 | 19 | `content_team` | `team_members` sobre el motor común (paso 7.6d) |
-| 20 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 21 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 20 | `content_pages` | `pages` (las cuatro, con marcadores) y `page_versions` (paso 7.6e) |
+| 21 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 22 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 
