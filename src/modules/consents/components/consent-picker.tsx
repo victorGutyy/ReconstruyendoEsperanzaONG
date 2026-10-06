@@ -19,9 +19,12 @@ const dateFormat = new Intl.DateTimeFormat("es-CO", { dateStyle: "medium", timeZ
 export function ConsentPicker({
   selected,
   onSelect,
+  help = "Obligatoria. Solo aparecen autorizaciones vigentes de personas adultas.",
 }: {
   selected: { id: string; subjectName: string } | null;
   onSelect: (consent: PersonConsent) => void;
+  /** What the authorization is required for (shown while none is linked). */
+  help?: string;
 }) {
   const inputId = useId();
   const [query, setQuery] = useState("");
@@ -51,9 +54,7 @@ export function ConsentPicker({
           </Link>
         </p>
       ) : (
-        <p className="text-sm text-ink-muted">
-          Obligatoria. Solo aparecen autorizaciones vigentes de personas adultas.
-        </p>
+        <p className="text-sm text-ink-muted">{help}</p>
       )}
       <div className="flex flex-wrap items-end gap-2">
         <div className="min-w-48 flex-1 space-y-2">

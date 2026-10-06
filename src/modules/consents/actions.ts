@@ -36,11 +36,17 @@ const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
  */
 async function syncLinkedPhotos(consentId: string) {
   const supabase = await createClient();
-  const [links, testimonials] = await Promise.all([
+  const [links, testimonials, team] = await Promise.all([
     supabase.from("media_consents").select("media_id").eq("consent_record_id", consentId),
-    // The photo of a testimonial follows its authorization even if not linked to it (7.6d)
+    // The photo of a testimonial or a team profile follows its authorization
+    // even if the photo is not linked to it (7.6d)
     supabase
       .from("testimonials")
+      .select("cover_media_id")
+      .eq("consent_record_id", consentId)
+      .not("cover_media_id", "is", null),
+    supabase
+      .from("team_members")
       .select("cover_media_id")
       .eq("consent_record_id", consentId)
       .not("cover_media_id", "is", null),
@@ -48,6 +54,7 @@ async function syncLinkedPhotos(consentId: string) {
   await syncPublicMediaAfter([
     ...(links.data ?? []).map((link) => link.media_id),
     ...(testimonials.data ?? []).map((row) => row.cover_media_id!),
+    ...(team.data ?? []).map((row) => row.cover_media_id!),
   ]);
 }
 

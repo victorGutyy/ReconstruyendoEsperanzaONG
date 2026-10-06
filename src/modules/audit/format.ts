@@ -395,6 +395,35 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "review_note", label: "Nota de revisión", kind: TEXT },
     ],
   },
+  team_members: {
+    label: "Equipo",
+    singular: "Perfil del equipo",
+    nameField: "full_name",
+    fields: [
+      { key: "full_name", label: "Nombre", kind: TEXT },
+      { key: "role_title", label: "Cargo", kind: TEXT },
+      { key: "bio", label: "Biografía", kind: TEXT },
+      { key: "position", label: "Orden", kind: TEXT },
+      {
+        key: "status",
+        label: "Estado",
+        kind: {
+          type: "enum",
+          labels: {
+            draft: "Borrador",
+            review: "En revisión",
+            published: "Publicado",
+            archived: "Archivado",
+          },
+        },
+      },
+      { key: "published_at", label: "Fecha de publicación", kind: DATETIME },
+      { key: "consent_record_id", label: "Autorización vinculada", kind: { type: "present" } },
+      { key: "consent_withdrawn", label: "Autorización retirada", kind: { type: "yesNo" } },
+      { key: "cover_media_id", label: "Tiene foto", kind: { type: "present" } },
+      { key: "review_note", label: "Nota de revisión", kind: TEXT },
+    ],
+  },
   gallery_items: {
     label: "Fotos de galerías",
     singular: "Foto de galería",

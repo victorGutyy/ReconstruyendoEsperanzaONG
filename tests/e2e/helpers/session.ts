@@ -8,6 +8,12 @@ import type { TestUser } from "./users";
 const usedWindows = new Map<string, number>();
 const currentWindow = () => Math.floor(Date.now() / 30_000);
 
+/** A code typed in the last seconds of its window can arrive already expired. */
+async function avoidWindowEdge(page: Page) {
+  const left = 30_000 - (Date.now() % 30_000);
+  if (left < 3_000) await page.waitForTimeout(left + 500);
+}
+
 /**
  * Full sign-in for a user that has never enrolled MFA: password, QR enrollment
  * (using the plain-text secret) and the first code. Returns the TOTP secret.
@@ -30,6 +36,7 @@ export async function completeMfaEnrollment(page: Page): Promise<string> {
   await page.getByText("¿No puedes escanear? Escribe esta clave").click();
   const secret = (await page.getByTestId("mfa-secret").textContent())?.trim() ?? "";
 
+  await avoidWindowEdge(page);
   usedWindows.set(secret, currentWindow());
   await page.getByLabel("Código de 6 números").fill(generateSync({ secret }));
   await page.getByRole("button", { name: "Activar y entrar" }).click();
@@ -53,6 +60,7 @@ export async function signInWithMfa(
   if (usedWindows.get(secret) === currentWindow()) {
     await page.waitForTimeout(30_000 - (Date.now() % 30_000) + 500);
   }
+  await avoidWindowEdge(page);
   usedWindows.set(secret, currentWindow());
   await page.getByLabel("Código de 6 números").fill(generateSync({ secret }));
   await page.getByRole("button", { name: "Entrar" }).click();

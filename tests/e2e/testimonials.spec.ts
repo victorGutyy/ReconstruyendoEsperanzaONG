@@ -94,7 +94,7 @@ test("an editor publishes a testimonial that disappears when its authorization i
   await page.goto("/admin");
   await page
     .getByRole("region", { name: "Pendientes" })
-    .getByRole("link", { name: /con autorización revocada o vencida/ })
+    .getByRole("link", { name: /testimonios? con autorización revocada o vencida/ })
     .click();
   await expect(page).toHaveURL(/withdrawn=1/);
   await page.getByRole("link", { name: "Rosa" }).first().click();
