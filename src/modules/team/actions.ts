@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { authorizeAction } from "@/lib/auth/guard";
 import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
+import { revalidatePublicSite } from "@/lib/site/revalidate";
 import { createClient } from "@/lib/supabase/server";
 import { getPersonConsent } from "@/modules/consents";
 import {
@@ -131,6 +132,8 @@ export async function moveTeamMember(
     const { error } = await supabase.from("team_members").update({ position }).eq("id", id);
     if (error) return { ok: false, error: "No tienes permiso para ordenar el equipo." };
   }
+  // The order shows on the public team page
+  revalidatePublicSite();
   revalidatePath(TEAM_PATH, "layout");
   return { ok: true };
 }

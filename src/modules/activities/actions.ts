@@ -7,7 +7,7 @@ import { authorizeAction } from "@/lib/auth/guard";
 import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, uniqueSlug } from "@/lib/utils/slug";
-import { syncContentPhotos } from "@/modules/content";
+import { refreshPublicIfPublished, syncContentPhotos } from "@/modules/content";
 
 import { getActivityForWizard, getPhotosWithIssues } from "./queries";
 import { reviewActivity } from "./review";
@@ -123,6 +123,7 @@ export async function saveActivityBasics(input: {
     return { ok: false, error: "No puedes editar esta actividad (ya fue publicada o no es tuya)." };
   }
 
+  await refreshPublicIfPublished(supabase, "activity", input.id);
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true, id: data[0]!.id, savedAt: data[0]!.updated_at };
 }
@@ -189,6 +190,7 @@ export async function setCover(activityId: string, mediaId: string): Promise<Pho
     .eq("id", activityId)
     .select("id");
   if (error || data.length === 0) return { ok: false, error: photoError(error?.code) };
+  await refreshPublicIfPublished(supabase, "activity", activityId);
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true };
 }
@@ -223,6 +225,7 @@ export async function movePhoto(
       .eq("id", link.id);
     if (error) return { ok: false, error: photoError(error.code) };
   }
+  await refreshPublicIfPublished(supabase, "activity", activityId);
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true };
 }
@@ -407,6 +410,7 @@ export async function setActivityTag(
           : "No se pudo guardar la etiqueta.",
     };
   }
+  await refreshPublicIfPublished(supabase, "activity", activityId);
   revalidatePath(ACTIVITIES_PATH, "layout");
   return { ok: true };
 }

@@ -10,3 +10,4 @@ export {
   syncPublicMedia,
   syncPublicMediaAfter,
 } from "./publishing";
+export { type PublicMediaRow, type PublicPhoto, toPublicPhoto } from "./public-photo";

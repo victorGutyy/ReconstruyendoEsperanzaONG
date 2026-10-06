@@ -14,6 +14,7 @@ import {
   saveContentRow,
   type SaveResult,
   submitContent,
+  refreshPublicIfPublished,
   syncContentPhotos,
 } from "@/modules/content";
 import { getPublishIssues } from "@/modules/media";
@@ -136,6 +137,7 @@ export async function moveGalleryPhoto(
       .eq("id", item.id);
     if (error) return { ok: false, error: photoError(error.code) };
   }
+  await refreshPublicIfPublished(supabase, "gallery", galleryId);
   revalidatePath(GALLERIES_PATH, "layout");
   return { ok: true };
 }
@@ -199,6 +201,7 @@ export async function setGalleryCover(galleryId: string, mediaId: string): Promi
     .eq("id", galleryId)
     .select("id");
   if (error || data.length === 0) return { ok: false, error: photoError(error?.code) };
+  await refreshPublicIfPublished(supabase, "gallery", galleryId);
   revalidatePath(GALLERIES_PATH, "layout");
   return { ok: true };
 }
@@ -228,6 +231,7 @@ export async function setGalleryCaption(
     .eq("media_id", mediaId)
     .select("id");
   if (error || data.length === 0) return { ok: false, error: "No se pudo guardar el pie de foto." };
+  await refreshPublicIfPublished(supabase, "gallery", galleryId);
   revalidatePath(GALLERIES_PATH, "layout");
   return { ok: true };
 }
