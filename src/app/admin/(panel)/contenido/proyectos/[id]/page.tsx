@@ -16,6 +16,7 @@ import {
   StatusActions,
 } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import { TrashContentButton } from "@/modules/trash/client";
 import { publishProject, setProjectCover, submitProject } from "@/modules/projects/actions";
 import { ProjectEditor } from "@/modules/projects/components/project-editor";
 import { getProject, listProjectActivities } from "@/modules/projects/queries";
@@ -40,6 +41,7 @@ export default async function EditProjectPage({
   if (!project) notFound();
 
   const { profile, user } = authorized;
+  const canTrash = hasPermission(profile, "content.delete");
   const publisher = hasPermission(profile, "content.publish");
   // Mirrors the RLS: the database decides for real when saving
   const canEdit =
@@ -70,9 +72,18 @@ export default async function EditProjectPage({
       <h1 className="mt-2 font-serif text-3xl font-semibold text-green-900">{project.title}</h1>
       <p className="mt-1 text-ink-muted">{STAGE_LABELS[project.stage]}</p>
 
-      {publisher && !project.inTrash ? (
-        <div className="mt-6">
-          <StatusActions type="project" id={project.id} status={project.status} />
+      {(publisher || canTrash) && !project.inTrash ? (
+        <div className="mt-6 flex flex-wrap gap-3">
+          {publisher ? (
+            <StatusActions type="project" id={project.id} status={project.status} />
+          ) : null}
+          {canTrash ? (
+            <TrashContentButton
+              type="project"
+              id={project.id}
+              published={project.status === "published"}
+            />
+          ) : null}
         </div>
       ) : null}
 

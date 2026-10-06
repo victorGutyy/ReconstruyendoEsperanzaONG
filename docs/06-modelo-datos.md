@@ -395,7 +395,7 @@ Abreviaturas: **pub** = `status = 'published' and published_at <= now() and dele
 | Contenido (`activities`, `posts`, `projects`, `galleries`, `videos`, `testimonials`, `team_members`, `pages`) | anon: **pub** · auth: A2 ∧ P(`content.read`) | A2 ∧ P(`content.create`) | A2 ∧ (P(`content.update_any`) ∨ (P(`content.update_own`) ∧ `created_by = auth.uid()` ∧ estado ∈ {draft, review})) | A2 ∧ P(`trash.purge`) ∧ `deleted_at is not null` |
 | Tablas puente (`*_tags`, `gallery_items`) | Si el padre es visible | Como UPDATE del padre | — | Como UPDATE del padre |
 | `categories` · `tags` · `places` | anon/auth: `deleted_at is null` · A2 ∧ P(`taxonomy.manage`) también ve la papelera (para restaurar) | A2 ∧ P(`taxonomy.manage`) | A2 ∧ P(`taxonomy.manage`); el `slug` no se puede cambiar (permiso por columna) | A2 ∧ P(`trash.purge`) |
-| `media` | anon: `public_key is not null ∧ deleted_at is null` · auth: A2 ∧ P(`content.read`) | A2 ∧ P(`media.upload`) | A2 ∧ (P(`media.update`) ∨ `uploaded_by = auth.uid()`) | A2 ∧ P(`trash.purge`) |
+| `media` | anon: `public_key is not null ∧ deleted_at is null` · auth: A2 ∧ P(`content.read`) | A2 ∧ P(`media.upload`) | A2 ∧ (P(`media.update`) ∨ `uploaded_by = auth.uid()`) | A2 ∧ P(`trash.purge`) ∧ `deleted_at is not null` (y ninguna referencia la usa: las claves foráneas lo impiden) |
 | `consent_records` · `media_consents` | A2 ∧ P(`consent.manage`) | A2 ∧ P(`consent.manage`) | A2 ∧ P(`consent.manage`) | A2 ∧ P(`trash.purge`) |
 | `content_media_usages` | auth: A2 ∧ P(`content.read`) | Con el contenido | Con el contenido | Con el contenido |
 | `contact_messages` | A2 ∧ P(`messages.read`) | **Ninguna** (solo servidor, §7) | A2 ∧ P(`messages.manage`) | A2 ∧ P(`trash.purge`) |
@@ -406,7 +406,8 @@ Abreviaturas: **pub** = `status = 'published' and published_at <= now() and dele
 
 **Lo que la RLS no puede ver y resuelven triggers** (`guard_content_changes`):
 - Pasar a `published`/`archived` o salir de ellos exige `content.publish`.
-- Cambiar `deleted_at` (enviar a papelera) exige `content.delete`; restaurar exige `trash.restore`.
+- Cambiar `deleted_at` (enviar a papelera) exige `content.delete`; restaurar exige `trash.restore`. En `media`, quien puede editar la foto la envía a la papelera y solo `trash.restore` la restaura (`guard_media_trash`, paso 7.7).
+- Eliminar definitivamente (paso 7.7): las fotos, etiquetas e ítems de un contenido se van con él (`on delete cascade`); lo que pertenecía a una actividad o un proyecto (actividades, galerías, videos, testimonios, autorizaciones) queda sin dueño (`on delete set null`); una foto que todavía se usa, aunque sea en contenido de la papelera, no se puede eliminar. La auditoría conserva la fila borrada.
 - `created_by` no se puede cambiar.
 - Transiciones de estado válidas según el diagrama de `04-arquitectura.md` §5.2.
 
@@ -448,8 +449,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 18 | `content_testimonials` | `testimonials`, `private.consent_is_valid` y la copia de la autorización (paso 7.6d) |
 | 19 | `content_team` | `team_members` sobre el motor común (paso 7.6d) |
 | 20 | `content_pages` | `pages` (las cuatro, con marcadores) y `page_versions` (paso 7.6e) |
-| 21 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 22 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 21 | `trash` | Papelera segura: al eliminar definitivamente una actividad o un proyecto, lo que dependía de él se desvincula (`on delete set null`); las fotos solo se eliminan desde la papelera y solo `trash.restore` las saca de ella (`guard_media_trash`) (paso 7.7) |
+| 22 | `site` | `pages`, `site_settings`, `contact_messages` |
+| 23 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 

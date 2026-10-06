@@ -14,6 +14,7 @@ import { getGallery } from "@/modules/galleries/queries";
 import { GALLERIES_PATH, ownerValue, reviewGallery } from "@/modules/galleries/schema";
 import { describeIssues } from "@/modules/media";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import { TrashContentButton } from "@/modules/trash/client";
 
 export const metadata: Metadata = { title: "Editar galería" };
 
@@ -29,6 +30,7 @@ export default async function EditGalleryPage({
   if (!gallery) notFound();
 
   const { profile, user } = authorized;
+  const canTrash = hasPermission(profile, "content.delete");
   const publisher = hasPermission(profile, "content.publish");
   // Mirrors the RLS: the database decides for real when saving
   const canEdit =
@@ -56,9 +58,18 @@ export default async function EditGalleryPage({
       </p>
       <h1 className="mt-2 font-serif text-3xl font-semibold text-green-900">{gallery.title}</h1>
 
-      {publisher && !gallery.inTrash ? (
-        <div className="mt-6">
-          <StatusActions type="gallery" id={gallery.id} status={gallery.status} />
+      {(publisher || canTrash) && !gallery.inTrash ? (
+        <div className="mt-6 flex flex-wrap gap-3">
+          {publisher ? (
+            <StatusActions type="gallery" id={gallery.id} status={gallery.status} />
+          ) : null}
+          {canTrash ? (
+            <TrashContentButton
+              type="gallery"
+              id={gallery.id}
+              published={gallery.status === "published"}
+            />
+          ) : null}
         </div>
       ) : null}
 

@@ -3,7 +3,7 @@
 import { ADMIN_HOME, hasPermission, type Permission, type ProfileAccess } from "@/lib/auth/rules";
 
 export type NavIcon =
-  "home" | "calendar" | "book" | "image" | "shield" | "tags" | "users" | "history";
+  "home" | "calendar" | "book" | "image" | "shield" | "tags" | "users" | "history" | "trash";
 
 export type NavItem = {
   href: string;
@@ -72,6 +72,14 @@ export const PANEL_NAV: readonly NavItem[] = [
     description: "Quién cambió qué y cuándo.",
     icon: "history",
     permission: "audit.read",
+  },
+  {
+    href: "/admin/papelera",
+    label: "Papelera",
+    description:
+      "Restaurar o eliminar definitivamente el contenido y las fotos enviados a la papelera.",
+    icon: "trash",
+    permission: "trash.restore",
   },
 ];
 

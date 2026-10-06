@@ -3,4 +3,10 @@
 export { countPendingPhotos, getMediaCards, getPublishIssues, type MediaCard } from "./queries";
 export { describeIssues, ISSUES, type IssueCode, PEOPLE_LABELS, PEOPLE_OPTIONS } from "./library";
 export type { PeopleInPhoto } from "./library";
-export { publicKeyFor, type SyncReport, syncPublicMedia, syncPublicMediaAfter } from "./publishing";
+export {
+  publicKeyFor,
+  removeMediaFiles,
+  type SyncReport,
+  syncPublicMedia,
+  syncPublicMediaAfter,
+} from "./publishing";

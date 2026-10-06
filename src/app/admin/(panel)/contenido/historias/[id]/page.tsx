@@ -14,6 +14,7 @@ import {
   StatusActions,
 } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import { TrashContentButton } from "@/modules/trash/client";
 import { PostEditor } from "@/modules/posts/components/post-editor";
 import { publishPost, setPostCover, submitPost } from "@/modules/posts/actions";
 import { getContentCover } from "@/modules/content";
@@ -34,6 +35,7 @@ export default async function EditPostPage({
   if (!post) notFound();
 
   const { profile, user } = authorized;
+  const canTrash = hasPermission(profile, "content.delete");
   const publisher = hasPermission(profile, "content.publish");
   // Mirrors the RLS: the database decides for real when saving
   const canEdit =
@@ -63,9 +65,12 @@ export default async function EditPostPage({
       </p>
       <h1 className="mt-2 font-serif text-3xl font-semibold text-green-900">{post.title}</h1>
 
-      {publisher && !post.inTrash ? (
-        <div className="mt-6">
-          <StatusActions type="post" id={post.id} status={post.status} />
+      {(publisher || canTrash) && !post.inTrash ? (
+        <div className="mt-6 flex flex-wrap gap-3">
+          {publisher ? <StatusActions type="post" id={post.id} status={post.status} /> : null}
+          {canTrash ? (
+            <TrashContentButton type="post" id={post.id} published={post.status === "published"} />
+          ) : null}
         </div>
       ) : null}
 
