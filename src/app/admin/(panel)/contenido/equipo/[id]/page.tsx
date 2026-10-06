@@ -15,6 +15,7 @@ import {
   StatusActions,
 } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import { TrashContentButton } from "@/modules/trash/client";
 import { publishTeamMember, setTeamPhoto, submitTeamMember } from "@/modules/team/actions";
 import { TeamEditor } from "@/modules/team/components/team-editor";
 import { getTeamMember } from "@/modules/team/queries";
@@ -36,6 +37,7 @@ export default async function EditTeamMemberPage({
   if (!member) notFound();
 
   const { profile, user } = authorized;
+  const canTrash = hasPermission(profile, "content.delete");
   const publisher = hasPermission(profile, "content.publish");
   // Mirrors the RLS: the database decides for real when saving
   const canEdit =
@@ -70,9 +72,18 @@ export default async function EditTeamMemberPage({
       <h1 className="mt-2 font-serif text-3xl font-semibold text-green-900">{member.fullName}</h1>
       <p className="mt-1 text-ink-muted">{member.roleTitle}</p>
 
-      {publisher && !member.inTrash ? (
-        <div className="mt-6">
-          <StatusActions type="team_member" id={member.id} status={member.status} />
+      {(publisher || canTrash) && !member.inTrash ? (
+        <div className="mt-6 flex flex-wrap gap-3">
+          {publisher ? (
+            <StatusActions type="team_member" id={member.id} status={member.status} />
+          ) : null}
+          {canTrash ? (
+            <TrashContentButton
+              type="team_member"
+              id={member.id}
+              published={member.status === "published"}
+            />
+          ) : null}
         </div>
       ) : null}
 

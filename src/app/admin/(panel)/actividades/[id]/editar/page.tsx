@@ -23,6 +23,7 @@ import { fromBogotaInstant, parseStep } from "@/modules/activities/schema";
 import { describeIssues, getMediaCards } from "@/modules/media";
 import { displayStatus, ReviewNote, STATUS_LABELS, StatusActions } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import { TrashContentButton } from "@/modules/trash/client";
 import { listProjectOptions } from "@/modules/projects/queries";
 
 export const metadata: Metadata = { title: "Editar actividad" };
@@ -41,6 +42,7 @@ export default async function EditActivityPage({
 
   const step = parseStep((await searchParams).paso);
   const { profile, user } = authorized;
+  const canTrash = hasPermission(profile, "content.delete");
   // Mirrors the RLS: the database decides for real when saving
   const canEdit =
     !activity.inTrash &&
@@ -61,9 +63,18 @@ export default async function EditActivityPage({
       </p>
       <h1 className="mt-2 font-serif text-3xl font-semibold text-green-900">{activity.title}</h1>
 
-      {hasPermission(profile, "content.publish") && !activity.inTrash ? (
-        <div className="mt-6">
-          <StatusActions type="activity" id={activity.id} status={activity.status} />
+      {(hasPermission(profile, "content.publish") || canTrash) && !activity.inTrash ? (
+        <div className="mt-6 flex flex-wrap gap-3">
+          {hasPermission(profile, "content.publish") ? (
+            <StatusActions type="activity" id={activity.id} status={activity.status} />
+          ) : null}
+          {canTrash ? (
+            <TrashContentButton
+              type="activity"
+              id={activity.id}
+              published={activity.status === "published"}
+            />
+          ) : null}
         </div>
       ) : null}
 

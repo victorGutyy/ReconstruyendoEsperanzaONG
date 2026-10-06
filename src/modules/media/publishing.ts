@@ -121,3 +121,21 @@ export async function syncPublicMedia(mediaIds?: string[]): Promise<SyncReport> 
 export async function syncPublicMediaAfter(mediaIds: string[]): Promise<void> {
   await syncPublicMedia(mediaIds).catch(() => undefined);
 }
+
+/**
+ * After a photo was purged (step 7.7): its processed versions, any public
+ * copy and a leftover original. Callers checked trash.purge and deleted the
+ * row first, so nothing links to these files any more.
+ */
+export async function removeMediaFiles(mediaId: string, publicKey: string | null): Promise<void> {
+  await Promise.all([
+    supabasePrivateStorage().remove(
+      "media-private",
+      SIZES.map((size) => mediaPaths.variant(mediaId, size)),
+    ),
+    supabasePrivateStorage().remove("media-incoming", [mediaPaths.incoming(mediaId)]),
+    publicKey
+      ? supabasePublicStorage().remove(SIZES.map((size) => publicKeyFor(publicKey, size)))
+      : Promise.resolve(),
+  ]);
+}

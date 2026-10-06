@@ -10,6 +10,7 @@ import {
   Plus,
   ShieldCheck,
   Tags,
+  Trash2,
   Users,
   X,
 } from "lucide-react";
@@ -31,6 +32,7 @@ const ICONS: Record<NavIcon, typeof House> = {
   tags: Tags,
   users: Users,
   history: History,
+  trash: Trash2,
 };
 
 export const NAV_LABEL = "Menú del panel";

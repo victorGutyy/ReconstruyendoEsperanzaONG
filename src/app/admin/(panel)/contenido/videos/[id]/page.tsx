@@ -15,6 +15,7 @@ import {
   StatusActions,
 } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import { TrashContentButton } from "@/modules/trash/client";
 import { publishVideo, setVideoCover, submitVideo } from "@/modules/videos/actions";
 import { VideoEditor } from "@/modules/videos/components/video-editor";
 import { watchUrl } from "@/modules/videos/parse";
@@ -33,6 +34,7 @@ export default async function EditVideoPage({ params }: PageProps<"/admin/conten
   if (!video) notFound();
 
   const { profile, user } = authorized;
+  const canTrash = hasPermission(profile, "content.delete");
   const publisher = hasPermission(profile, "content.publish");
   // Mirrors the RLS: the database decides for real when saving
   const canEdit =
@@ -59,9 +61,16 @@ export default async function EditVideoPage({ params }: PageProps<"/admin/conten
       </p>
       <h1 className="mt-2 font-serif text-3xl font-semibold text-green-900">{video.title}</h1>
 
-      {publisher && !video.inTrash ? (
-        <div className="mt-6">
-          <StatusActions type="video" id={video.id} status={video.status} />
+      {(publisher || canTrash) && !video.inTrash ? (
+        <div className="mt-6 flex flex-wrap gap-3">
+          {publisher ? <StatusActions type="video" id={video.id} status={video.status} /> : null}
+          {canTrash ? (
+            <TrashContentButton
+              type="video"
+              id={video.id}
+              published={video.status === "published"}
+            />
+          ) : null}
         </div>
       ) : null}
 

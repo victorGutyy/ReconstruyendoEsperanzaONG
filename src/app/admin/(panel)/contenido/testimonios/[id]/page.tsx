@@ -16,6 +16,7 @@ import {
   StatusActions,
 } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
+import { TrashContentButton } from "@/modules/trash/client";
 import {
   publishTestimonial,
   setTestimonialPhoto,
@@ -41,6 +42,7 @@ export default async function EditTestimonialPage({
   if (!testimonial) notFound();
 
   const { profile, user } = authorized;
+  const canTrash = hasPermission(profile, "content.delete");
   const publisher = hasPermission(profile, "content.publish");
   // Mirrors the RLS: the database decides for real when saving
   const canEdit =
@@ -73,9 +75,18 @@ export default async function EditTestimonialPage({
         {testimonial.authorName}
       </h1>
 
-      {publisher && !testimonial.inTrash ? (
-        <div className="mt-6">
-          <StatusActions type="testimonial" id={testimonial.id} status={testimonial.status} />
+      {(publisher || canTrash) && !testimonial.inTrash ? (
+        <div className="mt-6 flex flex-wrap gap-3">
+          {publisher ? (
+            <StatusActions type="testimonial" id={testimonial.id} status={testimonial.status} />
+          ) : null}
+          {canTrash ? (
+            <TrashContentButton
+              type="testimonial"
+              id={testimonial.id}
+              published={testimonial.status === "published"}
+            />
+          ) : null}
         </div>
       ) : null}
 

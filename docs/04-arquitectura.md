@@ -83,7 +83,7 @@ reconstruyendo-esperanza/
 │   ├── modules/                      # Lógica por dominio
 │   │   └── <modulo>/                 # posts, activities, projects, galleries, videos,
 │   │       ├── schema.ts             #   media, consents, messages, users, settings,
-│   │       ├── queries.ts            #   audit, taxonomy, team, testimonials
+│   │       ├── queries.ts            #   audit, taxonomy, team, testimonials, trash
 │   │       ├── actions.ts
 │   │       ├── components/
 │   │       └── index.ts
@@ -242,6 +242,7 @@ sequenceDiagram
 - Al publicar (o programar), el servidor copia las 3 versiones al bucket público bajo una **clave al azar** (`media.public_key`); al retirar, archivar o quitar la foto, la borra. La base de datos decide qué fotos deben ser públicas (`media_public_targets`) y `syncPublicMedia` hace que el bucket coincida (paso 7.5a). Lo mismo ocurre al revocar, editar, vincular o desvincular una autorización, al mandar la foto a la papelera o al cambiar su descripción o «¿aparecen personas?»: la foto sale del sitio en ese momento y vuelve sola, con dirección nueva, cuando se resuelve (paso 7.5b). La actividad sigue publicada sin ella y queda marcada en el panel (Pendientes, filtro «Con fotos retiradas» y aviso en la actividad).
 - **Red de seguridad diaria**: Vercel Cron llama `/api/cron/media-sync` a las 3:00 a. m. de Colombia (`vercel.json`) con `Authorization: Bearer CRON_SECRET`; sin un secreto de 32+ caracteres la ruta responde 401. Atrapa autorizaciones vencidas y reintenta copias fallidas; responde solo conteos. En local y staging el bucket público es de Supabase; en producción, R2 con la misma interfaz `PublicStorage`.
 - Solo WebP (AVIF es más lento de codificar en servidores sin estado). Con 3 tamaños son ~550 KB por foto: el 1 GB del Storage gratuito alcanza para **~1.800 fotos** procesadas; si se acerca, se reduce a una sola versión privada (la pública vive en R2, F7).
+- **Papelera** (paso 7.7): Editores y Administradores envían contenido a la papelera (sale del sitio en ese momento y sus fotos públicas se retiran); quien puede editar una foto la envía también. Solo el Administrador ve `/admin/papelera`, restaura (lo publicado vuelve como borrador) y elimina definitivamente escribiendo ELIMINAR; al eliminar una foto se borran sus archivos privados y públicos, y no se elimina mientras algún contenido la use. Las páginas fijas nunca van a la papelera. El vaciado automático se decide con la política de retención en la F9.
 - Fotos que quedan a medias (se cerró la app durante la subida): la pantalla **Medios** ofrece *Reintentar* o *Quitar*; la limpieza programada de esos restos llega en la F9.
 
 ## 6. Proveedores detrás de interfaces
