@@ -3,7 +3,16 @@
 import { ADMIN_HOME, hasPermission, type Permission, type ProfileAccess } from "@/lib/auth/rules";
 
 export type NavIcon =
-  "home" | "calendar" | "book" | "image" | "shield" | "tags" | "users" | "history" | "trash";
+  | "home"
+  | "calendar"
+  | "book"
+  | "image"
+  | "shield"
+  | "tags"
+  | "users"
+  | "history"
+  | "trash"
+  | "settings";
 
 export type NavItem = {
   href: string;
@@ -72,6 +81,13 @@ export const PANEL_NAV: readonly NavItem[] = [
     description: "Quién cambió qué y cuándo.",
     icon: "history",
     permission: "audit.read",
+  },
+  {
+    href: "/admin/configuracion",
+    label: "Configuración",
+    description: "Datos de contacto, WhatsApp, redes y descripción del sitio público.",
+    icon: "settings",
+    permission: "settings.manage",
   },
   {
     href: "/admin/papelera",

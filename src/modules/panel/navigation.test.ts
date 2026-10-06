@@ -15,6 +15,7 @@ describe("navFor", () => {
         "taxonomy.manage",
         "users.manage",
         "audit.read",
+        "settings.manage",
         "trash.restore",
       ]),
     ).toEqual([
@@ -26,6 +27,7 @@ describe("navFor", () => {
       "Categorías y lugares",
       "Usuarios",
       "Auditoría",
+      "Configuración",
       "Papelera",
     ]);
   });

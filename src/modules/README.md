@@ -1,6 +1,6 @@
 # `src/modules/`
 
-Lógica por dominio (ver `docs/04-arquitectura.md` §3). Un módulo por dominio: `posts`, `activities`, `projects`, `galleries`, `videos`, `media`, `consents`, `messages`, `users`, `settings`, `audit`, `taxonomy`, `team`, `testimonials`, `trash`.
+Lógica por dominio (ver `docs/04-arquitectura.md` §3). Un módulo por dominio: `posts`, `activities`, `projects`, `galleries`, `videos`, `media`, `consents`, `messages`, `users`, `settings`, `audit`, `taxonomy`, `team`, `testimonials`, `trash`, `settings`, `site`.
 
 ```
 <modulo>/

@@ -91,7 +91,7 @@ reconstruyendo-esperanza/
 │   │   ├── ui/                       # shadcn/ui
 │   │   └── layout/                   # header, footer, menú, contenedores
 │   ├── lib/
-│   │   ├── supabase/                 # server.ts · client.ts · admin.ts (server-only)
+│   │   ├── supabase/                 # server.ts · client.ts · admin.ts · public.ts (server-only)
 │   │   ├── auth/                     # require-user.ts · require-permission.ts
 │   │   ├── storage/                  # interfaz + implementaciones Supabase / R2
 │   │   ├── email/                    # interfaz + implementación Resend
@@ -145,7 +145,9 @@ sequenceDiagram
     S-->>N: HTML ya renderizado (SEO) + imágenes desde R2
 ```
 
-La respuesta se **guarda en caché** y se regenera cuando alguien publica o edita (revalidación por etiquetas) o cada pocos minutos. Así el sitio es rápido y la BD recibe pocas consultas.
+La respuesta se **guarda en caché** y se regenera cuando alguien publica o edita o cada pocos minutos. Así el sitio es rápido y la BD recibe pocas consultas.
+
+El sitio público lee con **`lib/supabase/public.ts`** (paso 8.1): un cliente de visitante, sin cookies y con la clave pública. Así la página se puede guardar en caché y la RLS garantiza que solo trae lo publicado: ningún dato privado puede terminar en una página pública. El panel sigue usando `lib/supabase/server.ts` (con la sesión).
 
 ### 4.2 Escritura en el panel (ej. publicar)
 
@@ -263,12 +265,12 @@ Cambiar de proveedor = escribir otra implementación de la interfaz, sin tocar l
 
 | Tipo de página | Estrategia | Por qué |
 |---|---|---|
-| Público (inicio, listados, detalle) | Render en servidor **con caché** + revalidación por etiqueta al publicar/editar + tiempo máximo (~5 min) | Rápido, bueno para SEO, pocas consultas |
+| Público (inicio, listados, detalle) | Render en servidor **con caché** (ISR, `export const revalidate = 300`) + `revalidatePublicSite()` (`lib/site/revalidate.ts`) al publicar, retirar, enviar a la papelera o cambiar la Configuración | Rápido, bueno para SEO, pocas consultas; lo programado aparece a su hora con el refresco de 5 minutos |
 | Búsqueda | Dinámica (sin caché) | Depende de lo que escribe el usuario |
 | Panel `/admin` | Dinámico, nunca en caché compartida | Datos privados y siempre actuales |
 | Imágenes | R2 con caché larga (nombre UUID inmutable) | Si la imagen cambia, cambia el nombre |
 
-> Next.js 16 cambió las APIs de caché. Antes de implementar se consulta la documentación versionada instalada en `node_modules` (regla del `CLAUDE.md`).
+> Next.js 16 cambió las APIs de caché. Antes de implementar se consulta la documentación versionada instalada en `node_modules` (regla del `CLAUDE.md`). Decisión del paso 8.1: se usa el **modelo anterior** (`revalidate` por segmento + `revalidatePath`) y no `cacheComponents`, que se activa para toda la aplicación y obligaría a reestructurar el panel.
 
 ## 8. Ambientes
 

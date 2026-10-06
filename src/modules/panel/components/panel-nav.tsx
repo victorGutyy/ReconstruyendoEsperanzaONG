@@ -8,6 +8,7 @@ import {
   Image,
   Menu,
   Plus,
+  Settings,
   ShieldCheck,
   Tags,
   Trash2,
@@ -33,6 +34,7 @@ const ICONS: Record<NavIcon, typeof House> = {
   users: Users,
   history: History,
   trash: Trash2,
+  settings: Settings,
 };
 
 export const NAV_LABEL = "Menú del panel";

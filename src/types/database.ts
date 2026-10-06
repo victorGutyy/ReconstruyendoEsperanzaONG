@@ -1125,6 +1125,53 @@ export type Database = {
         };
         Relationships: [];
       };
+      site_settings: {
+        Row: {
+          contact_email: string | null;
+          default_seo: NonNullable<Json>;
+          id: boolean;
+          organization_name: string;
+          phone: string | null;
+          social_links: NonNullable<Json>;
+          tagline: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          whatsapp_number: string | null;
+        };
+        Insert: {
+          contact_email?: string | null;
+          default_seo?: NonNullable<Json>;
+          id?: boolean;
+          organization_name: string;
+          phone?: string | null;
+          social_links?: NonNullable<Json>;
+          tagline?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          whatsapp_number?: string | null;
+        };
+        Update: {
+          contact_email?: string | null;
+          default_seo?: NonNullable<Json>;
+          id?: boolean;
+          organization_name?: string;
+          phone?: string | null;
+          social_links?: NonNullable<Json>;
+          tagline?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          whatsapp_number?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "site_settings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       tags: {
         Row: {
           created_at: string;

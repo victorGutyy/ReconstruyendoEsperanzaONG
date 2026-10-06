@@ -450,8 +450,9 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 19 | `content_team` | `team_members` sobre el motor común (paso 7.6d) |
 | 20 | `content_pages` | `pages` (las cuatro, con marcadores) y `page_versions` (paso 7.6e) |
 | 21 | `trash` | Papelera segura: al eliminar definitivamente una actividad o un proyecto, lo que dependía de él se desvincula (`on delete set null`); las fotos solo se eliminan desde la papelera y solo `trash.restore` las saca de ella (`guard_media_trash`) (paso 7.7) |
-| 22 | `site` | `pages`, `site_settings`, `contact_messages` |
-| 23 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 22 | `site_settings` | `site_settings` (una fila, empieza con `[PENDIENTE]`; la lee cualquiera, la edita `settings.manage` con MFA) (paso 8.1) |
+| 23 | `contact_messages` | Mensajes del formulario de contacto (paso 8.7) |
+| 24 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 
