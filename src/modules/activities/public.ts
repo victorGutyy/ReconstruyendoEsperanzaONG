@@ -189,7 +189,8 @@ export type PublicActivity = ActivityCard & {
   publishedAt: string;
   categorySlug: string | null;
   categoryId: string | null;
-  project: string | null;
+  /** Only when the project is published (the RLS hides it otherwise). */
+  project: { title: string; slug: string } | null;
   tags: string[];
   photos: (PublicPhoto & { caption: string | null })[];
 };
@@ -201,7 +202,7 @@ export const getPublicActivity = cached(
     const { data, error } = await createPublicClient()
       .from("activities")
       .select(
-        `${CARD_COLUMNS}, body, results, seo_title, seo_description, published_at, category_id, project:projects(title), activity_tags(tags(name)), activity_media(position, caption, media(public_key, width, height, alt_text, caption))`,
+        `${CARD_COLUMNS}, body, results, seo_title, seo_description, published_at, category_id, project:projects(title, slug), activity_tags(tags(name)), activity_media(position, caption, media(public_key, width, height, alt_text, caption))`,
       )
       .eq("slug", slug)
       .maybeSingle();
@@ -215,7 +216,7 @@ export const getPublicActivity = cached(
       seo_description: string | null;
       published_at: string;
       category_id: string | null;
-      project: { title: string } | null;
+      project: { title: string; slug: string } | null;
       activity_tags: { tags: { name: string } | null }[];
       activity_media: {
         position: number;
@@ -233,7 +234,7 @@ export const getPublicActivity = cached(
       publishedAt: row.published_at,
       categorySlug: row.category?.slug ?? null,
       categoryId: row.category_id,
-      project: row.project?.title ?? null,
+      project: row.project,
       tags: row.activity_tags.flatMap((link) => (link.tags ? [link.tags.name] : [])),
       // Photos that lost their authorization are not public: they are left out
       photos: [...row.activity_media]
