@@ -11,18 +11,18 @@ export const SITE_NAV: readonly SiteNavItem[] = [
   { href: "/proyectos", label: "Proyectos", available: true },
   { href: "/memoria", label: "Memoria", available: false },
   { href: "/galeria", label: "Galería", available: true },
-  { href: "/quienes-somos", label: "Quiénes somos", available: false },
+  { href: "/quienes-somos", label: "Quiénes somos", available: true },
   { href: "/contacto", label: "Contacto", available: false },
 ];
 
 /** The highlighted button of the header. */
-export const SUPPORT_LINK: SiteNavItem = { href: "/apoyanos", label: "Apóyanos", available: false };
+export const SUPPORT_LINK: SiteNavItem = { href: "/apoyanos", label: "Apóyanos", available: true };
 
 /** Footer links that are not in the main menu. */
 export const FOOTER_LINKS: readonly SiteNavItem[] = [
   { href: "/videos", label: "Videos", available: true },
-  { href: "/legal/politica-de-datos", label: "Política de tratamiento de datos", available: false },
-  { href: "/legal/aviso-de-privacidad", label: "Aviso de privacidad", available: false },
+  { href: "/legal/politica-de-datos", label: "Política de tratamiento de datos", available: true },
+  { href: "/legal/aviso-de-privacidad", label: "Aviso de privacidad", available: true },
 ];
 
 export const availableOnly = (items: readonly SiteNavItem[]) =>
