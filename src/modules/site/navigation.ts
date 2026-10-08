@@ -7,7 +7,7 @@ export type SiteNavItem = { href: string; label: string; available: boolean };
 /** Main menu, in the order of docs/07 §5. */
 export const SITE_NAV: readonly SiteNavItem[] = [
   { href: "/actividades", label: "Actividades", available: true },
-  { href: "/historias", label: "Historias", available: false },
+  { href: "/historias", label: "Historias", available: true },
   { href: "/proyectos", label: "Proyectos", available: false },
   { href: "/memoria", label: "Memoria", available: false },
   { href: "/galeria", label: "Galería", available: false },

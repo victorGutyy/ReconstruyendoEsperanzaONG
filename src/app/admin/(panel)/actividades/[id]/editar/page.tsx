@@ -9,7 +9,6 @@ import { BasicsForm } from "@/modules/activities/components/basics-form";
 import { PeopleStep } from "@/modules/activities/components/people-step";
 import { PhotosStep } from "@/modules/activities/components/photos-step";
 import { ReviewStep } from "@/modules/activities/components/review-step";
-import { TagsField } from "@/modules/activities/components/tags-field";
 import { WizardSteps } from "@/modules/activities/components/wizard-steps";
 import {
   getActivityForWizard,
@@ -21,7 +20,14 @@ import { reviewActivity } from "@/modules/activities/review";
 import { listConsentsForMedia } from "@/modules/consents";
 import { fromBogotaInstant, parseStep } from "@/modules/activities/schema";
 import { describeIssues, getMediaCards } from "@/modules/media";
-import { displayStatus, ReviewNote, STATUS_LABELS, StatusActions } from "@/modules/content/client";
+import {
+  displayStatus,
+  ReviewNote,
+  STATUS_LABELS,
+  StatusActions,
+  TagsField,
+} from "@/modules/content/client";
+import { setActivityTag } from "@/modules/activities/actions";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 import { TrashContentButton } from "@/modules/trash/client";
 import { listProjectOptions } from "@/modules/projects/queries";
@@ -149,7 +155,11 @@ async function StepBasics({
         categories={categories}
         projects={projects}
       />
-      <TagsField activityId={activity.id} tags={tags} selected={activity.tagIds} />
+      <TagsField
+        tags={tags}
+        selected={activity.tagIds}
+        save={setActivityTag.bind(null, activity.id)}
+      />
     </div>
   );
 }

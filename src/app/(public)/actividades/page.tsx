@@ -12,7 +12,7 @@ import {
   PUBLIC_ACTIVITIES_PATH,
   publicActivitiesHref,
 } from "@/modules/activities/public-filters";
-import { Breadcrumbs } from "@/modules/site";
+import { Breadcrumbs, Pagination } from "@/modules/site";
 
 export const metadata: Metadata = {
   title: "Actividades",
@@ -143,24 +143,12 @@ export default async function ActivitiesPage({ searchParams }: PageProps<"/activ
             ))}
           </ul>
 
-          {listing.pageCount > 1 ? (
-            <nav aria-label="Páginas de actividades realizadas" className="mt-8">
-              <ul className="flex flex-wrap items-center justify-center gap-2">
-                {Array.from({ length: listing.pageCount }, (_, i) => i + 1).map((page) => (
-                  <li key={page}>
-                    <Link
-                      href={publicActivitiesHref(filters, { page })}
-                      aria-current={page === filters.page ? "page" : undefined}
-                      className="inline-flex size-11 items-center justify-center rounded-md border bg-card font-medium outline-none hover:border-green-700 focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:border-green-700 aria-[current=page]:bg-green-50 aria-[current=page]:text-green-900"
-                    >
-                      <span className="sr-only">Página </span>
-                      {page}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ) : null}
+          <Pagination
+            label="Páginas de actividades realizadas"
+            current={filters.page}
+            pageCount={listing.pageCount}
+            hrefFor={(page) => publicActivitiesHref(filters, { page })}
+          />
         </section>
       ) : null}
     </div>

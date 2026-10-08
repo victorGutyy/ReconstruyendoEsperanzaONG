@@ -10,9 +10,11 @@ import {
   parseSchedule,
   publishContent,
   type PublishResult,
+  refreshPublicIfPublished,
   saveContentRow,
   type SaveResult,
   setContentCover,
+  type StatusResult,
   submitContent,
 } from "@/modules/content";
 import { getPublishIssues } from "@/modules/media";
@@ -118,4 +120,39 @@ export async function publishPost(
   if (!review) return { ok: false, error: "No se encontró la historia." };
   if (!review.canPublish) return { ok: false, error: firstProblem(review.items) };
   return publishContent(supabase, "post", postId, publishedAt);
+}
+
+/**
+ * Turns one tag of the story on or off (step 8.3). The database decides who
+ * may (whoever may edit the story); a published story refreshes the site.
+ */
+export async function setPostTag(
+  postId: string,
+  tagId: string,
+  on: boolean,
+): Promise<StatusResult> {
+  const authorized = await authorizeAction("content.read");
+  if (!authorized.ok) return { ok: false, error: authorized.error };
+  if (!idSchema.safeParse(postId).success || !idSchema.safeParse(tagId).success) {
+    return { ok: false, error: "Datos no válidos." };
+  }
+  const tooMany = await limited(authorized.auth.user.id);
+  if (tooMany) return { ok: false, error: tooMany };
+
+  const supabase = await createClient();
+  const { error } = on
+    ? await supabase.from("post_tags").insert({ post_id: postId, tag_id: tagId })
+    : await supabase.from("post_tags").delete().eq("post_id", postId).eq("tag_id", tagId);
+  // Already on (double tap): nothing to do
+  if (error && error.code !== "23505") {
+    return {
+      ok: false,
+      error:
+        error.code === "42501"
+          ? "No tienes permiso para cambiar las etiquetas de esta historia."
+          : "No se pudo guardar la etiqueta.",
+    };
+  }
+  await refreshPublicIfPublished(supabase, "post", postId);
+  return { ok: true };
 }

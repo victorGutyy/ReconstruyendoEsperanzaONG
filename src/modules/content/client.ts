@@ -8,5 +8,6 @@ export { DraftRecovery } from "./components/draft-recovery";
 export { OwnerSelect } from "./components/owner-select";
 export { ReviewNote } from "./components/review-note";
 export { StatusActions } from "./components/status-actions";
+export { TagsField } from "./components/tags-field";
 export { useDraftAutosave } from "./components/use-draft-autosave";
 export * from "./shared";
