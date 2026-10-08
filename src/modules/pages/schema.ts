@@ -15,12 +15,12 @@ export type PageKey = (typeof PAGE_KEYS)[number];
 /** Legal pages: Administrator only, every publication versioned. */
 export const isLegalPage = (key: PageKey) => key === "privacy-policy" || key === "privacy-notice";
 
-/** Where each page lives on the public site (F8). */
+/** Where each page lives on the public site (docs/07 §5 site map, step 8.5). */
 export const PAGE_ADDRESSES: Record<PageKey, string> = {
   about: "/quienes-somos",
-  support: "/como-apoyar",
-  "privacy-policy": "/politica-de-datos",
-  "privacy-notice": "/aviso-de-privacidad",
+  support: "/apoyanos",
+  "privacy-policy": "/legal/politica-de-datos",
+  "privacy-notice": "/legal/aviso-de-privacidad",
 };
 
 const PENDING = "[PENDIENTE";
