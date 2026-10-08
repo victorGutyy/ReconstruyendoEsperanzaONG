@@ -125,7 +125,7 @@ Si Upstash no responde, las acciones sensibles (login, contacto) **fallan cerrad
 | Cabecera | Valor propuesto | Para qué |
 |---|---|---|
 | `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` | Solo HTTPS |
-| `Content-Security-Policy` | `default-src 'self'`; `img-src` self + dominio de R2; `frame-src` solo proveedores de video permitidos + Turnstile; `script-src` self + Turnstile; `object-src 'none'`; `base-uri 'self'`; `frame-ancestors 'none'` | Limita de dónde se carga código |
+| `Content-Security-Policy` | `default-src 'self'`; `img-src` self + dominio de R2; `frame-src` solo proveedores de video permitidos (`www.youtube-nocookie.com`, `player.vimeo.com`, `www.tiktok.com`; Facebook no se embebe, paso 8.4) + Turnstile; `script-src` self + Turnstile; `object-src 'none'`; `base-uri 'self'`; `frame-ancestors 'none'` | Limita de dónde se carga código |
 | `X-Content-Type-Options` | `nosniff` | Evita interpretar archivos como otro tipo |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | No filtra URLs completas |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Desactiva APIs que no usamos |

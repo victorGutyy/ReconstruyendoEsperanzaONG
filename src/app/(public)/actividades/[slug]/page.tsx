@@ -14,6 +14,8 @@ import {
 } from "@/modules/activities/public-filters";
 import { PUBLIC_PROJECTS_PATH } from "@/modules/projects/public-format";
 import { getSiteSettings, isPending } from "@/modules/settings";
+import { PublicVideoCard } from "@/modules/videos/components/public-video-card";
+import { listPublicVideos } from "@/modules/videos/public";
 import { Breadcrumbs, Photo, PhotoViewer, ShareButtons } from "@/modules/site";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
@@ -78,7 +80,10 @@ export default async function ActivityPage({ params }: PageProps<"/actividades/[
   const activity = await load(slug);
   if (!activity) notFound();
 
-  const related = await listRelatedActivities(activity.id, activity.categoryId);
+  const [related, videos] = await Promise.all([
+    listRelatedActivities(activity.id, activity.categoryId),
+    listPublicVideos({ activityId: activity.id }),
+  ]);
   const time = formatActivityTime(activity.startsAt);
   const url = absoluteUrl(`${PUBLIC_ACTIVITIES_PATH}/${activity.slug}`);
 
@@ -143,6 +148,24 @@ export default async function ActivityPage({ params }: PageProps<"/actividades/[
               <div className="mt-4">
                 <PhotoViewer photos={activity.photos} label="Fotos de la actividad" />
               </div>
+            </section>
+          ) : null}
+
+          {videos.length > 0 ? (
+            <section aria-labelledby="videos-title" className="mt-10">
+              <h2
+                id="videos-title"
+                className="border-b-[3px] border-double border-gold-500 pb-2 font-serif text-2xl font-semibold text-green-900"
+              >
+                Videos
+              </h2>
+              <ul className="mt-4 grid gap-6 sm:grid-cols-2">
+                {videos.map((video) => (
+                  <li key={video.id}>
+                    <PublicVideoCard video={video} />
+                  </li>
+                ))}
+              </ul>
             </section>
           ) : null}
         </article>

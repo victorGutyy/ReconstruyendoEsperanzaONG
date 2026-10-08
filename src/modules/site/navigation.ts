@@ -10,7 +10,7 @@ export const SITE_NAV: readonly SiteNavItem[] = [
   { href: "/historias", label: "Historias", available: true },
   { href: "/proyectos", label: "Proyectos", available: true },
   { href: "/memoria", label: "Memoria", available: false },
-  { href: "/galeria", label: "Galería", available: false },
+  { href: "/galeria", label: "Galería", available: true },
   { href: "/quienes-somos", label: "Quiénes somos", available: false },
   { href: "/contacto", label: "Contacto", available: false },
 ];
@@ -20,7 +20,7 @@ export const SUPPORT_LINK: SiteNavItem = { href: "/apoyanos", label: "Apóyanos"
 
 /** Footer links that are not in the main menu. */
 export const FOOTER_LINKS: readonly SiteNavItem[] = [
-  { href: "/videos", label: "Videos", available: false },
+  { href: "/videos", label: "Videos", available: true },
   { href: "/legal/politica-de-datos", label: "Política de tratamiento de datos", available: false },
   { href: "/legal/aviso-de-privacidad", label: "Aviso de privacidad", available: false },
 ];

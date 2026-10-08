@@ -138,3 +138,28 @@ export function watchUrl(provider: Provider, id: string): string {
       return `https://www.tiktok.com/embed/v2/${safe}`;
   }
 }
+
+const EMBED_ID: Record<Exclude<Provider, "facebook">, RegExp> = {
+  youtube: YOUTUBE_ID,
+  vimeo: DIGITS,
+  tiktok: DIGITS,
+};
+
+/**
+ * The player to embed on the public site (step 8.4), built from our closed
+ * list and a validated id: never from a pasted address. YouTube without
+ * cookies, Vimeo with "do not track". Facebook has none: its player tracks
+ * visitors with its own script, so the site links to it instead (decision 8.4).
+ */
+export function embedUrl(provider: Provider, id: string): string | null {
+  if (provider === "facebook") return null;
+  if (!EMBED_ID[provider].test(id)) return null;
+  switch (provider) {
+    case "youtube":
+      return `https://www.youtube-nocookie.com/embed/${id}?rel=0`;
+    case "vimeo":
+      return `https://player.vimeo.com/video/${id}?dnt=1`;
+    case "tiktok":
+      return `https://www.tiktok.com/embed/v2/${id}`;
+  }
+}
