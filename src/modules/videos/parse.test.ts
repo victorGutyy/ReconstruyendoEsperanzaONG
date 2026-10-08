@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseVideoUrl, watchUrl } from "./parse";
+import { embedUrl, parseVideoUrl, watchUrl } from "./parse";
 
 const YT = "dQw4w9WgXcQ";
 
@@ -78,5 +78,24 @@ describe("watchUrl", () => {
     expect(watchUrl("vimeo", "76979871")).toBe("https://vimeo.com/76979871");
     expect(watchUrl("facebook", "123")).toBe("https://www.facebook.com/watch/?v=123");
     expect(watchUrl("tiktok", "721")).toBe("https://www.tiktok.com/embed/v2/721");
+  });
+});
+
+describe("embedUrl", () => {
+  it("builds privacy-friendly players from a validated id only", () => {
+    expect(embedUrl("youtube", "dQw4w9WgXcQ")).toBe(
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0",
+    );
+    expect(embedUrl("vimeo", "76979871")).toBe("https://player.vimeo.com/video/76979871?dnt=1");
+    expect(embedUrl("tiktok", "7123456789012345678")).toBe(
+      "https://www.tiktok.com/embed/v2/7123456789012345678",
+    );
+  });
+
+  it("never embeds Facebook nor an odd id", () => {
+    expect(embedUrl("facebook", "123456")).toBeNull();
+    expect(embedUrl("youtube", 'abc"><script>')).toBeNull();
+    expect(embedUrl("vimeo", "12ab")).toBeNull();
+    expect(embedUrl("tiktok", "../../x")).toBeNull();
   });
 });

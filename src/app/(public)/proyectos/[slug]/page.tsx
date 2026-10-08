@@ -10,7 +10,11 @@ import {
   PUBLIC_PROJECTS_PATH,
   PUBLIC_STAGE_LABELS,
 } from "@/modules/projects/public-format";
+import { PublicGalleryCard } from "@/modules/galleries/components/public-gallery-card";
+import { listProjectGalleries } from "@/modules/galleries/public";
 import { getSiteSettings, isPending } from "@/modules/settings";
+import { PublicVideoCard } from "@/modules/videos/components/public-video-card";
+import { listPublicVideos } from "@/modules/videos/public";
 import { Breadcrumbs, Photo, ShareButtons } from "@/modules/site";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
@@ -72,6 +76,10 @@ export default async function ProjectPage({ params }: PageProps<"/proyectos/[slu
   const project = await load(slug);
   if (!project) notFound();
 
+  const [videos, galleries] = await Promise.all([
+    listPublicVideos({ projectId: project.id }),
+    listProjectGalleries(project.id),
+  ]);
   const dates = formatProjectDates(project.startDate, project.endDate);
   const url = absoluteUrl(`${PUBLIC_PROJECTS_PATH}/${project.slug}`);
 
@@ -121,6 +129,24 @@ export default async function ProjectPage({ params }: PageProps<"/proyectos/[slu
           ) : null}
 
           {project.body ? <RichText doc={project.body} className="mt-8" /> : null}
+
+          {videos.length > 0 ? (
+            <section aria-labelledby="videos-title" className="mt-10">
+              <h2
+                id="videos-title"
+                className="border-b-[3px] border-double border-gold-500 pb-2 font-serif text-2xl font-semibold text-green-900"
+              >
+                Videos
+              </h2>
+              <ul className="mt-4 grid gap-6 sm:grid-cols-2">
+                {videos.map((video) => (
+                  <li key={video.id}>
+                    <PublicVideoCard video={video} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </article>
 
         <aside className="grid content-start gap-6">
@@ -161,6 +187,24 @@ export default async function ProjectPage({ params }: PageProps<"/proyectos/[slu
             {project.activities.map((activity) => (
               <li key={activity.id}>
                 <PublicActivityCard activity={activity} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {galleries.length > 0 ? (
+        <section aria-labelledby="galleries-title" className="mt-12">
+          <h2
+            id="galleries-title"
+            className="border-b-[3px] border-double border-gold-500 pb-2 font-serif text-2xl font-semibold text-green-900"
+          >
+            Galerías
+          </h2>
+          <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {galleries.map((gallery) => (
+              <li key={gallery.id}>
+                <PublicGalleryCard gallery={gallery} />
               </li>
             ))}
           </ul>
