@@ -8,7 +8,7 @@ export type SiteNavItem = { href: string; label: string; available: boolean };
 export const SITE_NAV: readonly SiteNavItem[] = [
   { href: "/actividades", label: "Actividades", available: true },
   { href: "/historias", label: "Historias", available: true },
-  { href: "/proyectos", label: "Proyectos", available: false },
+  { href: "/proyectos", label: "Proyectos", available: true },
   { href: "/memoria", label: "Memoria", available: false },
   { href: "/galeria", label: "Galería", available: false },
   { href: "/quienes-somos", label: "Quiénes somos", available: false },

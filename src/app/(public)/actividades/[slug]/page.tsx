@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { RichText } from "@/components/rich-text/rich-text";
@@ -11,6 +12,7 @@ import {
   PUBLIC_ACTIVITIES_PATH,
   publicActivitiesHref,
 } from "@/modules/activities/public-filters";
+import { PUBLIC_PROJECTS_PATH } from "@/modules/projects/public-format";
 import { getSiteSettings, isPending } from "@/modules/settings";
 import { Breadcrumbs, Photo, PhotoViewer, ShareButtons } from "@/modules/site";
 
@@ -185,7 +187,14 @@ export default async function ActivityPage({ params }: PageProps<"/actividades/[
               {activity.project ? (
                 <div>
                   <dt className="font-semibold">Proyecto</dt>
-                  <dd>{activity.project}</dd>
+                  <dd>
+                    <Link
+                      href={`${PUBLIC_PROJECTS_PATH}/${activity.project.slug}`}
+                      className="inline-flex min-h-11 items-center underline underline-offset-4"
+                    >
+                      {activity.project.title}
+                    </Link>
+                  </dd>
                 </div>
               ) : null}
               {activity.tags.length > 0 ? (
