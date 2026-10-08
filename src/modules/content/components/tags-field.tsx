@@ -5,24 +5,26 @@ import { useId, useOptimistic, useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { setActivityTag } from "../actions";
-import type { Option } from "../queries";
+import type { StatusResult } from "../actions";
+
+type Option = { id: string; name: string };
 
 /** With more tags than this, a search box narrows the list. */
 const SEARCH_FROM = 12;
 
 /**
- * Tags of the activity (step 1). Each change is saved at once; new tags are
- * created in Categorías y lugares, not here.
+ * Tags of a content (activities step 1, stories since step 8.3). Each change
+ * is saved at once by `save`, a Server Action bound to the content; new tags
+ * are created in Categorías y lugares, not here.
  */
 export function TagsField({
-  activityId,
   tags,
   selected,
+  save,
 }: {
-  activityId: string;
   tags: Option[];
   selected: string[];
+  save: (tagId: string, on: boolean) => Promise<StatusResult>;
 }) {
   const searchId = useId();
   const [query, setQuery] = useState("");
@@ -38,7 +40,7 @@ export function TagsField({
     startTransition(async () => {
       setCurrent({ id, on });
       setError(null);
-      const result = await setActivityTag(activityId, id, on);
+      const result = await save(id, on);
       if (!result.ok) setError(result.error);
     });
 

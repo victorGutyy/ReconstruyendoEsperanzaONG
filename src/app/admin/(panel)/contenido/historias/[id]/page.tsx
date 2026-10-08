@@ -12,13 +12,14 @@ import {
   ReviewNote,
   STATUS_LABELS,
   StatusActions,
+  TagsField,
 } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 import { TrashContentButton } from "@/modules/trash/client";
 import { PostEditor } from "@/modules/posts/components/post-editor";
-import { publishPost, setPostCover, submitPost } from "@/modules/posts/actions";
+import { publishPost, setPostCover, setPostTag, submitPost } from "@/modules/posts/actions";
 import { getContentCover } from "@/modules/content";
-import { getPost, listPostCategories } from "@/modules/posts/queries";
+import { getPost, listPostCategories, listPostTags } from "@/modules/posts/queries";
 import { POSTS_PATH, reviewPost } from "@/modules/posts/schema";
 
 export const metadata: Metadata = { title: "Editar historia" };
@@ -45,8 +46,9 @@ export default async function EditPostPage({
         post.createdBy === user.id &&
         (post.status === "draft" || post.status === "review")));
 
-  const [categories, cover] = await Promise.all([
+  const [categories, tags, cover] = await Promise.all([
     listPostCategories(),
+    listPostTags(),
     getContentCover(post.coverMediaId),
   ]);
   const review = reviewPost(
@@ -118,6 +120,9 @@ export default async function EditPostPage({
               }}
               categories={categories}
             />
+          </div>
+          <div className="rounded-lg border bg-card p-5">
+            <TagsField tags={tags} selected={post.tagIds} save={setPostTag.bind(null, post.id)} />
           </div>
           <div className="rounded-lg border bg-card p-5">
             <CoverField contentId={post.id} cover={cover} setCover={setPostCover} />

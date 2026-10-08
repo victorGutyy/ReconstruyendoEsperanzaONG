@@ -9,3 +9,4 @@ export { Photo, type PhotoData } from "./components/photo";
 export { PhotoViewer, type ViewerPhoto } from "./components/photo-viewer";
 export { ShareButtons } from "./components/share-buttons";
 export { shareLinks } from "./share";
+export { Pagination } from "./components/pagination";

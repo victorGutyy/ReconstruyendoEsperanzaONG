@@ -107,6 +107,7 @@ export type PostForEditor = {
   updatedAt: string;
   inTrash: boolean;
   reviewNote: { text: string; at: string | null } | null;
+  tagIds: string[];
 };
 
 /** One story, or null when RLS hides it. */
@@ -115,7 +116,7 @@ export async function getPost(id: string): Promise<PostForEditor | null> {
   const { data } = await supabase
     .from("posts")
     .select(
-      "id, status, published_at, title, excerpt, body, category_id, byline, cover_media_id, created_by, updated_at, deleted_at, review_note, review_note_at",
+      "id, status, published_at, title, excerpt, body, category_id, byline, cover_media_id, created_by, updated_at, deleted_at, review_note, review_note_at, post_tags(tag_id)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -134,6 +135,7 @@ export async function getPost(id: string): Promise<PostForEditor | null> {
     updatedAt: data.updated_at,
     inTrash: data.deleted_at !== null,
     reviewNote: data.review_note ? { text: data.review_note, at: data.review_note_at } : null,
+    tagIds: data.post_tags.map((link) => link.tag_id),
   };
 }
 
@@ -148,6 +150,18 @@ export async function listPostCategories(): Promise<Option[]> {
     .eq("scope", "post")
     .is("deleted_at", null)
     .order("position")
+    .order("name");
+  if (error) throw error;
+  return data;
+}
+
+/** Tags that can be chosen (created in Categorías y lugares). */
+export async function listPostTags(): Promise<Option[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tags")
+    .select("id, name")
+    .is("deleted_at", null)
     .order("name");
   if (error) throw error;
   return data;
