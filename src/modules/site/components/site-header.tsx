@@ -1,3 +1,4 @@
+import { Search } from "lucide-react";
 import Link from "next/link";
 
 import { MastheadLogo } from "@/components/brand-logo";
@@ -22,9 +23,18 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
         Saltar al contenido
       </a>
       <div className="mx-auto max-w-6xl px-4">
-        <p className="border-b py-2 text-xs font-semibold tracking-[0.12em] text-gold-700 uppercase">
-          Calarcá, Quindío · <span className="normal-case">{todayInColombia()}</span>
-        </p>
+        <div className="flex items-center justify-between gap-3 border-b">
+          <p className="py-2 text-xs font-semibold tracking-[0.12em] text-gold-700 uppercase">
+            Calarcá, Quindío · <span className="normal-case">{todayInColombia()}</span>
+          </p>
+          <Link
+            href="/buscar"
+            aria-label="Buscar en el sitio"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-md text-green-900 outline-none hover:bg-green-50 focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Search aria-hidden="true" className="size-5" />
+          </Link>
+        </div>
         <div className="flex items-center justify-between gap-3 border-b-[3px] border-double border-gold-500 py-4 md:justify-center md:py-6">
           <div className="min-w-0 md:text-center">
             <Link

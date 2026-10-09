@@ -21,6 +21,7 @@ export type Database = {
           review_note: string | null;
           review_note_at: string | null;
           review_note_by: string | null;
+          search_vector: unknown;
           seo_description: string | null;
           seo_title: string | null;
           slug: string;
@@ -48,6 +49,7 @@ export type Database = {
           review_note?: string | null;
           review_note_at?: string | null;
           review_note_by?: string | null;
+          search_vector?: never;
           seo_description?: string | null;
           seo_title?: string | null;
           slug: string;
@@ -75,6 +77,7 @@ export type Database = {
           review_note?: string | null;
           review_note_at?: string | null;
           review_note_by?: string | null;
+          search_vector?: never;
           seo_description?: string | null;
           seo_title?: string | null;
           slug?: string;
@@ -860,6 +863,7 @@ export type Database = {
           review_note: string | null;
           review_note_at: string | null;
           review_note_by: string | null;
+          search_vector: unknown;
           seo_description: string | null;
           seo_title: string | null;
           slug: string;
@@ -883,6 +887,7 @@ export type Database = {
           review_note?: string | null;
           review_note_at?: string | null;
           review_note_by?: string | null;
+          search_vector?: never;
           seo_description?: string | null;
           seo_title?: string | null;
           slug: string;
@@ -906,6 +911,7 @@ export type Database = {
           review_note?: string | null;
           review_note_at?: string | null;
           review_note_by?: string | null;
+          search_vector?: never;
           seo_description?: string | null;
           seo_title?: string | null;
           slug?: string;
@@ -1016,6 +1022,7 @@ export type Database = {
           review_note: string | null;
           review_note_at: string | null;
           review_note_by: string | null;
+          search_vector: unknown;
           seo_description: string | null;
           seo_title: string | null;
           slug: string;
@@ -1041,6 +1048,7 @@ export type Database = {
           review_note?: string | null;
           review_note_at?: string | null;
           review_note_by?: string | null;
+          search_vector?: never;
           seo_description?: string | null;
           seo_title?: string | null;
           slug: string;
@@ -1066,6 +1074,7 @@ export type Database = {
           review_note?: string | null;
           review_note_at?: string | null;
           review_note_by?: string | null;
+          search_vector?: never;
           seo_description?: string | null;
           seo_title?: string | null;
           slug?: string;
@@ -1567,6 +1576,20 @@ export type Database = {
         };
         Relationships: [];
       };
+      public_timeline: {
+        Row: {
+          cover_media_id: string | null;
+          entity_type: string | null;
+          event_at: string | null;
+          id: string | null;
+          place_name: string | null;
+          slug: string | null;
+          summary: string | null;
+          title: string | null;
+          year: number | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       media_public_targets: {
@@ -1582,6 +1605,19 @@ export type Database = {
         Returns: {
           issues: string[];
           media_id: string;
+        }[];
+      };
+      search_content: {
+        Args: { p_limit?: number; p_offset?: number; p_query: string };
+        Returns: {
+          entity_type: string;
+          event_at: string;
+          id: string;
+          rank: number;
+          slug: string;
+          summary: string;
+          title: string;
+          total: number;
         }[];
       };
     };

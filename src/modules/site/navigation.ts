@@ -9,7 +9,7 @@ export const SITE_NAV: readonly SiteNavItem[] = [
   { href: "/actividades", label: "Actividades", available: true },
   { href: "/historias", label: "Historias", available: true },
   { href: "/proyectos", label: "Proyectos", available: true },
-  { href: "/memoria", label: "Memoria", available: false },
+  { href: "/memoria", label: "Memoria", available: true },
   { href: "/galeria", label: "Galería", available: true },
   { href: "/quienes-somos", label: "Quiénes somos", available: true },
   { href: "/contacto", label: "Contacto", available: false },
