@@ -9,7 +9,7 @@ type Supabase = Awaited<ReturnType<typeof createClient>>;
 type Row = { id: string; deleted_at: string | null; name: string | null };
 
 export const tableFor = (kind: TrashKind) =>
-  kind === "media" ? "media" : CONTENT_TYPES[kind].table;
+  kind === "media" ? "media" : kind === "message" ? "contact_messages" : CONTENT_TYPES[kind].table;
 
 /** The rows of one kind in the trash (or these ids, in or out of it). */
 async function readRows(

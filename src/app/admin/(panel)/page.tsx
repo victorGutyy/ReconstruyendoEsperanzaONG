@@ -9,6 +9,8 @@ import { getCurrentProfile, requireAal2 } from "@/lib/auth/session";
 import { activitiesHref, parseActivityFilters } from "@/modules/activities/list";
 import { countActivities, findActivitiesWithWithdrawnPhotos } from "@/modules/activities/queries";
 import { countPendingPhotos } from "@/modules/media";
+import { countUnreadMessages } from "@/modules/messages/queries";
+import { MESSAGES_PATH } from "@/modules/messages/schema";
 import { parsePostFilters, postsHref } from "@/modules/posts/list";
 import { countPosts } from "@/modules/posts/queries";
 import { parseProjectFilters, projectsHref } from "@/modules/projects/list";
@@ -141,6 +143,7 @@ async function pendingFor(
     pendingPages,
     photos,
     withdrawn,
+    unreadMessages,
   ] = await Promise.all([
     canRead ? countActivities(userId) : null,
     canRead ? countPosts(userId) : null,
@@ -152,9 +155,17 @@ async function pendingFor(
     canRead && canEditPages ? countPendingPages() : 0,
     canUpload ? countPendingPhotos() : 0,
     canPublish ? findActivitiesWithWithdrawnPhotos().then((ids) => ids.size) : 0,
+    hasPermission(profile, "messages.read") ? countUnreadMessages() : 0,
   ]);
 
   const items: Pending[] = [];
+  if (unreadMessages > 0) {
+    items.push({
+      href: MESSAGES_PATH,
+      count: unreadMessages,
+      label: unreadMessages === 1 ? "mensaje sin leer" : "mensajes sin leer",
+    });
+  }
   if (withdrawn > 0) {
     items.push({
       href: activitiesHref(noFilters, { withdrawn: true }),

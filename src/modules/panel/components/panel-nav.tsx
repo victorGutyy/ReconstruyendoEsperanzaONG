@@ -6,6 +6,7 @@ import {
   History,
   House,
   Image,
+  Mail,
   Menu,
   Plus,
   Settings,
@@ -35,6 +36,7 @@ const ICONS: Record<NavIcon, typeof House> = {
   history: History,
   trash: Trash2,
   settings: Settings,
+  mail: Mail,
 };
 
 export const NAV_LABEL = "Menú del panel";
