@@ -32,7 +32,8 @@
 ### 3.1 Logo
 
 - ✅ **Recibido (26-sep-2026):** logo sin fotografía — óvalo verde, "Reconstruyendo Esperanza" en letra manuscrita, hojas verdes y doradas, y "Calarcá" en una cápsula verde. Formato horizontal (~3:1).
-- ⚠️ **Pendiente:** el archivo recibido es **JPG con fondo de papel texturizado**. Para el sitio se necesita **SVG** (ideal) o **PNG con fondo transparente**. El prototipo usa un recorte aproximado.
+- ✅ **En el sitio (paso del logo, oct-2026):** el JPG recibido (fondo de papel texturizado, versión horizontal del 7-oct) se procesa con `scripts/prepare-logo.mjs`: recorte, fondo transparente con bordes suaves y tamaños WebP en `public/brand/` (logo completo 420/840 px; hojas solas para el ícono 32/180/512 px). El original sigue fuera del repositorio.
+- ⚠️ **Mejora pendiente:** si la organización consigue el **SVG** o un **PNG transparente** del diseñador, se vuelve a correr el script con ese archivo y nada más cambia.
 - **Uso por tamaño de pantalla:**
 
 | Contexto | Versión |
