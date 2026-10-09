@@ -34,7 +34,7 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims',
   '{"sub":"bbbbbbbb-0000-0000-0000-000000000003","role":"authenticated","aal":"aal2"}', true);
-select is((select count(*)::int from public.contact_messages), 0, 'an author reads no messages');
+select is((select count(*)::int from public.contact_messages where id = 'c0000000-0000-0000-0000-000000000001'), 0, 'an author reads no messages');
 select throws_ok(
   $$ insert into public.contact_messages (full_name, email, message, privacy_policy_version, consent_accepted_at)
      values ('[DEMO] Autor', 'a@example.test', 'hola', '1.0', now()) $$,
@@ -43,24 +43,25 @@ select throws_ok(
 
 select set_config('request.jwt.claims',
   '{"sub":"eeeeeeee-0000-0000-0000-000000000002","role":"authenticated","aal":"aal1"}', true);
-select is((select count(*)::int from public.contact_messages), 0, 'not even an editor without MFA');
+select is((select count(*)::int from public.contact_messages where id = 'c0000000-0000-0000-0000-000000000001'), 0, 'not even an editor without MFA');
 
 select set_config('request.jwt.claims',
   '{"sub":"eeeeeeee-0000-0000-0000-000000000002","role":"authenticated","aal":"aal2"}', true);
-select is((select count(*)::int from public.contact_messages), 1, 'an editor with MFA reads them');
-update public.contact_messages set status = 'handled';
+select is((select count(*)::int from public.contact_messages where id = 'c0000000-0000-0000-0000-000000000001'), 1, 'an editor with MFA reads them');
+update public.contact_messages set status = 'handled' where id = 'c0000000-0000-0000-0000-000000000001';
 select is(
-  (select handled_by::text || ' ' || (handled_at is not null)::text from public.contact_messages),
+  (select handled_by::text || ' ' || (handled_at is not null)::text from public.contact_messages
+   where id = 'c0000000-0000-0000-0000-000000000001'),
   'eeeeeeee-0000-0000-0000-000000000002 true',
   'handling it records who and when'
 );
 select throws_ok(
-  $$ update public.contact_messages set message = 'cambiado' $$,
+  $$ update public.contact_messages set message = 'cambiado' where id = 'c0000000-0000-0000-0000-000000000001' $$,
   '42501', null, 'the message itself never changes'
 );
-update public.contact_messages set deleted_at = now();
+update public.contact_messages set deleted_at = now() where id = 'c0000000-0000-0000-0000-000000000001';
 select throws_ok(
-  $$ update public.contact_messages set deleted_at = null $$,
+  $$ update public.contact_messages set deleted_at = null where id = 'c0000000-0000-0000-0000-000000000001' $$,
   '42501', null, 'an editor cannot take it out of the trash'
 );
 reset role;
