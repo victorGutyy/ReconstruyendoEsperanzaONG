@@ -5,6 +5,8 @@ import Link from "next/link";
 import { PublicActivityCard } from "@/modules/activities/components/public-activity-card";
 import { listPublicActivities } from "@/modules/activities/public";
 import { formatActivityDate, PUBLIC_ACTIVITIES_PATH } from "@/modules/activities/public-filters";
+import { listMemory } from "@/modules/memory/public";
+import { MEMORY_PATH } from "@/modules/memory/schema";
 import { PublicPostCard } from "@/modules/posts/components/public-post-card";
 import { listPublicPosts } from "@/modules/posts/public";
 import { formatPostDate, PUBLIC_POSTS_PATH } from "@/modules/posts/public-filters";
@@ -31,11 +33,12 @@ const moreLink =
 
 /** Editorial home page (step 8.5, docs/07 §6.1–6.2): each block only when it has content. */
 export default async function Home() {
-  const [settings, activities, posts, projectGroups] = await Promise.all([
+  const [settings, activities, posts, projectGroups, memory] = await Promise.all([
     getSiteSettings(),
     listPublicActivities({ year: null, category: null, place: null, page: 1 }),
     listPublicPosts({ category: null, page: 1 }),
     listPublicProjects(),
+    listMemory(null),
   ]);
 
   const featured = pickFeatured(posts.posts, activities.past);
@@ -191,6 +194,38 @@ export default async function Home() {
             </section>
           ) : null}
         </div>
+      ) : null}
+
+      {memory.length > 0 ? (
+        <section
+          aria-labelledby="memory-title"
+          className="mt-12 flex flex-wrap items-center justify-between gap-4 border-y py-4"
+        >
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <h2
+              id="memory-title"
+              className="font-serif text-xl font-semibold tracking-[0.08em] text-green-900 uppercase"
+            >
+              Memoria
+            </h2>
+            <ul className="flex flex-wrap items-center gap-x-3 text-ink-muted">
+              {memory.map(({ year }) => (
+                <li key={year}>
+                  <Link
+                    href={`${MEMORY_PATH}#ano-${year}`}
+                    className="inline-flex min-h-11 items-center gap-1.5 font-medium underline-offset-4 hover:text-green-900 hover:underline"
+                  >
+                    <span aria-hidden="true" className="size-2 rounded-full bg-green-700" />
+                    {year}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Link href={MEMORY_PATH} className={moreLink.replace("mt-4", "")}>
+            Recorrer la memoria
+          </Link>
+        </section>
       ) : null}
 
       <section

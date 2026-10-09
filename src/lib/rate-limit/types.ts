@@ -25,4 +25,6 @@ export const RATE_LIMITS = {
   userInvites: { name: "user-invites", limit: 20, windowSeconds: 60 * 60 },
   panelActions: { name: "panel-actions", limit: 120, windowSeconds: 60 },
   mediaUploads: { name: "media-uploads", limit: 60, windowSeconds: 60 * 60 },
+  // Public search reads the database on every request (step 8.6)
+  publicSearch: { name: "public-search", limit: 30, windowSeconds: 60 },
 } as const satisfies Record<string, RateLimitRule>;

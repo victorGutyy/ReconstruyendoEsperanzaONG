@@ -370,7 +370,7 @@ Vista con `security_invoker = true` que une lo publicado:
 Como respeta la RLS de quien consulta, un visitante solo ve lo publicado.
 
 ### Búsqueda (RF-A-12)
-- Columna `search_vector tsvector` **generada** en `activities`, `posts` y `projects` a partir de título, resumen y `body_text`, con configuración `spanish` y sin tildes (función `unaccent` envuelta como `immutable`) → "jornada de salud" encuentra "Jornada de Salúd".
+- Columna `search_vector tsvector` **generada** en `activities`, `posts` y `projects` a partir de título (peso A), resumen (B) y `body_text` (C), con la configuración `public.es_unaccent` (copia de `spanish` con el diccionario `unaccent`) → "jornada de salud" encuentra "Jornada de Salúd". La consulta llega como texto a `websearch_to_tsquery` dentro de `public.search_content(q, limit, offset)`; nunca se arma SQL con ella (paso 8.6).
 - Índice **GIN** sobre `search_vector`.
 
 ## 9. Índices
@@ -453,7 +453,7 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 22 | `site_settings` | `site_settings` (una fila, empieza con `[PENDIENTE]`; la lee cualquiera, la edita `settings.manage` con MFA) (paso 8.1) |
 | 23 | `post_tags` | Etiquetas de las historias (paso 8.3): visibles si la historia lo es; las edita quien puede editar la historia (`private.can_edit_post`) |
 | 24 | `contact_messages` | Mensajes del formulario de contacto (paso 8.7) |
-| 25 | `views_and_search` | `public_timeline`, `search_vector`, índices GIN |
+| 25 | `views_and_search` | Configuración `es_unaccent` (español sin tildes), `search_vector` generado e índices GIN en `activities`, `posts` y `projects`, vista `public_timeline`, función `search_content` (por relevancia, con la RLS de quien llama); la auditoría ignora `search_vector` (paso 8.6) |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.
 
