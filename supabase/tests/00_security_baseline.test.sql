@@ -32,7 +32,9 @@ select is_empty(
       and has_function_privilege('anon', p.oid, 'execute')
       and p.oid::regprocedure::text not in (
         -- allow-list: add a function here only with a comment explaining why anon needs it
-        ''
+        -- Public search (step 8.6): security invoker, so the visitor's RLS still
+        -- decides; it only reads published content and its input is plain text
+        'search_content(text,integer,integer)'
       )
   $$,
   'no function in public is executable by anon unless allow-listed'
