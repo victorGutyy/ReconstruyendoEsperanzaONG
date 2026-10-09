@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     template: "%s · Reconstruyendo Esperanza",
   },
   description: "[PENDIENTE: descripción institucional aprobada por la organización]",
+  // The leaves of the logo (scripts/prepare-logo.mjs)
+  icons: {
+    icon: [{ url: "/brand/icon-32.png", sizes: "32x32", type: "image/png" }],
+    apple: [{ url: "/brand/icon-180.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

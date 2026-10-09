@@ -1,3 +1,5 @@
+import { BrandMark } from "@/components/brand-logo";
+
 import type { NavItem } from "../navigation";
 import { MobileBar, SidebarNav } from "./panel-nav";
 
@@ -5,12 +7,10 @@ type ShellUser = { fullName: string; roleLabel: string };
 
 function Brand() {
   return (
-    <p className="font-serif text-lg leading-tight font-semibold text-green-900">
-      <span className="block font-sans text-xs font-semibold tracking-[0.12em] text-gold-700 uppercase">
-        Panel
-      </span>
-      Reconstruyendo Esperanza
-    </p>
+    <div>
+      <BrandMark name="Reconstruyendo Esperanza" />
+      <p className="mt-1 text-xs font-semibold tracking-[0.12em] text-gold-700 uppercase">Panel</p>
+    </div>
   );
 }
 

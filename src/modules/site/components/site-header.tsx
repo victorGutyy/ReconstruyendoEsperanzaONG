@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { MastheadLogo } from "@/components/brand-logo";
+
 import { isPending, type SiteSettings } from "@/modules/settings";
 
 import { availableOnly, SITE_NAV, SUPPORT_LINK, todayInColombia } from "../navigation";
@@ -27,9 +29,9 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
           <div className="min-w-0 md:text-center">
             <Link
               href="/"
-              className="font-serif text-2xl leading-tight font-semibold text-green-900 outline-none focus-visible:ring-2 focus-visible:ring-ring md:text-5xl"
+              className="inline-block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              {settings.organizationName}
+              <MastheadLogo name={settings.organizationName} />
             </Link>
             {tagline ? <p className="mt-1 text-sm text-ink-muted md:text-base">{tagline}</p> : null}
           </div>
