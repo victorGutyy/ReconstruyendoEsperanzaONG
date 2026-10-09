@@ -2,7 +2,7 @@
 -- These checks run for every migration from now on: a new table or function
 -- that breaks them fails CI.
 begin;
-select plan(5);
+select plan(7);
 
 select is_empty(
   $$
@@ -66,6 +66,26 @@ select is_empty(
       and a.grantee in ('anon'::regrole, 'authenticated'::regrole)
   $$,
   'new functions get no explicit EXECUTE grant for anon or authenticated'
+);
+
+-- The server key works on every table (staging exposes nothing by default:
+-- without these, server writes fail there while the local stack passes)
+select is_empty(
+  $$
+    select c.relname::text
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r'
+      and not (has_table_privilege('service_role', c.oid, 'select')
+               and has_table_privilege('service_role', c.oid, 'insert'))
+  $$,
+  'the server role reads and writes every table'
+);
+select ok(
+  not has_table_privilege('service_role', 'public.audit_logs', 'update')
+  and not has_table_privilege('service_role', 'public.audit_logs', 'delete')
+  and not has_table_privilege('service_role', 'public.page_versions', 'update'),
+  'append-only records stay append-only for the server too'
 );
 
 select * from finish();
