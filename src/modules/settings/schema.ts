@@ -2,6 +2,10 @@
 
 import { z } from "zod";
 
+import { normalizeColombianPhone } from "@/lib/utils/phone";
+
+export { formatColombianPhone, normalizeColombianPhone } from "@/lib/utils/phone";
+
 export const SETTINGS_PATH = "/admin/configuracion";
 
 /** Networks the site links to, each only on its own domains (docs/05). */
@@ -15,22 +19,6 @@ export const SOCIAL_NETWORKS = {
 
 export type SocialNetwork = keyof typeof SOCIAL_NETWORKS;
 export const SOCIAL_KEYS = Object.keys(SOCIAL_NETWORKS) as SocialNetwork[];
-
-/**
- * A Colombian mobile or landline as +57 and ten digits. Accepts what people
- * type: spaces, dashes, parentheses, with or without +57. Null if it is not one.
- */
-export function normalizeColombianPhone(value: string): string | null {
-  const digits = value.replace(/[\s().-]/g, "");
-  const match = /^(?:\+?57)?([0-9]{10})$/.exec(digits);
-  return match ? `+57${match[1]}` : null;
-}
-
-/** "+573001112233" → "300 111 2233", as people read it. */
-export function formatColombianPhone(e164: string): string {
-  const local = e164.replace(/^\+57/, "");
-  return `${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6)}`;
-}
 
 /** The https link of a profile on that network, or null. */
 export function normalizeSocialLink(network: SocialNetwork, value: string): string | null {

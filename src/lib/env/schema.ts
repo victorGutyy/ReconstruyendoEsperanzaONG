@@ -16,6 +16,11 @@ export const serverEnvSchema = z.object({
   RATE_LIMIT_DRIVER: z.enum(["memory"]).optional(),
   // Vercel Cron (step 7.5b); jobs refuse to run without a strong one
   CRON_SECRET: z.string().min(1).optional(),
+  // Contact form (step 8.7): Turnstile's secret and the key of the IP hash
+  TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
+  CONTACT_IP_HASH_SECRET: z.string().min(1).optional(),
+  // Public by design (the widget shows it), read on the server only
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1).optional(),
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;

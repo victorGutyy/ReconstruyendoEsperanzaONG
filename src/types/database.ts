@@ -378,6 +378,75 @@ export type Database = {
           },
         ];
       };
+      contact_messages: {
+        Row: {
+          consent_accepted_at: string;
+          created_at: string;
+          deleted_at: string | null;
+          email: string | null;
+          full_name: string;
+          handled_at: string | null;
+          handled_by: string | null;
+          id: string;
+          ip_hash: string | null;
+          message: string;
+          phone: string | null;
+          privacy_policy_version: string;
+          status: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          consent_accepted_at: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          email?: string | null;
+          full_name: string;
+          handled_at?: string | null;
+          handled_by?: string | null;
+          id?: string;
+          ip_hash?: string | null;
+          message: string;
+          phone?: string | null;
+          privacy_policy_version: string;
+          status?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          consent_accepted_at?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          email?: string | null;
+          full_name?: string;
+          handled_at?: string | null;
+          handled_by?: string | null;
+          id?: string;
+          ip_hash?: string | null;
+          message?: string;
+          phone?: string | null;
+          privacy_policy_version?: string;
+          status?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contact_messages_handled_by_fkey";
+            columns: ["handled_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contact_messages_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       galleries: {
         Row: {
           activity_id: string | null;
