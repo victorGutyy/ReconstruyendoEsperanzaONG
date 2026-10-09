@@ -12,7 +12,7 @@ export const SITE_NAV: readonly SiteNavItem[] = [
   { href: "/memoria", label: "Memoria", available: true },
   { href: "/galeria", label: "Galería", available: true },
   { href: "/quienes-somos", label: "Quiénes somos", available: true },
-  { href: "/contacto", label: "Contacto", available: false },
+  { href: "/contacto", label: "Contacto", available: true },
 ];
 
 /** The highlighted button of the header. */

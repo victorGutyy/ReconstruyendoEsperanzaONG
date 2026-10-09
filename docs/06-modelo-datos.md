@@ -452,7 +452,7 @@ Los tres buckets de Supabase Storage se crean en la migración `media_and_consen
 | 21 | `trash` | Papelera segura: al eliminar definitivamente una actividad o un proyecto, lo que dependía de él se desvincula (`on delete set null`); las fotos solo se eliminan desde la papelera y solo `trash.restore` las saca de ella (`guard_media_trash`) (paso 7.7) |
 | 22 | `site_settings` | `site_settings` (una fila, empieza con `[PENDIENTE]`; la lee cualquiera, la edita `settings.manage` con MFA) (paso 8.1) |
 | 23 | `post_tags` | Etiquetas de las historias (paso 8.3): visibles si la historia lo es; las edita quien puede editar la historia (`private.can_edit_post`) |
-| 24 | `contact_messages` | Mensajes del formulario de contacto (paso 8.7) |
+| 24 | `contact_messages` | Mensajes del formulario de contacto (paso 8.7): sin inserción para visitantes ni miembros (solo la Server Action con la clave del servidor, después de Turnstile y del límite); lectura `messages.read`, estado y papelera `messages.manage`, restaurar `trash.restore`; `guard_contact_message` registra quién lo atendió |
 | 25 | `views_and_search` | Configuración `es_unaccent` (español sin tildes), `search_vector` generado e índices GIN en `activities`, `posts` y `projects`, vista `public_timeline`, función `search_content` (por relevancia, con la RLS de quien llama); la auditoría ignora `search_vector` (paso 8.6) |
 
 Cada migración llega con sus pruebas pgTAP en el mismo PR.

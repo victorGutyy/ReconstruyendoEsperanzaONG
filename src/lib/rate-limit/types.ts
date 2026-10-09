@@ -27,4 +27,6 @@ export const RATE_LIMITS = {
   mediaUploads: { name: "media-uploads", limit: 60, windowSeconds: 60 * 60 },
   // Public search reads the database on every request (step 8.6)
   publicSearch: { name: "public-search", limit: 30, windowSeconds: 60 },
+  // Contact form (step 8.7, docs/05 §7), on top of Turnstile
+  contactForm: { name: "contact-form", limit: 5, windowSeconds: 10 * 60 },
 } as const satisfies Record<string, RateLimitRule>;
