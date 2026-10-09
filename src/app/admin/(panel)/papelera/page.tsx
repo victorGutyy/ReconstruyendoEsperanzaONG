@@ -4,7 +4,6 @@ import Link from "next/link";
 import { FilterLink } from "@/components/ui/filter-link";
 import { authorizePage } from "@/lib/auth/guard";
 import { hasPermission } from "@/lib/auth/rules";
-import { CONTENT_TYPES } from "@/modules/content/client";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 import { listTrash } from "@/modules/trash";
 import {
@@ -13,8 +12,8 @@ import {
   parseTrashFilter,
   TRASH_KINDS,
   TRASH_PATH,
+  trashItemHref,
   TrashItemActions,
-  type TrashKind,
 } from "@/modules/trash/client";
 
 export const metadata: Metadata = { title: "Papelera" };
@@ -24,9 +23,6 @@ const dateFormat = new Intl.DateTimeFormat("es-CO", {
   timeStyle: "short",
   timeZone: "America/Bogota",
 });
-
-const itemHref = (kind: TrashKind, id: string) =>
-  kind === "media" ? `/admin/medios/${id}` : CONTENT_TYPES[kind].editPath(id);
 
 export default async function TrashPage({ searchParams }: PageProps<"/admin/papelera">) {
   const authorized = await authorizePage("trash.restore");
@@ -68,7 +64,7 @@ export default async function TrashPage({ searchParams }: PageProps<"/admin/pape
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-gold-700">{kindName(item.kind)}</p>
                 <Link
-                  href={itemHref(item.kind, item.id)}
+                  href={trashItemHref(item.kind, item.id)}
                   className="font-semibold break-words text-green-900 underline-offset-4 hover:underline"
                 >
                   {item.name}

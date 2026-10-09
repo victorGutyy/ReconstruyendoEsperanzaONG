@@ -20,17 +20,17 @@ export const TRASHABLE_TYPES = [
 
 export type TrashableType = (typeof TRASHABLE_TYPES)[number];
 
-/** Content or a photo. */
-export type TrashKind = TrashableType | "media";
+/** Content, a photo or a contact message (step 8.7b). */
+export type TrashKind = TrashableType | "media" | "message";
 
-export const TRASH_KINDS: readonly TrashKind[] = [...TRASHABLE_TYPES, "media"];
+export const TRASH_KINDS: readonly TrashKind[] = [...TRASHABLE_TYPES, "media", "message"];
 
 export function isTrashableType(value: unknown): value is TrashableType {
   return isContentType(value) && (TRASHABLE_TYPES as readonly string[]).includes(value);
 }
 
 export function isTrashKind(value: unknown): value is TrashKind {
-  return value === "media" || isTrashableType(value);
+  return value === "media" || value === "message" || isTrashableType(value);
 }
 
 /** Filter labels of the trash page. */
@@ -43,11 +43,13 @@ export const KIND_LABELS: Record<TrashKind, string> = {
   testimonial: "Testimonios",
   team_member: "Equipo",
   media: "Fotos",
+  message: "Mensajes",
 };
 
 /** "Historia", "Foto": the label of one item. */
 export function kindName(kind: TrashKind): string {
   if (kind === "media") return "Foto";
+  if (kind === "message") return "Mensaje";
   const singular = CONTENT_TYPES[kind].singular;
   return singular.charAt(0).toUpperCase() + singular.slice(1);
 }
@@ -62,7 +64,25 @@ export const TITLE_COLUMNS: Record<TrashKind, string> = {
   testimonial: "author_display_name",
   team_member: "full_name",
   media: "alt_text",
+  message: "full_name",
 };
+
+export const MEDIA_PATH = "/admin/medios";
+export const MESSAGES_PATH = "/admin/mensajes";
+
+/** Where an item lives in the panel. */
+export function trashItemHref(kind: TrashKind, id: string): string {
+  if (kind === "media") return `${MEDIA_PATH}/${id}`;
+  if (kind === "message") return `${MESSAGES_PATH}/${id}`;
+  return CONTENT_TYPES[kind].editPath(id);
+}
+
+/** The panel list that shows this kind. */
+export function trashListPath(kind: TrashKind): string {
+  if (kind === "media") return MEDIA_PATH;
+  if (kind === "message") return MESSAGES_PATH;
+  return CONTENT_TYPES[kind].listPath;
+}
 
 /** The word typed to confirm a permanent deletion (decision 7.7). */
 export const PURGE_WORD = "ELIMINAR";

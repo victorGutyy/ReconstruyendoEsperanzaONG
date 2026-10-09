@@ -75,7 +75,7 @@ export function MastheadLogo({ name }: { name: string }) {
           width={FULL.width}
           height={FULL.height}
         />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+
         <img
           src={LEAVES.src}
           width={LEAVES.size}
