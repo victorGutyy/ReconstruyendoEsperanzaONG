@@ -12,7 +12,8 @@ export type NavIcon =
   | "users"
   | "history"
   | "trash"
-  | "settings";
+  | "settings"
+  | "mail";
 
 export type NavItem = {
   href: string;
@@ -53,6 +54,13 @@ export const PANEL_NAV: readonly NavItem[] = [
     description: "Subir fotos desde el celular, sin ubicación ni datos ocultos.",
     icon: "image",
     permission: "media.upload",
+  },
+  {
+    href: "/admin/mensajes",
+    label: "Mensajes",
+    description: "Lo que escriben las personas desde el formulario de contacto del sitio.",
+    icon: "mail",
+    permission: "messages.read",
   },
   {
     href: "/admin/autorizaciones",

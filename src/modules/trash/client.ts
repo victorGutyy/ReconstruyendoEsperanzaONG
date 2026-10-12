@@ -11,6 +11,7 @@ export {
   PURGE_WORD,
   TRASH_KINDS,
   TRASH_PATH,
+  trashItemHref,
   type TrashableType,
   type TrashedItem,
   type TrashKind,

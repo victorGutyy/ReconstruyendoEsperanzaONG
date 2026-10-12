@@ -110,7 +110,24 @@ export function TrashItemActions({
 }) {
   const wordId = useId();
   const [word, setWord] = useState("");
-  const photo = kind === "media";
+  const texts = {
+    media: {
+      restore: "La foto vuelve a la biblioteca.",
+      purge:
+        "Se borran la foto y sus archivos. No se puede deshacer; el registro de auditoría lo conserva.",
+    },
+    message: {
+      restore: "El mensaje vuelve a la bandeja.",
+      purge:
+        "Se borra el mensaje con los datos de quien escribió. No se puede deshacer; el registro de auditoría lo conserva.",
+    },
+    content: {
+      restore:
+        "Vuelve al panel. Si estaba publicado o programado, vuelve como borrador para revisarlo antes de publicarlo otra vez.",
+      purge:
+        "Se borra con sus fotos vinculadas y etiquetas (las fotos siguen en la biblioteca). Lo que dependía de él queda desvinculado. No se puede deshacer; el registro de auditoría lo conserva.",
+    },
+  }[kind === "media" || kind === "message" ? kind : "content"];
 
   return (
     <span className="flex flex-wrap gap-2">
@@ -119,11 +136,7 @@ export function TrashItemActions({
         triggerVariant="outline"
         label={`Restaurar: ${name}`}
         title="Restaurar"
-        explain={
-          photo
-            ? "La foto vuelve a la biblioteca."
-            : "Vuelve al panel. Si estaba publicado o programado, vuelve como borrador para revisarlo antes de publicarlo otra vez."
-        }
+        explain={texts.restore}
         confirm="Restaurar"
         danger={false}
         run={() => restoreFromTrash(kind, id)}
@@ -134,11 +147,7 @@ export function TrashItemActions({
           triggerVariant="destructive"
           label={`Eliminar definitivamente: ${name}`}
           title="Eliminar definitivamente"
-          explain={
-            photo
-              ? "Se borran la foto y sus archivos. No se puede deshacer; el registro de auditoría lo conserva."
-              : "Se borra con sus fotos vinculadas y etiquetas (las fotos siguen en la biblioteca). Lo que dependía de él queda desvinculado. No se puede deshacer; el registro de auditoría lo conserva."
-          }
+          explain={texts.purge}
           confirm="Eliminar"
           danger
           ready={word.trim() === PURGE_WORD}

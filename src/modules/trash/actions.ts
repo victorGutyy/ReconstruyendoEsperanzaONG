@@ -23,13 +23,13 @@ import {
   kindName,
   purgeSchema,
   TRASH_PATH,
+  trashListPath,
   type TrashKind,
   trashTargetSchema,
 } from "./schema";
 
 export type TrashResult = { ok: true } | { ok: false; error: string };
 
-const MEDIA_PATH = "/admin/medios";
 const NOT_ALLOWED = "No tienes permiso para hacer esto.";
 
 async function limited(userId: string): Promise<string | null> {
@@ -39,10 +39,11 @@ async function limited(userId: string): Promise<string | null> {
 
 function revalidateKind(kind: TrashKind) {
   revalidatePath(TRASH_PATH);
-  revalidatePath(kind === "media" ? MEDIA_PATH : CONTENT_TYPES[kind].listPath, "layout");
+  revalidatePath(trashListPath(kind), "layout");
 }
 
-const theKind = (kind: TrashKind) => (kind === "media" ? "La foto" : theType(kind));
+const theKind = (kind: TrashKind) =>
+  kind === "media" ? "La foto" : kind === "message" ? "El mensaje" : theType(kind);
 
 /**
  * "Enviar a la papelera" for content (content.delete: editors and
@@ -96,19 +97,21 @@ export async function restoreFromTrash(kind: TrashKind, id: string): Promise<Tra
   const supabase = await createClient();
   const target = parsed.data;
 
-  if (target.kind === "media") {
+  if (target.kind === "media" || target.kind === "message") {
     const { data, error } = await supabase
-      .from("media")
+      .from(target.kind === "media" ? "media" : "contact_messages")
       .update({ deleted_at: null })
       .eq("id", target.id)
       .not("deleted_at", "is", null)
       .select("id");
     if (error)
       return { ok: false, error: error.code === "42501" ? NOT_ALLOWED : "No se pudo restaurar." };
-    if (data.length === 0) return { ok: false, error: "La foto ya no está en la papelera." };
-    // It may be in use by published content again
-    await syncPublicMediaAfter([target.id]);
-    revalidateKind("media");
+    if (data.length === 0) {
+      return { ok: false, error: `${theKind(target.kind)} ya no está en la papelera.` };
+    }
+    // A photo may be in use by published content again
+    if (target.kind === "media") await syncPublicMediaAfter([target.id]);
+    revalidateKind(target.kind);
     return { ok: true };
   }
 
