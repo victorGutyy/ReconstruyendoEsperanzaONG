@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fraunces } from "next/font/google";
 
 import { PublicPageBody } from "@/modules/pages/components/public-page";
 import { getPublicPage } from "@/modules/pages/public";
@@ -9,11 +10,22 @@ import { listPublicTestimonials } from "@/modules/testimonials/public";
 
 export const revalidate = 300;
 
+// The serif italic is only used for the testimonials here: loaded on this
+// page and never preloaded, so it does not weigh on every other page (8.8)
+const frauncesItalic = Fraunces({
+  subsets: ["latin"],
+  style: "italic",
+  display: "swap",
+  preload: false,
+});
+
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getPublicPage("about");
   return {
     title: page?.seoTitle ?? "Quiénes somos",
-    description: page?.seoDescription ?? undefined,
+    description:
+      page?.seoDescription ??
+      "Quiénes somos, el equipo y lo que dicen de la organización en Calarcá.",
     alternates: { canonical: PAGE_ADDRESSES.about },
   };
 }
@@ -83,7 +95,7 @@ export default async function AboutPage() {
                     />
                   ) : null}
                   <div>
-                    <blockquote className="font-serif text-lg text-ink italic">
+                    <blockquote className={`${frauncesItalic.className} text-lg text-ink`}>
                       «{testimonial.quote}»
                     </blockquote>
                     <figcaption className="mt-3 text-sm">

@@ -11,3 +11,12 @@ export { ShareButtons } from "./components/share-buttons";
 export { shareLinks } from "./share";
 export { Pagination } from "./components/pagination";
 export { type Featured, pickFeatured, without } from "./home";
+export { JsonLd } from "./components/json-ld";
+export {
+  articleLd,
+  DEFAULT_DESCRIPTION,
+  breadcrumbLd,
+  eventLd,
+  organizationLd,
+  robotsFor,
+} from "./seo";

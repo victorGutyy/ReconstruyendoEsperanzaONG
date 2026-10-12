@@ -2,12 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ogImages } from "@/lib/site/og";
 import { absoluteUrl } from "@/lib/site/url";
 import { PUBLIC_ACTIVITIES_PATH } from "@/modules/activities/public-filters";
 import { getPublicGallery, PUBLIC_GALLERIES_PATH } from "@/modules/galleries/public";
 import { PUBLIC_PROJECTS_PATH } from "@/modules/projects/public-format";
 import { getSiteSettings, isPending } from "@/modules/settings";
-import { Breadcrumbs, PhotoViewer, ShareButtons } from "@/modules/site";
+import {
+  Breadcrumbs,
+  breadcrumbLd,
+  DEFAULT_DESCRIPTION,
+  JsonLd,
+  PhotoViewer,
+  ShareButtons,
+} from "@/modules/site";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
 export const revalidate = 300;
@@ -31,11 +39,13 @@ export async function generateMetadata({
   if (!gallery) return { title: "Álbum no encontrado" };
 
   const settings = await getSiteSettings();
-  const fallback = isPending(settings.seoDescription) ? undefined : settings.seoDescription;
-  const description = gallery.seoDescription ?? gallery.description ?? fallback ?? undefined;
+  const fallback =
+    settings.seoDescription && !isPending(settings.seoDescription)
+      ? settings.seoDescription
+      : DEFAULT_DESCRIPTION;
+  const description = gallery.seoDescription ?? gallery.description ?? fallback;
   const url = absoluteUrl(`${PUBLIC_GALLERIES_PATH}/${gallery.slug}`);
   const cover = gallery.cover;
-  const ogWidth = cover ? Math.min(cover.width, 1920) : 0;
 
   return {
     title: gallery.seoTitle ?? gallery.title,
@@ -48,18 +58,9 @@ export async function generateMetadata({
       description,
       siteName: settings.organizationName,
       locale: "es_CO",
-      images: cover
-        ? [
-            {
-              url: cover.large,
-              width: ogWidth,
-              height: Math.round((ogWidth / cover.width) * cover.height),
-              alt: cover.alt,
-            },
-          ]
-        : undefined,
+      images: ogImages(cover),
     },
-    twitter: { card: cover ? "summary_large_image" : "summary" },
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -69,10 +70,16 @@ export default async function GalleryPage({ params }: PageProps<"/galeria/[slug]
   if (!gallery) notFound();
 
   const url = absoluteUrl(`${PUBLIC_GALLERIES_PATH}/${gallery.slug}`);
+  const crumbs = breadcrumbLd([
+    { name: "Inicio", url: absoluteUrl("/") },
+    { name: "Galería", url: absoluteUrl(PUBLIC_GALLERIES_PATH) },
+    { name: gallery.title, url },
+  ]);
   const owner = gallery.owner;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <JsonLd data={crumbs} />
       <Breadcrumbs
         items={[
           { href: "/", label: "Inicio" },

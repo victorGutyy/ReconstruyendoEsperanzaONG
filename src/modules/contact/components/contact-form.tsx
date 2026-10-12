@@ -75,10 +75,7 @@ export function ContactForm({
         startTransition(() => formAction(data));
       }}
     >
-      <Script
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-        strategy="afterInteractive"
-      />
+      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
 
       <div className="space-y-2">
         <Label htmlFor="contact-name">Nombre</Label>

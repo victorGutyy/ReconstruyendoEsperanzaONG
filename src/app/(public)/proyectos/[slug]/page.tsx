@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { RichText } from "@/components/rich-text/rich-text";
+import { ogImages } from "@/lib/site/og";
 import { absoluteUrl } from "@/lib/site/url";
 import { PublicActivityCard } from "@/modules/activities/components/public-activity-card";
 import { getPublicProject } from "@/modules/projects/public";
@@ -15,7 +16,14 @@ import { listProjectGalleries } from "@/modules/galleries/public";
 import { getSiteSettings, isPending } from "@/modules/settings";
 import { PublicVideoCard } from "@/modules/videos/components/public-video-card";
 import { listPublicVideos } from "@/modules/videos/public";
-import { Breadcrumbs, Photo, ShareButtons } from "@/modules/site";
+import {
+  Breadcrumbs,
+  breadcrumbLd,
+  DEFAULT_DESCRIPTION,
+  JsonLd,
+  Photo,
+  ShareButtons,
+} from "@/modules/site";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
 export const revalidate = 300;
@@ -39,11 +47,13 @@ export async function generateMetadata({
   if (!project) return { title: "Proyecto no encontrado" };
 
   const settings = await getSiteSettings();
-  const fallback = isPending(settings.seoDescription) ? undefined : settings.seoDescription;
-  const description = project.seoDescription ?? project.summary ?? fallback ?? undefined;
+  const fallback =
+    settings.seoDescription && !isPending(settings.seoDescription)
+      ? settings.seoDescription
+      : DEFAULT_DESCRIPTION;
+  const description = project.seoDescription ?? project.summary ?? fallback;
   const url = absoluteUrl(`${PUBLIC_PROJECTS_PATH}/${project.slug}`);
   const cover = project.cover;
-  const ogWidth = cover ? Math.min(cover.width, 1920) : 0;
 
   return {
     title: project.seoTitle ?? project.title,
@@ -56,18 +66,9 @@ export async function generateMetadata({
       description,
       siteName: settings.organizationName,
       locale: "es_CO",
-      images: cover
-        ? [
-            {
-              url: cover.large,
-              width: ogWidth,
-              height: Math.round((ogWidth / cover.width) * cover.height),
-              alt: cover.alt,
-            },
-          ]
-        : undefined,
+      images: ogImages(cover),
     },
-    twitter: { card: cover ? "summary_large_image" : "summary" },
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -82,9 +83,15 @@ export default async function ProjectPage({ params }: PageProps<"/proyectos/[slu
   ]);
   const dates = formatProjectDates(project.startDate, project.endDate);
   const url = absoluteUrl(`${PUBLIC_PROJECTS_PATH}/${project.slug}`);
+  const crumbs = breadcrumbLd([
+    { name: "Inicio", url: absoluteUrl("/") },
+    { name: "Proyectos", url: absoluteUrl(PUBLIC_PROJECTS_PATH) },
+    { name: project.title, url },
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <JsonLd data={crumbs} />
       <Breadcrumbs
         items={[
           { href: "/", label: "Inicio" },

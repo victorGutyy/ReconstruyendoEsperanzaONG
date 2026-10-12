@@ -13,7 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const page = await getPublicPage("support");
   return {
     title: page?.seoTitle ?? "Apóyanos",
-    description: page?.seoDescription ?? undefined,
+    description:
+      page?.seoDescription ?? "Cómo apoyar el trabajo de la organización en Calarcá, Quindío.",
     alternates: { canonical: PAGE_ADDRESSES.support },
   };
 }
