@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { authorizeAction } from "@/lib/auth/guard";
-import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import {
   agree,
@@ -32,11 +31,6 @@ export type TrashResult = { ok: true } | { ok: false; error: string };
 
 const NOT_ALLOWED = "No tienes permiso para hacer esto.";
 
-async function limited(userId: string): Promise<string | null> {
-  const attempt = await getRateLimiter().limit(RATE_LIMITS.panelActions, rateLimitKey(userId));
-  return attempt.success ? null : "Demasiadas acciones seguidas. Espera un momento.";
-}
-
 function revalidateKind(kind: TrashKind) {
   revalidatePath(TRASH_PATH);
   revalidatePath(trashListPath(kind), "layout");
@@ -55,8 +49,6 @@ export async function trashContent(type: ContentType, id: string): Promise<Trash
   if (!isTrashableType(type) || !z.uuid().safeParse(id).success) {
     return { ok: false, error: "Datos no válidos." };
   }
-  const tooMany = await limited(authorized.auth.user.id);
-  if (tooMany) return { ok: false, error: tooMany };
 
   const supabase = await createClient();
   const { data, error } = await contentTable(supabase, type)
@@ -91,8 +83,6 @@ export async function restoreFromTrash(kind: TrashKind, id: string): Promise<Tra
   if (!authorized.ok) return { ok: false, error: authorized.error };
   const parsed = trashTargetSchema.safeParse({ kind, id });
   if (!parsed.success) return { ok: false, error: "Datos no válidos." };
-  const tooMany = await limited(authorized.auth.user.id);
-  if (tooMany) return { ok: false, error: tooMany };
 
   const supabase = await createClient();
   const target = parsed.data;
@@ -159,8 +149,6 @@ export async function purgeFromTrash(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos no válidos." };
   }
-  const tooMany = await limited(authorized.auth.user.id);
-  if (tooMany) return { ok: false, error: tooMany };
 
   const supabase = await createClient();
   const target = parsed.data;

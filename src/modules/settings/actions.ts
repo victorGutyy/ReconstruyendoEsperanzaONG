@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 
 import { authorizeAction } from "@/lib/auth/guard";
-import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { revalidatePublicSite } from "@/lib/site/revalidate";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,12 +35,6 @@ export async function updateSiteSettings(
     seoDescription: field(formData, "seoDescription"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Revisa los datos." };
-
-  const attempt = await getRateLimiter().limit(
-    RATE_LIMITS.panelActions,
-    rateLimitKey(authorized.auth.user.id),
-  );
-  if (!attempt.success) return { error: "Demasiadas acciones seguidas. Espera un momento." };
 
   const values = parsed.data;
   const socialLinks = Object.fromEntries(

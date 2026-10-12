@@ -142,6 +142,9 @@ export async function updatePassword(_prev: FormState, formData: FormData): Prom
   const user = await requireUser().catch(() => null);
   if (!user) redirect(LOGIN_PATH);
 
+  const attempt = await getRateLimiter().limit(RATE_LIMITS.passwordUpdate, rateLimitKey(user.id));
+  if (!attempt.success) return tooManyAttempts(attempt.retryAfterSeconds);
+
   const parsed = newPasswordSchema.safeParse({
     password: formData.get("password"),
     confirm: formData.get("confirm"),

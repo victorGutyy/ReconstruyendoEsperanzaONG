@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { authorizeAction } from "@/lib/auth/guard";
-import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 import { isMessageStatus, type MessageStatus, MESSAGES_PATH } from "./schema";
@@ -18,12 +17,6 @@ async function prepare(id: string) {
   const authorized = await authorizeAction("messages.manage");
   if (!authorized.ok) return { ok: false, error: authorized.error } as const;
   if (!idSchema.safeParse(id).success) return { ok: false, error: "Mensaje no válido." } as const;
-  const attempt = await getRateLimiter().limit(
-    RATE_LIMITS.panelActions,
-    rateLimitKey(authorized.auth.user.id),
-  );
-  if (!attempt.success)
-    return { ok: false, error: "Demasiadas acciones seguidas. Espera un momento." } as const;
   return { ok: true, supabase: await createClient() } as const;
 }
 

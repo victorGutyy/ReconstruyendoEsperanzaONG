@@ -30,7 +30,8 @@ export async function searchContent(query: string, page: number): Promise<Search
     RATE_LIMITS.publicSearch,
     rateLimitKey("search", ip),
   );
-  if (!attempt.success) return { ok: false, reason: "limited" };
+  // Public reading keeps working if the limiter is down (docs/05 §7)
+  if (!attempt.success && !attempt.unavailable) return { ok: false, reason: "limited" };
 
   const { data, error } = await createPublicClient().rpc("search_content", {
     p_query: query,

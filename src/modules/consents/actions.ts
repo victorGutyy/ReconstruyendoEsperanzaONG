@@ -214,12 +214,6 @@ export async function updateConsent(
   const fields = readConsentFields(formData);
   if (!fields.success) return { error: firstIssue(fields.error.issues) };
 
-  const attempt = await getRateLimiter().limit(
-    RATE_LIMITS.panelActions,
-    rateLimitKey(authorized.auth.user.id),
-  );
-  if (!attempt.success) return { error: "Demasiadas acciones seguidas. Espera un momento." };
-
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("consent_records")

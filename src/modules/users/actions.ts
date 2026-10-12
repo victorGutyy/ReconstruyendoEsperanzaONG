@@ -91,9 +91,6 @@ export async function changeUserRole(_prev: ActionState, formData: FormData): Pr
   if (!parsed.success) return { error: "Elige un rol válido." };
   if (parsed.data.userId === user.id) return { error: "No puedes cambiar tu propio rol." };
 
-  const attempt = await getRateLimiter().limit(RATE_LIMITS.panelActions, rateLimitKey(user.id));
-  if (!attempt.success) return { error: "Demasiadas acciones seguidas. Espera un momento." };
-
   // RLS + the guard trigger check users.manage and MFA again in the database
   const supabase = await createClient();
   const { error } = await supabase
@@ -118,9 +115,6 @@ export async function setUserActive(_prev: ActionState, formData: FormData): Pro
   });
   if (!parsed.success) return { error: "Acción no válida." };
   if (parsed.data.userId === user.id) return { error: "No puedes desactivar tu propia cuenta." };
-
-  const attempt = await getRateLimiter().limit(RATE_LIMITS.panelActions, rateLimitKey(user.id));
-  if (!attempt.success) return { error: "Demasiadas acciones seguidas. Espera un momento." };
 
   // First the profile (RLS + guard trigger + audit with the manager as actor)…
   const supabase = await createClient();

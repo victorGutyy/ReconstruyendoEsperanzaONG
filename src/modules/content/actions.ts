@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { authorizeAction } from "@/lib/auth/guard";
-import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 import { contentTable, syncContentPhotos } from "./media";
@@ -58,14 +57,6 @@ export async function changeContentStatus(
     );
     if (!parsed.success) return { ok: false, error: parsed.error.issues[0]!.message };
     reviewNote = parsed.data;
-  }
-
-  const attempt = await getRateLimiter().limit(
-    RATE_LIMITS.panelActions,
-    rateLimitKey(authorized.auth.user.id),
-  );
-  if (!attempt.success) {
-    return { ok: false, error: "Demasiadas acciones seguidas. Espera un momento." };
   }
 
   const { from, to } = STATUS_CHANGES[change];

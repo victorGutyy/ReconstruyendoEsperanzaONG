@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 
 import { authorizeAction } from "@/lib/auth/guard";
-import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { revalidatePublicSite } from "@/lib/site/revalidate";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,13 +28,6 @@ async function authorize(): Promise<Authorized> {
   const authorized = await authorizeAction("taxonomy.manage");
   if (!authorized.ok) return { ok: false, state: { error: authorized.error } };
 
-  const attempt = await getRateLimiter().limit(
-    RATE_LIMITS.panelActions,
-    rateLimitKey(authorized.auth.user.id),
-  );
-  if (!attempt.success) {
-    return { ok: false, state: { error: "Demasiadas acciones seguidas. Espera un momento." } };
-  }
   return { ok: true };
 }
 
