@@ -54,6 +54,8 @@ Los proveedores tecnológicos (Supabase, Vercel/Cloudflare, Resend, Upstash) act
 | **Equipo y testimonios** | Integrantes y personas que dan testimonio | Nombre, cargo/contexto, foto, texto | Presentar a la organización | Autorización | Mientras esté publicado | Público |
 | **Auditoría** | Usuarios del panel | Acciones realizadas, fecha, cambios | Seguridad y trazabilidad | Interés legítimo de seguridad / obligación de seguridad | **2 años** | Administradores |
 
+**Cómo se cumple la conservación (paso 9.3):** un trabajo diario (`/api/cron/cleanup`, Vercel Cron con `CRON_SECRET`) llama a `public.run_retention()`: borra los mensajes de contacto 12 meses después de atendidos (o de llegar, si nunca se atendieron; también en la papelera) y las entradas de auditoría con más de 2 años. La auditoría de los mensajes nunca guarda su contenido ni los datos de contacto. Cada purga deja en la auditoría solo cuántos registros se borraron. Las autorizaciones de imagen y los usuarios del panel se revisan a mano: sus plazos dependen de hechos (que la foto siga publicada, que la persona deje el equipo) y su borrado no se automatiza.
+
 **No se recogen en la Etapa A:** cédulas, direcciones, datos de salud, orientación política, afiliación a partidos, datos biométricos para identificación, ni datos de beneficiarios. (Etapa B requerirá su propio análisis antes de construir el módulo de personas — `.docx` §10.)
 
 **Cookies:** la Etapa A usa solo cookies **técnicas** de sesión en el panel. Sin cookies de publicidad ni de analítica con seguimiento; si se mide tráfico, se usa analítica **sin cookies** (p. ej. Cloudflare Web Analytics). Por eso el sitio público no necesita banner de cookies; se informa en el aviso de privacidad.

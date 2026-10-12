@@ -10,4 +10,5 @@ export {
   syncPublicMedia,
   syncPublicMediaAfter,
 } from "./publishing";
+export { withdrawStalledUploads } from "./cleanup";
 export { type PublicMediaRow, type PublicPhoto, toPublicPhoto } from "./public-photo";
