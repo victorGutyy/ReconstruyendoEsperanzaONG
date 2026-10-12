@@ -14,14 +14,17 @@ import { PublicProjectCard } from "@/modules/projects/components/public-project-
 import { listPublicProjects } from "@/modules/projects/public";
 import { PUBLIC_PROJECTS_PATH } from "@/modules/projects/public-format";
 import { getSiteSettings, isPending } from "@/modules/settings";
-import { Photo, pickFeatured, without } from "@/modules/site";
+import { DEFAULT_DESCRIPTION, Photo, pickFeatured, without } from "@/modules/site";
 
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   return {
-    description: isPending(settings.seoDescription) ? undefined : settings.seoDescription,
+    description:
+      settings.seoDescription && !isPending(settings.seoDescription)
+        ? settings.seoDescription
+        : DEFAULT_DESCRIPTION,
     alternates: { canonical: "/" },
   };
 }

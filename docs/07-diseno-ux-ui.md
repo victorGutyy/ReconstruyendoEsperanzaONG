@@ -289,10 +289,10 @@ Base: **shadcn/ui** personalizado con los tokens de §3.
 |---|---|
 | URLs | En español, cortas y legibles: `/actividades/jornada-de-salud-la-huerta-2026` |
 | Metadatos | `title` único por página (`Título · Reconstruyendo Esperanza`), `description` desde resumen o SEO manual, `canonical` |
-| Open Graph / WhatsApp | Imagen 1200×630 desde la portada (o una imagen por defecto generada con el nombre y la paleta); `og:locale = es_CO` |
-| Datos estructurados (JSON-LD) | `NGO`/`Organization` en todo el sitio · `Article` en historias · `Event` en actividades próximas y pasadas · `BreadcrumbList` |
-| `sitemap.xml` | Generado desde la BD, solo contenido publicado; se actualiza al publicar |
-| `robots.txt` | Permite el sitio público; bloquea `/admin` y `/buscar` |
+| Open Graph / WhatsApp | Imagen desde la portada (versión grande del `srcset`); sin portada, la imagen por defecto `/og` (1200×630, logo sobre el color papel, generada una vez al compilar); `og:locale = es_CO`, tarjeta grande en X |
+| Datos estructurados (JSON-LD) | `NGO` en todo el sitio (con redes de Configuración) · `Article` en historias (firma pública o la organización) · `Event` en actividades (solo el lugar general + Calarcá, nunca una dirección) · `BreadcrumbList` en los detalles. El JSON escapa `<` para que un texto del panel no pueda cerrar el `<script>` |
+| `sitemap.xml` | Generado con el cliente público (RLS: solo lo publicado): secciones, páginas fijas existentes y detalles con su `updated_at`; se refresca cada 5 min y al publicar |
+| `robots.txt` | En producción (`VERCEL_ENV=production`) permite el sitio público, bloquea `/admin`, `/buscar` y `/api` y enlaza el sitemap; en staging, previews y local bloquea **todo** para que una copia de prueba nunca aparezca en Google |
 | Panel | `noindex` en todo `/admin` |
 | Rendimiento | Imágenes AVIF/WebP con tamaños correctos y `lazy` bajo el pliegue; LCP < 2,5 s |
 | Presencia en Google | Alta en **Google Search Console** (envío del sitemap) y, si la organización tiene sede o punto de atención, **Perfil de Empresa de Google** — clave para aparecer primero al buscar el nombre (objetivo 1 del `01`) |
@@ -307,6 +307,8 @@ Base: **shadcn/ui** personalizado con los tokens de §3.
 | Imagen LCP | ≤ 200 KB, con `priority` |
 | Peso total primera carga | ≤ 1 MB |
 | Lighthouse (4 categorías) | ≥ 90 |
+
+Medición del 8.8 (build de producción local, mediana de 3 corridas en celular): Inicio 95, Actividades 95, detalle de actividad 97, Memoria 93 y Contacto 94 en rendimiento; 100 en accesibilidad, buenas prácticas y SEO (sin contar *is-crawlable*, que falla a propósito fuera de producción); 100 en las cuatro en escritorio. Para llegar ahí: la cursiva serif solo se carga en Quiénes somos (sin precarga) y Turnstile se carga cuando el navegador queda libre (`lazyOnload`). Se vuelve a medir en producción antes del lanzamiento (`08` §lista de lanzamiento).
 
 ## 11. Pendientes del cliente para esta fase
 

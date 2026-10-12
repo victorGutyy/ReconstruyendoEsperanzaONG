@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { RichText } from "@/components/rich-text/rich-text";
+import { ogImages } from "@/lib/site/og";
 import { absoluteUrl } from "@/lib/site/url";
 import { PublicActivityCard } from "@/modules/activities/components/public-activity-card";
 import { getPublicActivity, listRelatedActivities } from "@/modules/activities/public";
@@ -16,7 +17,16 @@ import { PUBLIC_PROJECTS_PATH } from "@/modules/projects/public-format";
 import { getSiteSettings, isPending } from "@/modules/settings";
 import { PublicVideoCard } from "@/modules/videos/components/public-video-card";
 import { listPublicVideos } from "@/modules/videos/public";
-import { Breadcrumbs, Photo, PhotoViewer, ShareButtons } from "@/modules/site";
+import {
+  Breadcrumbs,
+  breadcrumbLd,
+  DEFAULT_DESCRIPTION,
+  JsonLd,
+  eventLd,
+  Photo,
+  PhotoViewer,
+  ShareButtons,
+} from "@/modules/site";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
 export const revalidate = 300;
@@ -40,8 +50,11 @@ export async function generateMetadata({
   if (!activity) return { title: "Actividad no encontrada" };
 
   const settings = await getSiteSettings();
-  const fallback = isPending(settings.seoDescription) ? undefined : settings.seoDescription;
-  const description = activity.seoDescription ?? activity.summary ?? fallback ?? undefined;
+  const fallback =
+    settings.seoDescription && !isPending(settings.seoDescription)
+      ? settings.seoDescription
+      : DEFAULT_DESCRIPTION;
+  const description = activity.seoDescription ?? activity.summary ?? fallback;
   const url = absoluteUrl(`${PUBLIC_ACTIVITIES_PATH}/${activity.slug}`);
 
   return {
@@ -57,21 +70,9 @@ export async function generateMetadata({
       siteName: settings.organizationName,
       locale: "es_CO",
       publishedTime: activity.publishedAt,
-      images: activity.cover
-        ? [
-            {
-              url: activity.cover.large,
-              width: Math.min(activity.cover.width, 1920),
-              height: Math.round(
-                (Math.min(activity.cover.width, 1920) / activity.cover.width) *
-                  activity.cover.height,
-              ),
-              alt: activity.cover.alt,
-            },
-          ]
-        : undefined,
+      images: ogImages(activity.cover),
     },
-    twitter: { card: activity.cover ? "summary_large_image" : "summary" },
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -86,9 +87,29 @@ export default async function ActivityPage({ params }: PageProps<"/actividades/[
   ]);
   const time = formatActivityTime(activity.startsAt);
   const url = absoluteUrl(`${PUBLIC_ACTIVITIES_PATH}/${activity.slug}`);
+  const crumbs = breadcrumbLd([
+    { name: "Inicio", url: absoluteUrl("/") },
+    { name: "Actividades", url: absoluteUrl(PUBLIC_ACTIVITIES_PATH) },
+    { name: activity.title, url },
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <JsonLd
+        data={[
+          eventLd({
+            name: activity.title,
+            url,
+            startDate: activity.startsAt,
+            endDate: activity.endsAt,
+            description: activity.summary,
+            place: activity.place,
+            image: activity.cover?.large ?? null,
+            organizer: { name: "Reconstruyendo Esperanza", url: absoluteUrl("/") },
+          }),
+          crumbs,
+        ]}
+      />
       <Breadcrumbs
         items={[
           { href: "/", label: "Inicio" },

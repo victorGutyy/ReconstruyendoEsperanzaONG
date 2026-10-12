@@ -83,6 +83,12 @@ for (const [name, target] of [
     .toFile(path.join(OUT, `${name}.webp`));
 }
 
+// PNG for the default sharing image (next/og cannot read WebP)
+await sharp(logo)
+  .resize({ width: Math.min(840, logoWidth) })
+  .png({ palette: true, compressionLevel: 9 })
+  .toFile(path.join(OUT, "logo-og.png"));
+
 // The leaves alone, for the tab icon: the right end of the logo, without the
 // pieces of the oval's line that cross it (thin and long, unlike a leaf)
 const corner = await sharp(logo)

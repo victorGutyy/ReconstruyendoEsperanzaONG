@@ -3,12 +3,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { RichText } from "@/components/rich-text/rich-text";
+import { ogImages } from "@/lib/site/og";
 import { absoluteUrl } from "@/lib/site/url";
 import { PublicPostCard } from "@/modules/posts/components/public-post-card";
 import { getPublicPost, listRelatedPosts } from "@/modules/posts/public";
 import { formatPostDate, PUBLIC_POSTS_PATH, publicPostsHref } from "@/modules/posts/public-filters";
 import { getSiteSettings, isPending } from "@/modules/settings";
-import { Breadcrumbs, Photo, ShareButtons } from "@/modules/site";
+import {
+  Breadcrumbs,
+  breadcrumbLd,
+  DEFAULT_DESCRIPTION,
+  JsonLd,
+  articleLd,
+  Photo,
+  ShareButtons,
+} from "@/modules/site";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
 export const revalidate = 300;
@@ -32,11 +41,13 @@ export async function generateMetadata({
   if (!post) return { title: "Historia no encontrada" };
 
   const settings = await getSiteSettings();
-  const fallback = isPending(settings.seoDescription) ? undefined : settings.seoDescription;
-  const description = post.seoDescription ?? post.excerpt ?? fallback ?? undefined;
+  const fallback =
+    settings.seoDescription && !isPending(settings.seoDescription)
+      ? settings.seoDescription
+      : DEFAULT_DESCRIPTION;
+  const description = post.seoDescription ?? post.excerpt ?? fallback;
   const url = absoluteUrl(`${PUBLIC_POSTS_PATH}/${post.slug}`);
   const cover = post.cover;
-  const ogWidth = cover ? Math.min(cover.width, 1920) : 0;
 
   return {
     title: post.seoTitle ?? post.title,
@@ -51,18 +62,9 @@ export async function generateMetadata({
       siteName: settings.organizationName,
       locale: "es_CO",
       publishedTime: post.publishedAt,
-      images: cover
-        ? [
-            {
-              url: cover.large,
-              width: ogWidth,
-              height: Math.round((ogWidth / cover.width) * cover.height),
-              alt: cover.alt,
-            },
-          ]
-        : undefined,
+      images: ogImages(cover),
     },
-    twitter: { card: cover ? "summary_large_image" : "summary" },
+    twitter: { card: "summary_large_image" },
   };
 }
 
@@ -73,9 +75,32 @@ export default async function PostPage({ params }: PageProps<"/historias/[slug]"
 
   const related = await listRelatedPosts(post.id, post.categoryId);
   const url = absoluteUrl(`${PUBLIC_POSTS_PATH}/${post.slug}`);
+  const crumbs = breadcrumbLd([
+    { name: "Inicio", url: absoluteUrl("/") },
+    { name: "Historias", url: absoluteUrl(PUBLIC_POSTS_PATH) },
+    { name: post.title, url },
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
+      <JsonLd
+        data={[
+          articleLd({
+            headline: post.title,
+            url,
+            datePublished: post.publishedAt,
+            description: post.excerpt,
+            byline: post.byline,
+            image: post.cover?.large ?? null,
+            publisher: {
+              name: "Reconstruyendo Esperanza",
+              url: absoluteUrl("/"),
+              logo: absoluteUrl("/brand/logo-og.png"),
+            },
+          }),
+          crumbs,
+        ]}
+      />
       <Breadcrumbs
         items={[
           { href: "/", label: "Inicio" },

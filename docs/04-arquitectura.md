@@ -78,7 +78,7 @@ reconstruyendo-esperanza/
 │   │   │   ├── (auth)/               # login, mfa, recuperar (sin menú del panel)
 │   │   │   └── (panel)/              # dashboard, contenido, medios, mensajes,
 │   │   │                             # usuarios, configuración, auditoría, papelera
-│   │   ├── sitemap.ts · robots.ts
+│   │   ├── sitemap.ts · robots.ts · og/route.tsx   # SEO e imagen para compartir
 │   │   └── layout.tsx · not-found.tsx · error.tsx
 │   ├── modules/                      # Lógica por dominio
 │   │   └── <modulo>/                 # posts, activities, projects, galleries, videos,
