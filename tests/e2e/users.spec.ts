@@ -19,6 +19,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("an admin invites a person who joins with a password and MFA", async ({ page, browser }) => {
+  // axe reads the whole list, which grows with every user the suite creates
+  test.setTimeout(90_000);
   const admin = await createTestUser("admin");
   await signInEnrollingMfa(page, admin);
 
@@ -109,6 +111,51 @@ test("role changes and deactivation are applied and audited", async ({ page, bro
   await expect(otherPage.locator("#login-error")).toBeVisible();
   await expect(otherPage).toHaveURL(/\/admin\/login/);
   await other.close();
+});
+
+test("an admin resets the MFA of someone who lost their phone, and it is audited", async ({
+  page,
+  browser,
+}) => {
+  const admin = await createTestUser("admin");
+  const member = await createTestUser("editor");
+
+  // The person had set up the authenticator app
+  const memberContext = await browser.newContext({
+    extraHTTPHeaders: { "x-forwarded-for": randomClientIp() },
+  });
+  await signInEnrollingMfa(await memberContext.newPage(), member);
+  await memberContext.close();
+
+  // Step 9.5b: the Administrator resets it, after confirming
+  await signInEnrollingMfa(page, admin);
+  await page.goto("/admin/usuarios");
+  const row = page.getByRole("listitem").filter({ hasText: member.email });
+  await row.getByRole("button", { name: `Restablecer verificación de ${member.fullName}` }).click();
+  await row.getByRole("button", { name: "Cancelar" }).click();
+  await row.getByRole("button", { name: `Restablecer verificación de ${member.fullName}` }).click();
+  await row.getByRole("button", { name: "Sí, restablecer" }).click();
+  await expect(row.getByRole("status")).toContainText("Verificación restablecida");
+
+  const { data: entries } = await adminClient()
+    .from("audit_logs")
+    .select("actor_id, changed_fields, new_data")
+    .eq("record_id", member.id)
+    .contains("changed_fields", ["mfa"]);
+  expect(entries).toEqual([
+    {
+      actor_id: admin.id,
+      changed_fields: ["mfa"],
+      new_data: { full_name: member.fullName, mfa: "restablecida" },
+    },
+  ]);
+
+  // At the next sign-in the person sets up the app again
+  const again = await browser.newContext({
+    extraHTTPHeaders: { "x-forwarded-for": randomClientIp() },
+  });
+  await signInEnrollingMfa(await again.newPage(), member);
+  await again.close();
 });
 
 test("an admin cannot change their own role or status", async ({ page }) => {

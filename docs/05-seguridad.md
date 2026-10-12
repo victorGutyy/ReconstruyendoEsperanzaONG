@@ -170,7 +170,7 @@ Meta: calificación **A** en securityheaders.com.
 ## 11. Auditoría y registros
 
 - Tabla `audit_logs` **solo de inserción**: sin políticas de `update`/`delete` para nadie; la escriben triggers `security definer`.
-- Registra: quién (`actor_id`), qué (`action`, tabla, id), cuándo, valores antes/después (sin contraseñas ni tokens), IP truncada.
+- Registra: quién (`actor_id`), qué (`action`, tabla, id), cuándo, valores antes/después (sin contraseñas ni tokens; de los mensajes de contacto, sin sus datos personales, paso 9.3). **No guarda IP** (minimización); los ingresos con su IP quedan en los logs de Supabase Auth.
 - Eventos: crear/editar/publicar/despublicar/borrar/restaurar contenido, cambios de rol/permisos, invitaciones, desactivaciones, restablecimiento de MFA, cambios de configuración, registro/revocación de autorizaciones de imagen.
 - Registros técnicos (errores): **sin datos personales** (se enmascaran correos y teléfonos).
 
@@ -210,16 +210,28 @@ Contactos de emergencia y acceso a cada consola (Supabase, hosting, R2, GitHub, 
 
 ## 15. Checklist de seguridad antes de producción
 
-- [ ] RLS activado en todas las tablas y pgTAP en verde
-- [ ] `get_advisors` de Supabase sin alertas de seguridad
-- [ ] Registro público desactivado; MFA obligatorio probado; ≥ 2 Administradores
-- [ ] Rate limiting probado en login, MFA, contacto y recuperación
-- [ ] Cabeceras y CSP activas; securityheaders.com ≥ A
-- [ ] Imágenes: verificado que las publicadas no tienen EXIF/GPS
-- [ ] Bloqueo de publicación sin autorización de imagen probado
-- [ ] Secret scanning, push protection, Dependabot y protección de ramas activos
-- [ ] Ningún secreto en el historial de Git
-- [ ] `npm audit` sin altas/críticas
-- [ ] Backup cifrado funcionando y **restauración probada**
-- [ ] Auditoría registrando los eventos de §11
-- [ ] Plan de incidentes y contactos de emergencia documentados (privado)
+Revisado en el paso 9.5 (12-oct-2026) sobre staging y el repositorio. ✅ hecho con evidencia · ⏳ queda para el paso o la fase indicada.
+
+| Punto | Estado | Evidencia |
+|---|---|---|
+| RLS activado en todas las tablas y pgTAP en verde | ✅ | Consulta a staging: 26 de 26 tablas de `public` con RLS; pgTAP completo en verde en el CI |
+| `get_advisors` de Supabase sin alertas de seguridad | ⏳ F10 | Una sola alerta: *Leaked password protection* (contraseñas filtradas) apagada; es de Supabase Auth y requiere plan Pro. Mitigación mientras tanto: mínimo 12 caracteres + MFA obligatorio. Se decide con el plan de producción (§15.1) |
+| Registro público desactivado; MFA obligatorio probado; ≥ 2 Administradores | ✅ / ⏳ F10 | `enable_signup = false` y TOTP en `supabase/config.toml`; E2E `auth.spec` (sin código no se entra al panel, código errado rechazado). En staging/producción se confirma en el panel de Supabase (Auth → *Allow new users to sign up* apagado). Los 2 Administradores reales, en F10 |
+| Rate limiting probado en login, MFA, contacto y recuperación | ✅ | Paso 9.2: `limits.test.ts` (tabla §7 = código), `upstash.test.ts` (falla cerrado también por *timeout*), `guard.test.ts`; E2E `auth.spec` (intentos repetidos) y `public-memory-search.spec` |
+| Cabeceras y CSP activas; securityheaders.com ≥ A | ✅ / ⏳ F10 | Paso 9.1: `security-headers.spec` y todas las E2E fallan ante una violación de CSP. La CSP pasa a obligatoria y se mide la nota con el dominio de producción (9.1b) |
+| Imágenes: verificado que las publicadas no tienen EXIF/GPS | ✅ | E2E `media.spec` (“stored without location or metadata”) |
+| Bloqueo de publicación sin autorización de imagen probado | ✅ | pgTAP `06_media_consents` (problemas de publicación de cada foto) y `10_content_activities`; E2E `public-media-sync.spec` (revocar retira la foto del sitio) |
+| Secret scanning, push protection, Dependabot y protección de ramas activos | ✅ | API de GitHub: los cuatro activos; `main` y `develop` exigen Quality + pgTAP + E2E, sin *force push* ni borrado, también para administradores; 0 alertas de secretos o Dependabot abiertas |
+| Ningún secreto en el historial de Git | ✅ | Búsqueda en los 118 commits de patrones de claves (Supabase, Resend, Turnstile, GitHub, AWS, llaves privadas, `age`): ninguna; el único `.env*` versionado es `.env.example` |
+| `npm audit` sin altas/críticas | ✅ producción · riesgo aceptado en desarrollo | Producción: 0. Desarrollo: 9 altas por `braces` (sin versión corregida publicada) dentro de herramientas que no llegan al sitio (`shadcn`, `eslint-config-next`); el CI exige 0 altas en producción y 0 críticas en todo |
+| Backup cifrado funcionando y **restauración probada** | ⏳ 9.4 | Depende de R2 |
+| Auditoría registrando los eventos de §11 | ✅ | Contenido, roles, invitaciones, desactivaciones, configuración y autorizaciones por trigger; restablecimiento de MFA desde 9.5b (§15.1) |
+| Plan de incidentes y contactos de emergencia documentados (privado) | ⏳ 9.7 | Fuera del repositorio |
+
+**Además revisado:** funciones `security definer` con `search_path` fijo (todas); lo único que un visitante puede ejecutar es `search_content`; todas las vistas con `security_invoker`; único bucket público `media-public`; orden de triggers (en `activities`, `posts` y `projects` `check_*` corre antes que `guard_content_changes` a propósito: llena `published_at`, y el guardián igual exige `content.publish` para cualquier cambio de estado o de fecha de algo publicado).
+
+### 15.1 Hallazgos de la revisión 9.5
+
+1. **Restablecer el MFA de alguien desde el panel** — resuelto en 9.5b. Antes, si una persona del equipo perdía el celular, solo se arreglaba en la consola de Supabase y no quedaba en la auditoría (§11 lo exige). Ahora un Administrador lo hace en **Usuarios → Restablecer verificación** (con confirmación; nunca sobre sí mismo). La acción escribe primero la entrada de auditoría (“Verificación en dos pasos: configurada → restablecida”, con quién lo hizo) y solo entonces borra los factores con la API de administración de Supabase; la persona configura su app de nuevo en su próximo ingreso. **Límite:** no cierra las sesiones ya abiertas; si el celular se perdió o lo robaron, además se **desactiva** la cuenta mientras tanto (el panel la bloquea en la siguiente petición). Probado en E2E `users.spec`.
+2. **§11 decía “IP truncada” en la auditoría:** no se guarda ninguna IP (mejor para la minimización de datos); los ingresos con su IP los registra Supabase Auth en sus propios logs.
+3. **Contraseñas filtradas:** ver la fila de `get_advisors`.

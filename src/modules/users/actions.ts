@@ -13,6 +13,7 @@ import {
   type ActionState,
   changeRoleSchema,
   inviteSchema,
+  resetMfaSchema,
   type RoleKey,
   setActiveSchema,
 } from "./schema";
@@ -131,4 +132,55 @@ export async function setUserActive(_prev: ActionState, formData: FormData): Pro
 
   revalidatePath(USERS_PATH);
   return { notice: parsed.data.active ? "Cuenta reactivada." : "Cuenta desactivada." };
+}
+
+/**
+ * A lost phone (step 9.5b): removes the person's authenticator app, so they
+ * set it up again at their next sign-in. Supabase Auth keeps the factors, so
+ * the audit entry is written here, first: no entry, no reset (docs/05 §11).
+ */
+export async function resetUserMfa(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const authorized = await authorizeAction("users.manage");
+  if (!authorized.ok) return { error: authorized.error };
+  const { user } = authorized.auth;
+
+  const parsed = resetMfaSchema.safeParse({ userId: formData.get("userId") });
+  if (!parsed.success) return { error: "Acción no válida." };
+  const { userId } = parsed.data;
+  if (userId === user.id) {
+    return {
+      error: "No puedes restablecer tu propia verificación. Pídeselo a otro Administrador.",
+    };
+  }
+
+  const admin = createAdminClient();
+  const [{ data: profile }, { data: listed, error: listError }] = await Promise.all([
+    admin.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
+    admin.auth.admin.mfa.listFactors({ userId }),
+  ]);
+  if (!profile || listError) return { error: "No se pudo restablecer la verificación." };
+  if (listed.factors.length === 0) {
+    return { notice: "Esta persona no tiene la verificación configurada todavía." };
+  }
+
+  const { error: auditError } = await admin.from("audit_logs").insert({
+    actor_id: user.id,
+    action: "update",
+    table_name: "profiles",
+    record_id: userId,
+    old_data: { full_name: profile.full_name, mfa: "configurada" },
+    new_data: { full_name: profile.full_name, mfa: "restablecida" },
+    changed_fields: ["mfa"],
+  });
+  if (auditError) return { error: "No se pudo restablecer la verificación." };
+
+  for (const factor of listed.factors) {
+    const { error } = await admin.auth.admin.mfa.deleteFactor({ userId, id: factor.id });
+    if (error) return { error: "No se pudo restablecer la verificación." };
+  }
+
+  revalidatePath(USERS_PATH);
+  return {
+    notice: "Verificación restablecida: la configurará de nuevo en su próximo ingreso.",
+  };
 }
