@@ -345,13 +345,15 @@ Los valores empiezan vacíos o como `[PENDIENTE]`.
 | `id` | `bigint` identity PK | |
 | `occurred_at` | `timestamptz` default `now()` | |
 | `actor_id` | `uuid`, **sin clave foránea** | `auth.uid()`; null si fue el sistema (p. ej. Supabase Auth procesando una invitación). Sin FK para que el registro no dependa de ninguna otra tabla |
-| `action` | `text` + `check` | `insert` · `update` · `delete` · `soft_delete` · `restore` · `publish` · `unpublish` · `role_change` · `status_change` |
+| `action` | `text` + `check` | `insert` · `update` · `delete` · `soft_delete` · `restore` · `publish` · `unpublish` · `role_change` · `status_change` · `retention_purge` (paso 9.3: solo el conteo de lo borrado) |
 | `table_name` · `record_id` | `text` | |
 | `old_data` · `new_data` | `jsonb` | |
 | `changed_fields` | `text[]` | Para mostrar "qué cambió" rápido |
 
 - Escrita por el trigger genérico `private.audit_row_change()` (`security definer`), que se conecta a cada tabla con una línea (`after insert or update or delete ... for each row`). Deriva la acción de lo que cambió (`deleted_at` → papelera/restauración, `status` → publicar/despublicar, `role_id` → cambio de rol, `is_active` → cambio de estado). Un cambio que **solo** toca `updated_at`/`updated_by` no se registra.
 - **Solo inserción, incluso para el dueño de la base de datos:** además de no tener permisos de escritura para la API, un trigger rechaza todo `update`, `delete` y `truncate` (verificado: ni la clave secreta puede borrar). Lectura: `audit.read` + MFA.
+- **Única salida, a los 2 años (paso 9.3, `09` §3):** `public.run_retention()` (solo `service_role`, la llama el trabajo diario) borra las entradas con más de 2 años; el trigger lo permite solo dentro de esa función y solo para esas filas. Probado en `25_retention.test.sql`.
+- **Sin datos personales de los mensajes de contacto:** de `contact_messages` se registran estado, fechas y quién lo atendió, nunca `full_name`, `email`, `phone`, `message` ni `ip_hash`; si no, al borrar el mensaje a los 12 meses sus datos quedarían para siempre aquí.
 - Conectado hoy a `profiles` (5.3); se conecta a medios, autorizaciones y contenido en F6 y F7.
 - Eventos de inicio de sesión y MFA los registra Supabase Auth en sus propios logs.
 

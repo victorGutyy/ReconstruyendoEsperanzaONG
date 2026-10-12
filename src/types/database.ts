@@ -1676,6 +1676,7 @@ export type Database = {
           media_id: string;
         }[];
       };
+      run_retention: { Args: Record<PropertyKey, never>; Returns: Json };
       search_content: {
         Args: { p_limit?: number; p_offset?: number; p_query: string };
         Returns: {
