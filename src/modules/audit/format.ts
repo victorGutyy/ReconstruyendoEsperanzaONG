@@ -80,6 +80,8 @@ export const SECTIONS: Record<AuditSection, SectionConfig> = {
       { key: "role_id", label: "Rol", kind: { type: "role" } },
       { key: "is_active", label: "Estado", kind: { type: "active" } },
       { key: "invited_by", label: "Invitada por", kind: { type: "person" } },
+      // Written by resetUserMfa (step 9.5b): Supabase Auth keeps the factors
+      { key: "mfa", label: "Verificación en dos pasos", kind: TEXT },
     ],
   },
   places: {

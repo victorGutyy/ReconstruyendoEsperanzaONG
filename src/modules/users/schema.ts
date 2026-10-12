@@ -37,6 +37,8 @@ export const changeRoleSchema = z.object({
   role: roleField,
 });
 
+export const resetMfaSchema = z.object({ userId: z.uuid() });
+
 export const setActiveSchema = z.object({
   userId: z.uuid(),
   active: z.enum(["true", "false"]).transform((value) => value === "true"),
