@@ -7,6 +7,9 @@ import { createTestPhoto } from "./helpers/media";
 import { goToSection, openPanelMenu } from "./helpers/panel";
 import { sessionSwitcher } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Trash (step 7.7): editors send content to it; the Administrator restores
 // it or deletes it for good, never a photo that is still in use.

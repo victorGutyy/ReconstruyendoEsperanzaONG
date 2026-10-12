@@ -6,6 +6,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { createTestPhoto } from "./helpers/media";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Public activities (step 8.2, HU-01, HU-02): what is published from the panel
 // shows on the site at once, drafts never do, and retiring takes it down.

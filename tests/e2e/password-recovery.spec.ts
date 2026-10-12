@@ -5,6 +5,9 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { countEmails, extractRecoveryLink, waitForEmail } from "./helpers/mailpit";
 import { createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Password recovery with a token_hash link (docs/05 §4)
 test.skip(!hasSupabase, "needs a local Supabase with Mailpit");

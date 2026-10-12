@@ -7,6 +7,9 @@ import { createTestPhoto } from "./helpers/media";
 import { signOutFromPanel } from "./helpers/panel";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Editor actions on activities, tags and photos from the library (step 7.4b)
 test.skip(!hasSupabase, "needs a local Supabase with Storage");

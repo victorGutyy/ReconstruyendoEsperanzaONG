@@ -6,6 +6,9 @@ import { expect, test } from "@playwright/test";
 import { goToSection, openPanelMenu } from "./helpers/panel";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Places and categories (step 6.1, docs/06 §4)
 test.skip(!hasSupabase, "needs a local Supabase with the secret key");

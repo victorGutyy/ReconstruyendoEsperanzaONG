@@ -5,6 +5,9 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Content list, review queue and dashboard counts (step 7.4a, docs/07 §6.5)
 test.skip(!hasSupabase, "needs a local Supabase with the secret key");

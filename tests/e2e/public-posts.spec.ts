@@ -6,6 +6,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { createTestPhoto } from "./helpers/media";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Public stories (step 8.3): tagged in the panel, published by an editor,
 // shown with their public signature and tags; drafts never; retiring hides it.

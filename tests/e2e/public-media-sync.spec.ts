@@ -5,6 +5,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { createTestConsent, createTestPhoto } from "./helpers/media";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Photos leave the site when their authorization goes away and come back when
 // a valid one is linked; a daily job is the safety net (step 7.5b)

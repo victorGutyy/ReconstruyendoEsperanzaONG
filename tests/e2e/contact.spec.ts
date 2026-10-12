@@ -1,5 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Contact page (step 8.7). Whether the form is open depends on the published
 // data policy, which pages.spec changes: the full flow is tested there.

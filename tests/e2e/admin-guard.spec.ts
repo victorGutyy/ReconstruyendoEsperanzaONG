@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // src/proxy.ts on the production build: optimistic redirects for /admin (docs/04 §5.1)
 test.describe("Admin panel guard", () => {

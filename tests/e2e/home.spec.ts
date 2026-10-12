@@ -1,5 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 test.describe("Home", () => {
   test("loads in Spanish (Colombia) with the site title", async ({ page }) => {

@@ -6,6 +6,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { createTestConsent, createTestPhoto } from "./helpers/media";
 import { signInEnrollingMfa } from "./helpers/session";
 import { createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Linking image authorizations to photos (step 6.5b, HU-06)
 test.skip(!hasSupabase, "needs a local Supabase with Storage");

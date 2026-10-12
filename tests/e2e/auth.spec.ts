@@ -10,6 +10,9 @@ import {
   type TestUser,
   randomClientIp,
 } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Sign-in with mandatory MFA against a real Supabase Auth (HU-04, docs/05 §4)
 test.skip(!hasSupabase, "needs a local Supabase with the secret key");

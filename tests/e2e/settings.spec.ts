@@ -4,6 +4,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { goToSection } from "./helpers/panel";
 import { sessionSwitcher } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Site settings (step 8.1, HU-11): the Administrator changes WhatsApp and the
 // networks from the panel, and the public site shows it without a deploy.

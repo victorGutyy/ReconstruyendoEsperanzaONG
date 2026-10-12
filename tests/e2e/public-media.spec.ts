@@ -6,6 +6,9 @@ import sharp from "sharp";
 import { createTestPhoto } from "./helpers/media";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Public photos follow the published content (step 7.5a, docs/04 §5.3)
 test.skip(!hasSupabase, "needs a local Supabase with Storage");
