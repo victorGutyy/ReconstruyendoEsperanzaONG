@@ -6,6 +6,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { createTestPhoto } from "./helpers/media";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Media library: describe photos, people in them, trash (step 6.4)
 test.skip(!hasSupabase, "needs a local Supabase with Storage");

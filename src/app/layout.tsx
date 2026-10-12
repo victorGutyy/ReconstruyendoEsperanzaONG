@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
+import { ZodConfig } from "@/components/zod-config";
 import { DEFAULT_OG_IMAGE } from "@/lib/site/og";
 import { siteUrl } from "@/lib/site/url";
 
@@ -43,7 +44,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es-CO" className={`${fraunces.variable} ${inter.variable} antialiased`}>
-      <body className="min-h-dvh">{children}</body>
+      <body className="min-h-dvh">
+        <ZodConfig />
+        {children}
+      </body>
     </html>
   );
 }

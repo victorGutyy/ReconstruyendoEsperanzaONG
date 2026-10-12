@@ -6,6 +6,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { createTestPhoto } from "./helpers/media";
 import { sessionSwitcher } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Galleries on the shared content engine (step 7.6c)
 test.skip(!hasSupabase, "needs a local Supabase with Storage");

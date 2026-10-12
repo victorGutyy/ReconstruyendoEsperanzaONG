@@ -6,6 +6,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { createTestConsent } from "./helpers/media";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Home, Quiénes somos, Apóyanos and the legal pages (step 8.5).
 test.skip(!hasSupabase, "needs a local Supabase");

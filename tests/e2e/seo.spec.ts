@@ -3,7 +3,10 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 
 import { signInEnrollingMfa } from "./helpers/session";
+import { failOnCspViolations } from "./helpers/csp";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+
+failOnCspViolations();
 
 // Search engines and sharing (step 8.8, docs/07 §9).
 

@@ -5,6 +5,9 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Memoria and search (step 8.6, HU-01, RF-A-12).
 test.skip(!hasSupabase, "needs a local Supabase");

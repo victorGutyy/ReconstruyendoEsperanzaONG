@@ -6,6 +6,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { createTestPhoto } from "./helpers/media";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Public projects (step 8.3b, RF-A-05): grouped by stage, each with its
 // published activities; an activity links to its project only while it is public.

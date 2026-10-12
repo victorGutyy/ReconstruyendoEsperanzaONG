@@ -4,6 +4,9 @@ import { expect, test } from "@playwright/test";
 import { goToSection, openPanelMenu } from "./helpers/panel";
 import { signInEnrollingMfa } from "./helpers/session";
 import { createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Panel frame (docs/07 §6.6): sidebar on desktop, bottom bar + sheet on phones
 test.skip(!hasSupabase, "needs a local Supabase with the secret key");

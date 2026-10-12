@@ -4,6 +4,9 @@ import { expect, test } from "@playwright/test";
 import { goToSection, openPanelMenu } from "./helpers/panel";
 import { signInEnrollingMfa } from "./helpers/session";
 import { createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Audit viewer (RF-A-32, docs/05 §11): who changed what and when
 test.skip(!hasSupabase, "needs a local Supabase with the secret key");

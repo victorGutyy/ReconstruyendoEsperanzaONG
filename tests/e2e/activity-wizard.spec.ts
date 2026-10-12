@@ -7,6 +7,9 @@ import sharp from "sharp";
 import { goToSection } from "./helpers/panel";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Publishing an activity from the phone, steps 1 and 2 (step 7.3a, docs/07 §6.5)
 test.skip(!hasSupabase, "needs a local Supabase with Storage");

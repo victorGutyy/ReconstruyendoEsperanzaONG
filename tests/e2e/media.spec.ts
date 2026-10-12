@@ -5,6 +5,9 @@ import sharp from "sharp";
 import { goToSection } from "./helpers/panel";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Photo uploads (step 6.3, docs/04 §5.3, docs/05 §6.1)
 test.skip(!hasSupabase, "needs a local Supabase with Storage");

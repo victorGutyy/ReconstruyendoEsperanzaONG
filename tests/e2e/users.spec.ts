@@ -7,6 +7,9 @@ import { extractRecoveryLink, waitForEmail } from "./helpers/mailpit";
 import { goToSection } from "./helpers/panel";
 import { completeMfaEnrollment, signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // User management: invitations, roles and deactivation (step 5.6, docs/05 §4)
 test.skip(!hasSupabase, "needs a local Supabase with Mailpit");

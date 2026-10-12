@@ -5,6 +5,9 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { sessionSwitcher } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Videos by their link: provider + id only, no player in the panel (step 7.6c)
 test.skip(!hasSupabase, "needs a local Supabase");

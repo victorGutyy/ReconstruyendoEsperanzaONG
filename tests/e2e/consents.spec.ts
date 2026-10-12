@@ -7,6 +7,9 @@ import sharp from "sharp";
 import { openPanelMenu } from "./helpers/panel";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Image authorizations: register, view, correct, revoke (step 6.5a, docs/09 §4)
 test.skip(!hasSupabase, "needs a local Supabase with Storage");

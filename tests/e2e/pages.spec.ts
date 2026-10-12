@@ -5,6 +5,9 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { sessionSwitcher } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Institutional and legal pages: legal ones are the Administrator's, each
 // published version is kept, pending text never goes out (step 7.6e)

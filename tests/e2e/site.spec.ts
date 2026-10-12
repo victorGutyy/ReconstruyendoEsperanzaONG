@@ -1,5 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Public site frame (step 8.1): header, phone menu, skip link and the 404.
 // Read-only: the settings spec changes the shared settings row.

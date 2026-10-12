@@ -7,6 +7,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { createTestConsent } from "./helpers/media";
 import { signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Team profiles: published only with an adult's authorization, in a manual order (step 7.6d)
 test.skip(!hasSupabase, "needs a local Supabase");

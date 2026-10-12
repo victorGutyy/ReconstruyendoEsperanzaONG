@@ -7,6 +7,9 @@ import { createTestPhoto } from "./helpers/media";
 import { goToSection } from "./helpers/panel";
 import { sessionSwitcher, signInEnrollingMfa } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Stories on the shared content engine (step 7.6a)
 test.skip(!hasSupabase, "needs a local Supabase with Storage");

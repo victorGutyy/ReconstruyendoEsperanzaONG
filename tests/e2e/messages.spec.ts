@@ -6,6 +6,9 @@ import { expect, type Page, test } from "@playwright/test";
 import { goToSection } from "./helpers/panel";
 import { sessionSwitcher } from "./helpers/session";
 import { adminClient, createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // The contact inbox (step 8.7b, HU-03): an editor reads, answers and handles
 // messages; the Administrator restores one from the trash; an author never sees them.

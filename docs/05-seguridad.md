@@ -131,7 +131,14 @@ Si Upstash no responde, las acciones sensibles (login, contacto) **fallan cerrad
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Desactiva APIs que no usamos |
 | `X-Frame-Options` | `DENY` | Evita que incrusten el panel (clickjacking) |
 
-**CSP en dos pasos**: primero en modo `Report-Only` en staging para detectar lo que se rompe, luego obligatoria. Usar *nonces* obliga a render dinámico (pierde caché); se evaluará en implementación si el panel usa nonces y el sitio público una CSP sin `unsafe-inline` para scripts. Meta: calificación **A** en securityheaders.com.
+**Implementación (paso 9.1):** `src/lib/security/headers.ts` (función pura, con pruebas) arma la política en **dos niveles**:
+
+- **Sitio público** (`next.config.ts`, fija): `script-src 'self' 'unsafe-inline'` + Turnstile, sin nonce, para que las páginas sigan en caché (ISR). Es aceptable porque nada escrito en el panel se pinta como HTML crudo (el texto enriquecido se dibuja nodo por nodo y el JSON-LD escapa `<`). `img-src`/`connect-src` permiten el origen de Supabase; `frame-src` solo Turnstile y los reproductores de video.
+- **Panel `/admin`** (`src/proxy.ts`, por petición): `script-src 'nonce-…' 'strict-dynamic'`, sin `unsafe-inline` ni marcos. Next lee el nonce de la cabecera y lo pone en sus propios scripts; el panel ya era dinámico, así que no pierde nada.
+- `'unsafe-eval'` solo con `next dev`. Zod se configura `jitless` en el navegador (`src/components/zod-config.tsx`) para que no intente `new Function`.
+- **Dos pasos**: primero `Content-Security-Policy-Report-Only` (constante `CSP_HEADER`); todas las pruebas E2E fallan si el navegador reporta una violación (`tests/e2e/helpers/csp.ts`). Tras revisar staging se cambia a `Content-Security-Policy` (paso 9.1b).
+
+Meta: calificación **A** en securityheaders.com.
 
 ## 9. Secretos y repositorio público
 

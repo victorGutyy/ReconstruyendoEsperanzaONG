@@ -8,6 +8,9 @@ import { createTestConsent } from "./helpers/media";
 import { goToSection } from "./helpers/panel";
 import { signInEnrollingMfa } from "./helpers/session";
 import { createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
+import { failOnCspViolations } from "./helpers/csp";
+
+failOnCspViolations();
 
 // Testimonials: always behind an adult's authorization, hidden as soon as it
 // is revoked; only people who manage authorizations handle them (step 7.6d)
