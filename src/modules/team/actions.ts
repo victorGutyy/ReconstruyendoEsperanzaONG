@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { authorizeAction } from "@/lib/auth/guard";
-import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { revalidatePublicSite } from "@/lib/site/revalidate";
 import { createClient } from "@/lib/supabase/server";
 import { getPersonConsent } from "@/modules/consents";
@@ -32,13 +31,6 @@ async function authorize(permission: "content.read" | "content.create" | "conten
   if (!consents.ok) return consents;
   const content = await authorizeAction(permission);
   if (!content.ok) return content;
-  const attempt = await getRateLimiter().limit(
-    RATE_LIMITS.panelActions,
-    rateLimitKey(content.auth.user.id),
-  );
-  if (!attempt.success) {
-    return { ok: false as const, error: "Demasiadas acciones seguidas. Espera un momento." };
-  }
   return content;
 }
 

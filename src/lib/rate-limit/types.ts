@@ -9,6 +9,19 @@ export type RateLimitResult = {
   success: boolean;
   /** Seconds until the caller may retry (0 when allowed). */
   retryAfterSeconds: number;
+  /**
+   * The limiter could not answer (not configured, error or timeout): the
+   * request was refused without knowing whether the limit was reached.
+   * Sensitive actions treat it as a refusal; public reading may go on (docs/05 §7).
+   */
+  unavailable?: true;
+};
+
+/** What a limiter answers when it cannot answer: refuse, retry in a minute. */
+export const UNAVAILABLE: RateLimitResult = {
+  success: false,
+  retryAfterSeconds: 60,
+  unavailable: true,
 };
 
 /** Provider-agnostic interface (docs/04 §6): Upstash in the cloud, memory locally. */
@@ -22,6 +35,8 @@ export const RATE_LIMITS = {
   loginPerIp: { name: "login-ip", limit: 30, windowSeconds: 15 * 60 },
   mfaPerUser: { name: "mfa-user", limit: 5, windowSeconds: 15 * 60 },
   passwordRecovery: { name: "password-recovery", limit: 3, windowSeconds: 60 * 60 },
+  // New password from the recovery link (step 9.2)
+  passwordUpdate: { name: "password-update", limit: 5, windowSeconds: 15 * 60 },
   userInvites: { name: "user-invites", limit: 20, windowSeconds: 60 * 60 },
   panelActions: { name: "panel-actions", limit: 120, windowSeconds: 60 },
   mediaUploads: { name: "media-uploads", limit: 60, windowSeconds: 60 * 60 },

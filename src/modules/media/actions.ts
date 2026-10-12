@@ -185,11 +185,6 @@ function revalidateMedia() {
   revalidatePath(MEDIA_PATH, "layout");
 }
 
-async function limitPanelAction(userId: string): Promise<string | null> {
-  const attempt = await getRateLimiter().limit(RATE_LIMITS.panelActions, rateLimitKey(userId));
-  return attempt.success ? null : "Demasiadas acciones seguidas. Espera un momento.";
-}
-
 /**
  * Saves the descriptive fields of a photo. RLS lets the uploader or media.update
  * write them (docs/06 §10); for anyone else no row changes and we say so.
@@ -209,9 +204,6 @@ export async function updateMedia(
     people: formData.get("people"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Revisa los datos." };
-
-  const limited = await limitPanelAction(authorized.auth.user.id);
-  if (limited) return { error: limited };
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -244,9 +236,6 @@ export async function trashMedia(
 
   const id = mediaIdSchema.safeParse(formData.get("id"));
   if (!id.success) return { error: "Foto no válida." };
-
-  const limited = await limitPanelAction(authorized.auth.user.id);
-  if (limited) return { error: limited };
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -281,9 +270,6 @@ export async function updateMediaDescription(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Revisa la descripción." };
   }
 
-  const limited = await limitPanelAction(authorized.auth.user.id);
-  if (limited) return { ok: false, error: limited };
-
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("media")
@@ -311,9 +297,6 @@ export async function updateMediaPeople(
     .pick({ id: true, people: true })
     .safeParse({ id: mediaId, people });
   if (!parsed.success) return { ok: false, error: "Elige una opción válida." };
-
-  const limited = await limitPanelAction(authorized.auth.user.id);
-  if (limited) return { ok: false, error: limited };
 
   const supabase = await createClient();
   const { data, error } = await supabase

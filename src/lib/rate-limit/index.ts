@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { getServerEnv } from "@/lib/env/server";
 
 import { MemoryRateLimiter } from "./memory";
-import type { RateLimiter } from "./types";
+import { type RateLimiter, UNAVAILABLE } from "./types";
 import { UpstashRateLimiter } from "./upstash";
 
 export { RATE_LIMITS } from "./types";
@@ -16,7 +16,7 @@ let limiter: RateLimiter | undefined;
 /** Refuses everything: used when no real limiter is configured in the cloud (fail closed). */
 const unavailable: RateLimiter = {
   async limit() {
-    return { success: false, retryAfterSeconds: 60 };
+    return UNAVAILABLE;
   },
 };
 

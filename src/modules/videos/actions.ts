@@ -3,7 +3,6 @@
 import { z } from "zod";
 
 import { authorizeAction } from "@/lib/auth/guard";
-import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import {
   type ActionResult,
@@ -23,11 +22,6 @@ const idSchema = z.uuid();
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
-async function limited(userId: string): Promise<string | null> {
-  const attempt = await getRateLimiter().limit(RATE_LIMITS.panelActions, rateLimitKey(userId));
-  return attempt.success ? null : "Demasiadas acciones seguidas. Espera un momento.";
-}
-
 /**
  * Creates or updates a video (also the autosave). The pasted link is turned
  * into provider + id here, on the server; the link itself is not stored.
@@ -42,8 +36,6 @@ export async function saveVideo(input: { id?: string; fields: VideoInput }): Pro
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Revisa los datos." };
   }
-  const tooMany = await limited(authorized.auth.user.id);
-  if (tooMany) return { ok: false, error: tooMany };
 
   return saveContentRow(await createClient(), "video", parsed.data, input.id);
 }
@@ -58,8 +50,6 @@ export async function setVideoCover(
   if (!idSchema.safeParse(videoId).success || (mediaId && !idSchema.safeParse(mediaId).success)) {
     return { ok: false, error: "Datos no válidos." };
   }
-  const tooMany = await limited(authorized.auth.user.id);
-  if (tooMany) return { ok: false, error: tooMany };
 
   return setContentCover(await createClient(), "video", videoId, mediaId);
 }

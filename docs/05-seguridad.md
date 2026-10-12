@@ -108,17 +108,24 @@ La interfaz **oculta** botones sin permiso, pero eso es comodidad, no seguridad.
 
 ## 7. Rate limiting (límite de intentos)
 
-| Acción | Límite propuesto | Clave |
-|---|---|---|
-| Inicio de sesión | 5 intentos / 15 min | IP + correo |
-| Verificación MFA | 5 intentos / 15 min | usuario |
-| Recuperar contraseña | 3 / hora | IP + correo |
-| Formulario de contacto | 5 / 10 min + Turnstile | IP |
-| Subida de imágenes | 60 / hora | usuario |
-| Acciones del panel | 120 / min | usuario |
-| Búsqueda pública | 30 / min | IP |
+| Acción | Límite | Clave | Regla en el código |
+|---|---|---|---|
+| Inicio de sesión | 5 intentos / 15 min | IP + correo | `loginPerAccount` |
+| Inicio de sesión (muchas cuentas desde una IP) | 30 intentos / 15 min | IP | `loginPerIp` |
+| Verificación MFA | 5 intentos / 15 min | usuario | `mfaPerUser` |
+| Recuperar contraseña | 3 / 60 min | IP + correo | `passwordRecovery` |
+| Nueva contraseña (enlace de recuperación) | 5 / 15 min | usuario | `passwordUpdate` |
+| Invitaciones | 20 / 60 min | usuario | `userInvites` |
+| Formulario de contacto | 5 / 10 min + Turnstile | IP | `contactForm` |
+| Subida de imágenes | 60 / 60 min | usuario | `mediaUploads` |
+| Acciones del panel | 120 / 1 min | usuario | `panelActions` |
+| Búsqueda pública | 30 / 1 min | IP | `publicSearch` |
 
-Si Upstash no responde, las acciones sensibles (login, contacto) **fallan cerradas** (se rechaza y se pide reintentar); la lectura pública sigue funcionando.
+Una prueba (`src/lib/rate-limit/limits.test.ts`) compara esta tabla con `RATE_LIMITS`: si una cambia sin la otra, el CI falla.
+
+**Acciones del panel:** el límite vive en `authorizeAction` (paso 9.2), por donde pasa toda Server Action del panel; ninguna puede olvidarlo. Algunas suman un límite propio más estricto (subidas, invitaciones).
+
+Si Upstash no responde (error **o** demora: la librería deja pasar en un *timeout* y nosotros lo convertimos en rechazo), las acciones sensibles **fallan cerradas** (se rechaza y se pide reintentar); la lectura pública sigue funcionando: la búsqueda no se bloquea por una caída del limitador (`unavailable`), solo por pasarse del límite.
 
 ## 8. Cabeceras HTTP de seguridad
 

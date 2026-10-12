@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { authorizeAction } from "@/lib/auth/guard";
-import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, uniqueSlug } from "@/lib/utils/slug";
 import { refreshPublicIfPublished, syncContentPhotos } from "@/modules/content";
@@ -26,11 +25,6 @@ const FORBIDDEN = "42501";
 const idSchema = z.uuid();
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
-
-async function limited(userId: string): Promise<string | null> {
-  const attempt = await getRateLimiter().limit(RATE_LIMITS.panelActions, rateLimitKey(userId));
-  return attempt.success ? null : "Demasiadas acciones seguidas. Espera un momento.";
-}
 
 /** A free slug for the title among activities not in the trash (except `exceptId`). */
 async function freeSlug(supabase: Supabase, title: string, exceptId?: string): Promise<string> {
@@ -67,9 +61,6 @@ export async function saveActivityBasics(input: {
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Revisa los datos." };
   }
-
-  const tooMany = await limited(authorized.auth.user.id);
-  if (tooMany) return { ok: false, error: tooMany };
 
   const supabase = await createClient();
 
@@ -131,8 +122,6 @@ export async function saveActivityBasics(input: {
 async function photoContext() {
   const authorized = await authorizeAction("content.read");
   if (!authorized.ok) return { error: authorized.error } as const;
-  const tooMany = await limited(authorized.auth.user.id);
-  if (tooMany) return { error: tooMany } as const;
   return { supabase: await createClient() } as const;
 }
 

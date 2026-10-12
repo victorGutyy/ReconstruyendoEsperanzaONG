@@ -3,7 +3,6 @@
 import { z } from "zod";
 
 import { authorizeAction } from "@/lib/auth/guard";
-import { getRateLimiter, RATE_LIMITS, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import {
   parseSchedule,
@@ -26,11 +25,6 @@ import {
 const idSchema = z.uuid();
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
-
-async function limited(userId: string): Promise<string | null> {
-  const attempt = await getRateLimiter().limit(RATE_LIMITS.panelActions, rateLimitKey(userId));
-  return attempt.success ? null : "Demasiadas acciones seguidas. Espera un momento.";
-}
 
 async function readPage(supabase: Supabase, id: string) {
   const { data } = await supabase
@@ -60,8 +54,6 @@ export async function savePage(input: { id?: string; fields: PageInput }): Promi
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Revisa los datos." };
   }
-  const tooMany = await limited(authorized.auth.user.id);
-  if (tooMany) return { ok: false, error: tooMany };
 
   const supabase = await createClient();
   const current = await readPage(supabase, input.id);
