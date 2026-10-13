@@ -20,6 +20,7 @@ Plataforma web de **Reconstruyendo Esperanza**, iniciativa social sin ánimo de 
 | [`docs/09-privacidad-y-marco-legal.md`](docs/09-privacidad-y-marco-legal.md) | Protección de datos, autorizaciones de imagen y separación de lo electoral (borrador para revisión legal) |
 | [`docs/10-prueba-accesibilidad.md`](docs/10-prueba-accesibilidad.md) | Guion de la prueba manual con TalkBack y teclado antes del lanzamiento |
 | [`docs/11-manual-de-uso.md`](docs/11-manual-de-uso.md) | **Manual del panel para el equipo**, con capturas: entrar, publicar una actividad desde el celular, autorizaciones, mensajes, usuarios |
+| [`docs/12-lanzamiento.md`](docs/12-lanzamiento.md) | **Guion del lanzamiento**: dominio, Supabase y Vercel de producción, correo, primer Administrador, publicación y verificación final, con quién hace cada paso |
 
 > **Repositorio público.** Los documentos originales del cliente y el material de marca **no** se versionan: se guardan en una carpeta privada fuera del repositorio (`reconstruyendo-esperanza-privado/`). Las rutas `docs/fuentes/` y `docs/marca/` están en `.gitignore`.
 
