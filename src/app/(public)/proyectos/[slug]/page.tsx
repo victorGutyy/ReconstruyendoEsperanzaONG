@@ -16,14 +16,8 @@ import { listProjectGalleries } from "@/modules/galleries/public";
 import { getSiteSettings, isPending } from "@/modules/settings";
 import { PublicVideoCard } from "@/modules/videos/components/public-video-card";
 import { listPublicVideos } from "@/modules/videos/public";
-import {
-  Breadcrumbs,
-  breadcrumbLd,
-  DEFAULT_DESCRIPTION,
-  JsonLd,
-  Photo,
-  ShareButtons,
-} from "@/modules/site";
+import { Breadcrumbs, breadcrumbLd, DEFAULT_DESCRIPTION, JsonLd, Photo } from "@/modules/site";
+import { ShareButtons } from "@/modules/site/client";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
 export const revalidate = 300;

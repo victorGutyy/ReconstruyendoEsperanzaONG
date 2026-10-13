@@ -5,8 +5,9 @@ import { z } from "zod";
 
 import { normalizeColombianPhone } from "@/lib/utils/phone";
 
-export const CONTACT_PATH = "/contacto";
-export const MESSAGE_MAX = 5000;
+import { MESSAGE_MAX } from "./shared";
+
+export { CONTACT_PATH, type ContactState, MESSAGE_MAX } from "./shared";
 
 export const contactSchema = z
   .object({
@@ -52,8 +53,3 @@ export const contactSchema = z
     message: "Déjanos un correo o un teléfono para responderte.",
     path: ["email"],
   });
-
-export type ContactState = {
-  error?: string;
-  sent?: boolean;
-};

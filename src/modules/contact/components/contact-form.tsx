@@ -5,12 +5,8 @@ import Link from "next/link";
 import Script from "next/script";
 import { startTransition, useActionState, useEffect, useRef } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
 import { submitContactMessage } from "../actions";
-import { type ContactState, MESSAGE_MAX } from "../schema";
+import { type ContactState, MESSAGE_MAX } from "../shared";
 
 declare global {
   interface Window {
@@ -18,6 +14,13 @@ declare global {
   }
 }
 
+// Plain elements with the panel's look (Input, Label, Button), so this public
+// page does not download the panel's class utilities (step 9.6, docs/07 §10)
+const labelClass = "flex items-center gap-2 text-sm leading-none font-medium select-none";
+const inputClass =
+  "h-12 w-full min-w-0 rounded-md border-[1.5px] border-input bg-card px-3 py-2 text-base outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+const submitClass =
+  "inline-flex h-11 cursor-pointer items-center justify-center rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground outline-none hover:bg-green-900 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
 const textareaClass =
   "min-h-36 w-full rounded-md border-[1.5px] border-input bg-card px-3 py-2 text-base outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
@@ -78,13 +81,25 @@ export function ContactForm({
       <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
 
       <div className="space-y-2">
-        <Label htmlFor="contact-name">Nombre</Label>
-        <Input id="contact-name" name="fullName" autoComplete="name" maxLength={120} required />
+        <label htmlFor="contact-name" className={labelClass}>
+          Nombre
+        </label>
+        <input
+          className={inputClass}
+          id="contact-name"
+          name="fullName"
+          autoComplete="name"
+          maxLength={120}
+          required
+        />
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="contact-email">Correo</Label>
-          <Input
+          <label htmlFor="contact-email" className={labelClass}>
+            Correo
+          </label>
+          <input
+            className={inputClass}
             id="contact-email"
             name="email"
             type="email"
@@ -93,8 +108,11 @@ export function ContactForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="contact-phone">Teléfono o WhatsApp</Label>
-          <Input
+          <label htmlFor="contact-phone" className={labelClass}>
+            Teléfono o WhatsApp
+          </label>
+          <input
+            className={inputClass}
             id="contact-phone"
             name="phone"
             type="tel"
@@ -108,7 +126,9 @@ export function ContactForm({
         </p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="contact-message">Mensaje</Label>
+        <label htmlFor="contact-message" className={labelClass}>
+          Mensaje
+        </label>
         <textarea
           id="contact-message"
           name="message"
@@ -154,9 +174,9 @@ export function ContactForm({
 
       <div className="grid gap-3">
         <div>
-          <Button type="submit" disabled={pending}>
+          <button type="submit" disabled={pending} className={submitClass}>
             {pending ? "Enviando…" : "Enviar mensaje"}
-          </Button>
+          </button>
         </div>
         <div aria-live="polite">
           {state.error ? (

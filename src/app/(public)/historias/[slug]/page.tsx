@@ -16,8 +16,8 @@ import {
   JsonLd,
   articleLd,
   Photo,
-  ShareButtons,
 } from "@/modules/site";
+import { ShareButtons } from "@/modules/site/client";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
 export const revalidate = 300;

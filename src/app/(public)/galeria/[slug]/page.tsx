@@ -8,14 +8,8 @@ import { PUBLIC_ACTIVITIES_PATH } from "@/modules/activities/public-filters";
 import { getPublicGallery, PUBLIC_GALLERIES_PATH } from "@/modules/galleries/public";
 import { PUBLIC_PROJECTS_PATH } from "@/modules/projects/public-format";
 import { getSiteSettings, isPending } from "@/modules/settings";
-import {
-  Breadcrumbs,
-  breadcrumbLd,
-  DEFAULT_DESCRIPTION,
-  JsonLd,
-  PhotoViewer,
-  ShareButtons,
-} from "@/modules/site";
+import { Breadcrumbs, breadcrumbLd, DEFAULT_DESCRIPTION, JsonLd } from "@/modules/site";
+import { PhotoViewer, ShareButtons } from "@/modules/site/client";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
 export const revalidate = 300;

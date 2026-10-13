@@ -2,7 +2,7 @@
 
 Plataforma web de **Reconstruyendo Esperanza**, iniciativa social sin ánimo de lucro de Calarcá (Quindío, Colombia): portal público tipo revista + panel `/admin` (CMS). Es la memoria digital del trabajo social de la organización.
 
-> Estado: **F0–F8 completas** (documentación, prototipo, base del proyecto, acceso con MFA y auditoría, medios y autorizaciones de imagen, probado en staging; contenido y panel: editor de texto, asistente de actividades desde el celular (crear, revisar y publicar), lista de contenido con filtros, cola de revisión, pendientes en el Inicio, fotos públicas que siguen a sus autorizaciones, historias, proyectos, galerías, videos, testimonios, equipo, páginas institucionales y legales, y papelera; sitio público: marco del sitio, Configuración, Inicio editorial, actividades, historias, proyectos, galería, videos, Quiénes somos, Apóyanos, páginas legales, Memoria, búsqueda, formulario de contacto, bandeja de mensajes y SEO — sitemap, robots, imagen para compartir y datos estructurados) · **Siguiente: F9 — endurecimiento**. Plan completo en [`docs/08-plan-de-fases.md`](docs/08-plan-de-fases.md).
+> Estado: **F0–F8 completas** (documentación, prototipo, base del proyecto, acceso con MFA y auditoría, medios y autorizaciones de imagen, probado en staging; contenido y panel: editor de texto, asistente de actividades desde el celular (crear, revisar y publicar), lista de contenido con filtros, cola de revisión, pendientes en el Inicio, fotos públicas que siguen a sus autorizaciones, historias, proyectos, galerías, videos, testimonios, equipo, páginas institucionales y legales, y papelera; sitio público: marco del sitio, Configuración, Inicio editorial, actividades, historias, proyectos, galería, videos, Quiénes somos, Apóyanos, páginas legales, Memoria, búsqueda, formulario de contacto, bandeja de mensajes y SEO — sitemap, robots, imagen para compartir y datos estructurados) · **F9 — endurecimiento** en curso: cabeceras y CSP, límites de intentos, retención de datos, revisión de seguridad, accesibilidad y presupuesto de peso. Plan completo en [`docs/08-plan-de-fases.md`](docs/08-plan-de-fases.md).
 
 ## Documentación
 
@@ -18,6 +18,7 @@ Plataforma web de **Reconstruyendo Esperanza**, iniciativa social sin ánimo de 
 | [`docs/07-diseno-ux-ui.md`](docs/07-diseno-ux-ui.md) | Identidad visual, mapa del sitio, wireframes, accesibilidad y SEO |
 | [`docs/08-plan-de-fases.md`](docs/08-plan-de-fases.md) | Fases, flujo de Git, Definition of Done y checklist de producción |
 | [`docs/09-privacidad-y-marco-legal.md`](docs/09-privacidad-y-marco-legal.md) | Protección de datos, autorizaciones de imagen y separación de lo electoral (borrador para revisión legal) |
+| [`docs/10-prueba-accesibilidad.md`](docs/10-prueba-accesibilidad.md) | Guion de la prueba manual con TalkBack y teclado antes del lanzamiento |
 
 > **Repositorio público.** Los documentos originales del cliente y el material de marca **no** se versionan: se guardan en una carpeta privada fuera del repositorio (`reconstruyendo-esperanza-privado/`). Las rutas `docs/fuentes/` y `docs/marca/` están en `.gitignore`.
 
