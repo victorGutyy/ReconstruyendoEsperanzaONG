@@ -69,7 +69,7 @@ En orden de importancia para este proyecto:
 
 | Servicio | Límite relevante | ¿Nos alcanza en la Etapa A? | Página oficial |
 |---|---|---|---|
-| Supabase Free | 500 MB de BD · 1 GB Storage · 5 GB de transferencia/mes · **2 proyectos activos por persona** (ver §6) · **se pausa tras 7 días sin actividad** · sin backups descargables · MFA TOTP **gratis** (verificado 26-sep-2026; el MFA por SMS es pago) | Sí: el contenido es texto; las imágenes públicas van a R2. La pausa y los backups se resuelven en §6 | supabase.com/pricing |
+| Supabase Free | 500 MB de BD · 1 GB Storage · 5 GB de transferencia/mes · **2 proyectos activos por persona** (ver §6) · **se pausa tras 7 días sin actividad** · sin backups descargables · MFA TOTP **gratis** (verificado 26-sep-2026; el MFA por SMS es pago) | Sí: el contenido es texto; las fotos caben en el Storage gratuito al lanzar y pasan a R2 si crecen (§6.1). La pausa y los backups se resuelven en §6 | supabase.com/pricing |
 | Cloudflare R2 | 10 GB almacenados · **transferencia de salida gratis** · 1 M escrituras y 10 M lecturas/mes | Sí: ~10.000 fotos optimizadas (~300 KB c/u × 3 tamaños) | developers.cloudflare.com/r2/pricing |
 | Vercel Hobby | ~100 GB de transferencia/mes, funciones con límites de uso · **solo uso personal no comercial** | Técnicamente sí; **el problema es el uso permitido** (ver §5) | vercel.com/pricing |
 | Upstash Redis Free | ~500 mil comandos/mes | Sí, sobrado | upstash.com/pricing |
@@ -92,15 +92,44 @@ En orden de importancia para este proyecto:
 - Antes de producción (Fase de lanzamiento): **escribir a Vercel** preguntando si el sitio de una iniciativa sin ánimo de lucro califica para Hobby. Si no califica → probar **Cloudflare Workers + OpenNext** en staging; si algo crítico no funciona → Vercel Pro y se documenta el costo.
 - El código se escribe **sin depender de funciones exclusivas de Vercel** (imágenes, KV, cron propietarios) para que moverlo sea sencillo. Esto ya cumple RNF-025 del .docx (independencia tecnológica).
 
+**Estado (paso 9.7):** consulta a Vercel redactada; la envía la organización — respuesta: [PENDIENTE]. Mientras tanto todo sigue en Hobby (desarrollo y staging).
+
+**Trabajos diarios fuera de Vercel:** hoy Vercel Cron (`vercel.json`) llama `/api/cron/media-sync` y `/api/cron/cleanup`. Son rutas HTTP normales que solo exigen `Authorization: Bearer CRON_SECRET`, así que cualquier programador las puede disparar si se cambia de hosting — por ejemplo un GitHub Action:
+
+```yaml
+on:
+  schedule: [{ cron: "0 8 * * *" }, { cron: "30 8 * * *" }]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          path=${{ github.event.schedule == '0 8 * * *' && 'media-sync' || 'cleanup' }}
+          curl -fsS -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://<dominio>/api/cron/$path"
+```
+
+o *Cron Triggers* de Cloudflare Workers con la misma llamada. El secreto se guarda en el programador, nunca en el repositorio.
+
 ## 6. Riesgos del plan gratuito de Supabase y cómo se cubren
 
 | Riesgo | Mitigación |
 |---|---|
-| Pausa tras 7 días sin actividad | Un GitHub Action diario (el mismo del backup) consulta la BD → el proyecto nunca queda inactivo. Además, un monitor de disponibilidad gratuito (UptimeRobot o similar) |
+| Pausa tras 7 días sin actividad | Los trabajos diarios (`media-sync`, `cleanup`) y el backup nocturno consultan la BD todos los días. Además, un monitor de disponibilidad gratuito (UptimeRobot o similar) llama `/api/health` cada 5 minutos: lee una fila pública como un visitante y responde solo `ok` o `error` (paso 9.7) — mantiene activo el proyecto y avisa por correo si el sitio o la BD se caen |
 | Sin backups descargables en Free | GitHub Action nocturno: `pg_dump` → archivo **cifrado** → bucket privado de R2, con retención de 30 días. Restauración probada en staging antes de lanzar (RNF-A-08) |
 | Solo 2 proyectos activos gratis **por persona** (cuenta el total de organizaciones donde es *Owner* o *Admin*; los pausados no cuentan) | **Organización de Supabase propia de la iniciativa** ("Reconstruyendo Esperanza"), creada con la cuenta de la iniciativa como *Owner*. Victor participa como **Developer**, rol que no consume cupo. Proyecto 1 = **staging**, proyecto 2 = **producción**, ambos en el cupo de la iniciativa. Desarrollo local con `supabase start` (Docker) |
 
 **Consecuencia del rol Developer:** no puede crear ni borrar proyectos ni cambiar la configuración de Auth, SMTP o API. Esas tareas las hace el *Owner* desde el panel de Supabase; lo demás (SQL, migraciones, claves, asesores) se hace con la cuenta Developer. Para la Etapa A se recomienda un segundo *Owner* de la iniciativa (`08` §5).
+
+### 6.1 Fotos: Supabase Storage al lanzar, R2 si crecen (decisión 9.7)
+
+Las fotos (originales privadas, versiones procesadas y copias públicas) se quedan en **Supabase Storage** al lanzar: cabe en el plan gratuito y evita otra cuenta y otras claves. El código ya separa el almacenamiento detrás de una interfaz (`src/lib/storage/`: `PublicStorage`, `PrivateStorage`), así que pasar a **R2** es cambiar la implementación y copiar los archivos, sin tocar páginas ni módulos.
+
+| Se migra a R2 cuando… | Límite del plan gratuito | Dónde se mira |
+|---|---|---|
+| El espacio usado pase de **800 MB** | 1 GB | Supabase → *Storage* (uso del proyecto) |
+| La transferencia del mes pase de **4 GB** | 5 GB/mes | Supabase → *Usage* (*Storage egress*) |
+
+Se revisa una vez al mes (lo hace el Administrador técnico; queda en el manual de la F10). Para estimar cuánto margen queda: con las primeras fotos reales se divide el espacio usado entre el número de fotos (cada foto guarda varias versiones y, si está publicada, su copia pública).
 
 ## 7. Costos proyectados
 
