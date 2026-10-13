@@ -145,7 +145,7 @@ Una funcionalidad está **terminada** solo si:
 
 **Contenido y legal**
 - [ ] Política de tratamiento de datos y aviso de privacidad **revisados por un abogado** y publicados
-- [ ] Ningún marcador `[PENDIENTE]` o `[DEMO]` visible (búsqueda automática en el build)
+- [ ] Ningún marcador `[PENDIENTE]` o `[DEMO]` visible: `npm run check:launch -- https://<dominio>` en verde (paso 10.1)
 - [ ] Todas las fotos con personas tienen autorización registrada
 - [ ] Textos institucionales aprobados por la organización
 
@@ -153,7 +153,7 @@ Una funcionalidad está **terminada** solo si:
 - [ ] Lighthouse ≥ 90 (4 categorías) en Inicio, listado y detalle
 - [ ] Vista previa correcta al compartir por WhatsApp y Facebook
 - [ ] Páginas 404/500, favicon e íconos
-- [ ] E2E completos en verde contra staging
+- [ ] E2E completos en verde (CI) y prueba de humo en verde contra producción: `SMOKE_URL=https://<dominio> npm run test:smoke` (paso 10.2)
 
 **Operación**
 - [ ] ≥ 2 Administradores con MFA configurado

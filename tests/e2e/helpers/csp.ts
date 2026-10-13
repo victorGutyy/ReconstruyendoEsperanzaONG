@@ -3,8 +3,8 @@ import { expect, type Page, test } from "@playwright/test";
 type Violation = { directive: string; blocked: string; source: string };
 
 /**
- * Fails the test if the browser blocks (or, in Report-Only, would block)
- * anything by the CSP (step 9.1): every flow the E2E covers doubles as a
+ * Fails the test if the browser blocks anything by the CSP (enforced since
+ * step 10.3): every flow the E2E covers doubles as a
  * check that the policy allows what the site really loads.
  */
 export function failOnCspViolations() {
