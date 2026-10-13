@@ -282,6 +282,7 @@ Base: **shadcn/ui** personalizado con los tokens de §3.
 - Carrusel y visor: operables con teclado, sin movimiento automático, con botón de cerrar visible.
 - Videos: sin reproducción automática.
 - Verificación: axe (automático en Playwright) + prueba manual con teclado y lector de pantalla (TalkBack en Android) antes de lanzar.
+- **Paso 9.6:** `a11y.spec` pasa axe (WCAG 2.2 AA) en **todas** las páginas del sitio y del panel, en celular y escritorio, y compara su lista con las páginas que existen en `src/app` (una página nueva sin revisar hace fallar la prueba). `keyboard.spec` comprueba que "Saltar al contenido" es lo primero, que todo lo que se alcanza con Tab muestra el foco (en las tarjetas, el anillo va en la tarjeta entera) y que el menú del celular se cierra con Esc devolviendo el foco. La prueba manual tiene su guion en [`10-prueba-accesibilidad.md`](10-prueba-accesibilidad.md).
 
 ## 9. SEO y difusión
 
@@ -303,12 +304,15 @@ Base: **shadcn/ui** personalizado con los tokens de §3.
 | Recurso | Límite (página pública, celular) |
 |---|---|
 | JavaScript inicial | ≤ 150 KB comprimido |
+| JavaScript inicial en páginas de detalle (actividad, historia, proyecto, galería) | ≤ 160 KB comprimido: además de lo común llevan compartir, el visor de fotos y los videos (decisión 9.6; React + Next.js ya ocupan ~140 KB) |
 | Fuentes | ≤ 2 familias, subconjunto latino, ≤ 120 KB |
 | Imagen LCP | ≤ 200 KB, con `priority` |
 | Peso total primera carga | ≤ 1 MB |
 | Lighthouse (4 categorías) | ≥ 90 |
 
 Medición del 8.8 (build de producción local, mediana de 3 corridas en celular): Inicio 95, Actividades 95, detalle de actividad 97, Memoria 93 y Contacto 94 en rendimiento; 100 en accesibilidad, buenas prácticas y SEO (sin contar *is-crawlable*, que falla a propósito fuera de producción); 100 en las cuatro en escritorio. Para llegar ahí: la cursiva serif solo se carga en Quiénes somos (sin precarga) y Turnstile se carga cuando el navegador queda libre (`lazyOnload`). Se vuelve a medir en producción antes del lanzamiento (`08` §lista de lanzamiento).
+
+**Presupuesto vigilado (paso 9.6):** `budget.spec` mide lo que el navegador descarga comprimido en Inicio, Actividades, Memoria, Contacto y un detalle de actividad, sobre la compilación de producción, y falla si se pasa. Cuenta el JavaScript **propio pedido antes de que la página termine de cargar** (el *prefetch* posterior de Next y el script de Turnstile se informan aparte). Para cumplirlo se quitó de la primera visita lo que no se usa en ella: Zod solo se carga en el panel; el menú del celular y el visor de fotos cargan su diálogo (Radix) al tocarlos; el visor y los botones de compartir se exportan desde `modules/site/client.ts`; `Label` es una etiqueta HTML sin JavaScript; la página de error y el formulario de contacto usan elementos simples con el mismo estilo. Resultado: Inicio, Actividades y Memoria 140 KB, Contacto 144 KB, detalle de actividad 153 KB, dentro de su límite de 160 KB (antes 167 KB; las demás, 196–202 KB); fuentes 83 KB; Lighthouse en celular 90–95 y 100 en las otras tres categorías.
 
 ## 11. Pendientes del cliente para esta fase
 

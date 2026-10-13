@@ -1,12 +1,10 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Dialog } from "radix-ui";
-import { useState } from "react";
-
-import { cn } from "@/lib/utils";
+import { useRef, useState } from "react";
 
 import { isCurrent, type SiteNavItem } from "../navigation";
 
@@ -53,6 +51,13 @@ export function DesktopNav({
 }
 
 /** Phone menu: a full-screen panel with large links (docs/07 §5). */
+const MobileMenu = dynamic(() => import("./mobile-menu"), { ssr: false });
+const loadMobileMenu = () => void import("./mobile-menu");
+
+/**
+ * Phone menu button. The dialog (Radix) loads when the button is touched or
+ * reached with the keyboard, not on every first visit (step 9.6).
+ */
 export function MobileNav({
   items,
   support,
@@ -60,64 +65,34 @@ export function MobileNav({
   items: SiteNavItem[];
   support: SiteNavItem | null;
 }) {
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const opener = useRef<HTMLButtonElement>(null);
   const links: SiteNavItem[] = [{ href: "/", label: "Inicio", available: true }, ...items];
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md text-green-900 outline-none hover:bg-green-50 focus-visible:ring-2 focus-visible:ring-ring md:hidden">
+    <>
+      <button
+        ref={opener}
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onPointerDown={loadMobileMenu}
+        onFocus={loadMobileMenu}
+        onClick={() => setOpen(true)}
+        className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md text-green-900 outline-none hover:bg-green-50 focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+      >
         <Menu aria-hidden="true" className="size-6" />
         <span className="sr-only">Abrir menú</span>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Content
-          aria-describedby={undefined}
-          className="fixed inset-0 z-50 overflow-y-auto bg-paper p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
-        >
-          <div className="flex items-center justify-between border-b-[3px] border-double border-gold-500 pb-3">
-            <Dialog.Title className="font-serif text-xl font-semibold text-green-900">
-              Menú
-            </Dialog.Title>
-            <Dialog.Close className="flex size-11 cursor-pointer items-center justify-center rounded-md outline-none hover:bg-green-50 focus-visible:ring-2 focus-visible:ring-ring">
-              <X aria-hidden="true" className="size-6" />
-              <span className="sr-only">Cerrar menú</span>
-            </Dialog.Close>
-          </div>
-          <nav aria-label={SITE_NAV_LABEL}>
-            <ul className="mt-4 grid gap-1">
-              {links.map((item) => {
-                const current =
-                  item.href === "/" ? pathname === "/" : isCurrent(pathname, item.href);
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      aria-current={current ? "page" : undefined}
-                      className={cn(
-                        "flex min-h-14 items-center rounded-md px-3 font-serif text-2xl text-ink outline-none hover:bg-green-50 focus-visible:ring-2 focus-visible:ring-ring",
-                        current && "bg-green-50 font-semibold text-green-900",
-                      )}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-            {support ? (
-              <Link
-                href={support.href}
-                onClick={() => setOpen(false)}
-                className="mt-6 flex min-h-14 items-center justify-center rounded-md bg-green-700 text-lg font-semibold text-paper outline-none hover:bg-green-900 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                {support.label}
-              </Link>
-            ) : null}
-          </nav>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+      </button>
+      {open ? (
+        <MobileMenu
+          links={links}
+          support={support}
+          label={SITE_NAV_LABEL}
+          onClose={() => setOpen(false)}
+          opener={opener}
+        />
+      ) : null}
+    </>
   );
 }

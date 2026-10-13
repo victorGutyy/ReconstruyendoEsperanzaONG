@@ -24,9 +24,8 @@ import {
   JsonLd,
   eventLd,
   Photo,
-  PhotoViewer,
-  ShareButtons,
 } from "@/modules/site";
+import { PhotoViewer, ShareButtons } from "@/modules/site/client";
 
 // Built on the first visit and cached; publishing or retiring refreshes it
 export const revalidate = 300;

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { getServerEnv, isLocalRuntime } from "@/lib/env/server";
 import { turnstileSiteKey } from "@/lib/turnstile";
 import { ContactForm } from "@/modules/contact/components/contact-form";
-import { CONTACT_PATH } from "@/modules/contact/schema";
+import { CONTACT_PATH } from "@/modules/contact/shared";
 import { getPublicPage, PAGE_ADDRESSES } from "@/modules/pages";
 import { formatColombianPhone, getSiteSettings } from "@/modules/settings";
 import { Breadcrumbs, whatsappHref } from "@/modules/site";
