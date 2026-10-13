@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 // Security headers (step 9.1, docs/05 §8): a fixed policy on the public site
 // (pages stay cached), a strict one with a fresh nonce on every panel request.
 
-const CSP = "content-security-policy-report-only";
+const CSP = "content-security-policy";
 
 test("the public site sends the security headers and a policy without nonce", async ({
   request,

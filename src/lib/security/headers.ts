@@ -10,10 +10,11 @@ const VIDEO_PLAYERS = [
 ];
 
 /**
- * Report-Only while the policy is checked on staging (docs/05 §8, CSP in two
- * steps); switching this name to "Content-Security-Policy" enforces it.
+ * Enforced (step 10.3): the browser blocks what the policy does not allow. It
+ * ran as Report-Only first (9.1) while every E2E test failed on any report
+ * (tests/e2e/helpers/csp.ts), which still guards it (docs/05 §8).
  */
-export const CSP_HEADER = "Content-Security-Policy-Report-Only";
+export const CSP_HEADER = "Content-Security-Policy";
 
 export type CspOptions = {
   /** NEXT_PUBLIC_SUPABASE_URL: photos, uploads and the panel's session. */

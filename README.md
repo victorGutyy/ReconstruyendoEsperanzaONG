@@ -87,6 +87,8 @@ Al terminar el día puedes detener Supabase con `npx supabase stop` (los datos l
 | `npm run format` | Aplicar formato con Prettier |
 | `npm test` · `npm run test:watch` | Pruebas unitarias (Vitest) |
 | `npm run test:e2e` | Pruebas E2E + accesibilidad (Playwright + axe) sobre el build de producción |
+| `npm run check:launch -- <dirección>` | **Antes de lanzar y tras cada despliegue a producción**: recorre todas las páginas y falla si ve `[PENDIENTE]` o `[DEMO]`, si `robots.txt` no deja indexar, si la ruta de salud falla o faltan las cabeceras (`--not-production` para staging o local) |
+| `SMOKE_URL=<dirección> npm run test:smoke` | Prueba de humo **de solo lectura** contra un sitio desplegado: secciones, un detalle, contacto con Turnstile, 404, imagen para compartir y protecciones (`SMOKE_NOT_PRODUCTION=1` fuera de producción) |
 | `npx supabase start` · `stop` · `status` | Encender, apagar y ver el Supabase local |
 | `npx supabase migration new <nombre>` | Crear una migración en `supabase/migrations/` |
 | `npm run db:local-admin` | Crear un Administrador `[DEMO]` en el Supabase **local** para probar el panel (muestra la contraseña una sola vez) |
