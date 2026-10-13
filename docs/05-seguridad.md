@@ -143,7 +143,7 @@ Si Upstash no responde (error **o** demora: la librería deja pasar en un *timeo
 - **Sitio público** (`next.config.ts`, fija): `script-src 'self' 'unsafe-inline'` + Turnstile, sin nonce, para que las páginas sigan en caché (ISR). Es aceptable porque nada escrito en el panel se pinta como HTML crudo (el texto enriquecido se dibuja nodo por nodo y el JSON-LD escapa `<`). `img-src`/`connect-src` permiten el origen de Supabase; `frame-src` solo Turnstile y los reproductores de video.
 - **Panel `/admin`** (`src/proxy.ts`, por petición): `script-src 'nonce-…' 'strict-dynamic'`, sin `unsafe-inline` ni marcos. Next lee el nonce de la cabecera y lo pone en sus propios scripts; el panel ya era dinámico, así que no pierde nada.
 - `'unsafe-eval'` solo con `next dev`. Zod se configura `jitless` en el navegador (`src/components/zod-config.tsx`) para que no intente `new Function`.
-- **Dos pasos**: primero `Content-Security-Policy-Report-Only` (constante `CSP_HEADER`); todas las pruebas E2E fallan si el navegador reporta una violación (`tests/e2e/helpers/csp.ts`). Tras revisar staging se cambia a `Content-Security-Policy` (paso 9.1b).
+- **Dos pasos**: primero `Content-Security-Policy-Report-Only` (paso 9.1) mientras todas las pruebas E2E fallaban ante cualquier violación (`tests/e2e/helpers/csp.ts`); desde el paso **10.3** es `Content-Security-Policy` (**obligatoria**: el navegador bloquea lo que la política no permite) y esas mismas pruebas la siguen vigilando. La nota de securityheaders.com se mide con el dominio de producción.
 
 Meta: calificación **A** en securityheaders.com.
 
