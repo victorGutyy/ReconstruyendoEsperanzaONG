@@ -226,7 +226,7 @@ Revisado en el paso 9.5 (12-oct-2026) sobre staging y el repositorio. ✅ hecho 
 | `npm audit` sin altas/críticas | ✅ producción · riesgo aceptado en desarrollo | Producción: 0. Desarrollo: 9 altas por `braces` (sin versión corregida publicada) dentro de herramientas que no llegan al sitio (`shadcn`, `eslint-config-next`); el CI exige 0 altas en producción y 0 críticas en todo |
 | Backup cifrado funcionando y **restauración probada** | ⏳ 9.4 | Depende de R2 |
 | Auditoría registrando los eventos de §11 | ✅ | Contenido, roles, invitaciones, desactivaciones, configuración y autorizaciones por trigger; restablecimiento de MFA desde 9.5b (§15.1) |
-| Plan de incidentes y contactos de emergencia documentados (privado) | ⏳ 9.7 | Fuera del repositorio |
+| Plan de incidentes y contactos de emergencia documentados (privado) | ✅ plantilla · ⏳ datos | Paso 9.7: plantilla fuera del repositorio (carpeta privada del proyecto, `plan-de-incidentes.md`) con contactos, dónde está cada acceso (nunca las claves), qué rotar y dónde, y qué hacer en 4 casos. Contactos y accesos los completa la organización |
 
 **Además revisado:** funciones `security definer` con `search_path` fijo (todas); lo único que un visitante puede ejecutar es `search_content`; todas las vistas con `security_invoker`; único bucket público `media-public`; orden de triggers (en `activities`, `posts` y `projects` `check_*` corre antes que `guard_content_changes` a propósito: llena `published_at`, y el guardián igual exige `content.publish` para cualquier cambio de estado o de fecha de algo publicado).
 
