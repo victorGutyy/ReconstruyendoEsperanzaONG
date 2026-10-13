@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
@@ -58,6 +59,39 @@ function clearBackup(id?: string) {
 
 const toInput = (values: BasicsValues): BasicsInput => ({ ...values, body: values.body });
 
+const TAXONOMY_PATH = "/admin/categorias-y-lugares";
+const NEW_PROJECT_PATH = "/admin/contenido/proyectos/nuevo";
+const noteClass = "text-sm text-ink-muted";
+const noteLink = "font-medium text-green-700 underline underline-offset-4";
+
+/**
+ * Why a list is empty and where to fill it (found while testing on staging,
+ * where the organization had not loaded its places yet). Authors cannot
+ * manage places and categories, so they are told whom to ask instead.
+ */
+function EmptyListNote({
+  id,
+  what,
+  canCreate,
+}: {
+  id: string;
+  what: "lugares" | "categorías de actividad";
+  canCreate: boolean;
+}) {
+  return (
+    <p id={id} className={noteClass}>
+      Todavía no hay {what}.{" "}
+      {canCreate ? (
+        <Link href={TAXONOMY_PATH} className={noteLink}>
+          Créalos en Categorías y lugares
+        </Link>
+      ) : (
+        "Pídele a un Editor o Administrador que los cree en Categorías y lugares."
+      )}
+    </p>
+  );
+}
+
 const timeFormat = new Intl.DateTimeFormat("es-CO", {
   timeStyle: "short",
   timeZone: "America/Bogota",
@@ -75,6 +109,7 @@ export function BasicsForm({
   places,
   categories,
   projects,
+  canManageTaxonomy,
 }: {
   activityId?: string;
   initial: BasicsValues;
@@ -83,6 +118,8 @@ export function BasicsForm({
   categories: Option[];
   /** Projects it can belong to (composed by the page from the projects module). */
   projects: Option[];
+  /** Editors and Administrators create places and categories; Authors do not. */
+  canManageTaxonomy: boolean;
 }) {
   const router = useRouter();
   const bodyLabelId = useId();
@@ -271,6 +308,7 @@ export function BasicsForm({
             id="activity-place"
             value={values.placeId}
             onChange={(event) => change("placeId", event.target.value)}
+            aria-describedby={places.length === 0 ? "activity-place-empty" : undefined}
           >
             <option value="">Elige un lugar</option>
             {places.map((place) => (
@@ -279,6 +317,9 @@ export function BasicsForm({
               </option>
             ))}
           </NativeSelect>
+          {places.length === 0 ? (
+            <EmptyListNote id="activity-place-empty" what="lugares" canCreate={canManageTaxonomy} />
+          ) : null}
         </div>
         <div className="space-y-2">
           <Label htmlFor="activity-category">Categoría</Label>
@@ -286,6 +327,7 @@ export function BasicsForm({
             id="activity-category"
             value={values.categoryId}
             onChange={(event) => change("categoryId", event.target.value)}
+            aria-describedby={categories.length === 0 ? "activity-category-empty" : undefined}
           >
             <option value="">Elige una categoría</option>
             {categories.map((category) => (
@@ -294,6 +336,13 @@ export function BasicsForm({
               </option>
             ))}
           </NativeSelect>
+          {categories.length === 0 ? (
+            <EmptyListNote
+              id="activity-category-empty"
+              what="categorías de actividad"
+              canCreate={canManageTaxonomy}
+            />
+          ) : null}
         </div>
       </div>
 
@@ -303,6 +352,7 @@ export function BasicsForm({
           id="activity-project"
           value={values.projectId}
           onChange={(event) => change("projectId", event.target.value)}
+          aria-describedby={projects.length === 0 ? "activity-project-empty" : undefined}
         >
           <option value="">Sin proyecto</option>
           {projects.map((project) => (
@@ -311,6 +361,15 @@ export function BasicsForm({
             </option>
           ))}
         </NativeSelect>
+        {projects.length === 0 ? (
+          <p id="activity-project-empty" className={noteClass}>
+            Todavía no hay proyectos. Si esta actividad hace parte de uno,{" "}
+            <Link href={NEW_PROJECT_PATH} className={noteLink}>
+              créalo en Contenido → Proyectos
+            </Link>
+            .
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
