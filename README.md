@@ -19,6 +19,7 @@ Plataforma web de **Reconstruyendo Esperanza**, iniciativa social sin ánimo de 
 | [`docs/08-plan-de-fases.md`](docs/08-plan-de-fases.md) | Fases, flujo de Git, Definition of Done y checklist de producción |
 | [`docs/09-privacidad-y-marco-legal.md`](docs/09-privacidad-y-marco-legal.md) | Protección de datos, autorizaciones de imagen y separación de lo electoral (borrador para revisión legal) |
 | [`docs/10-prueba-accesibilidad.md`](docs/10-prueba-accesibilidad.md) | Guion de la prueba manual con TalkBack y teclado antes del lanzamiento |
+| [`docs/11-manual-de-uso.md`](docs/11-manual-de-uso.md) | **Manual del panel para el equipo**, con capturas: entrar, publicar una actividad desde el celular, autorizaciones, mensajes, usuarios |
 
 > **Repositorio público.** Los documentos originales del cliente y el material de marca **no** se versionan: se guardan en una carpeta privada fuera del repositorio (`reconstruyendo-esperanza-privado/`). Las rutas `docs/fuentes/` y `docs/marca/` están en `.gitignore`.
 
@@ -92,6 +93,7 @@ Al terminar el día puedes detener Supabase con `npx supabase stop` (los datos l
 | `npx supabase migration new <nombre>` | Crear una migración en `supabase/migrations/` |
 | `npm run db:local-admin` | Crear un Administrador `[DEMO]` en el Supabase **local** para probar el panel (muestra la contraseña una sola vez) |
 | `npm run db:local-demo` | Cargar lugares y categorías `[DEMO]` en el Supabase **local** (se puede correr varias veces) |
+| `npm run docs:manual` | Volver a tomar las capturas del manual (`docs/manual/`) recorriendo el panel con datos `[DEMO]` |
 | `npx supabase db reset` | Recrear la BD local y reaplicar todas las migraciones |
 
 ### Flujo de trabajo
