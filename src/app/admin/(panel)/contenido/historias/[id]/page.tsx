@@ -119,6 +119,7 @@ export default async function EditPostPage({
                 body: post.body,
               }}
               categories={categories}
+              canManageTaxonomy={hasPermission(profile, "taxonomy.manage")}
             />
           </div>
           <div className="rounded-lg border bg-card p-5">

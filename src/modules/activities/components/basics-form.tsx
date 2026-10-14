@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import type { RichTextDoc } from "@/lib/rich-text/schema";
+import { EmptyListNote } from "@/modules/content/client";
 
 import { saveActivityBasics } from "../actions";
 import type { Option } from "../queries";
@@ -59,38 +60,7 @@ function clearBackup(id?: string) {
 
 const toInput = (values: BasicsValues): BasicsInput => ({ ...values, body: values.body });
 
-const TAXONOMY_PATH = "/admin/categorias-y-lugares";
 const NEW_PROJECT_PATH = "/admin/contenido/proyectos/nuevo";
-const noteClass = "text-sm text-ink-muted";
-const noteLink = "font-medium text-green-700 underline underline-offset-4";
-
-/**
- * Why a list is empty and where to fill it (found while testing on staging,
- * where the organization had not loaded its places yet). Authors cannot
- * manage places and categories, so they are told whom to ask instead.
- */
-function EmptyListNote({
-  id,
-  what,
-  canCreate,
-}: {
-  id: string;
-  what: "lugares" | "categorías de actividad";
-  canCreate: boolean;
-}) {
-  return (
-    <p id={id} className={noteClass}>
-      Todavía no hay {what}.{" "}
-      {canCreate ? (
-        <Link href={TAXONOMY_PATH} className={noteLink}>
-          Créalos en Categorías y lugares
-        </Link>
-      ) : (
-        "Pídele a un Editor o Administrador que los cree en Categorías y lugares."
-      )}
-    </p>
-  );
-}
 
 const timeFormat = new Intl.DateTimeFormat("es-CO", {
   timeStyle: "short",
@@ -362,9 +332,12 @@ export function BasicsForm({
           ))}
         </NativeSelect>
         {projects.length === 0 ? (
-          <p id="activity-project-empty" className={noteClass}>
+          <p id="activity-project-empty" className="text-sm text-ink-muted">
             Todavía no hay proyectos. Si esta actividad hace parte de uno,{" "}
-            <Link href={NEW_PROJECT_PATH} className={noteLink}>
+            <Link
+              href={NEW_PROJECT_PATH}
+              className="font-medium text-green-700 underline underline-offset-4"
+            >
               créalo en Contenido → Proyectos
             </Link>
             .
