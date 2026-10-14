@@ -54,6 +54,12 @@ export async function signInWithMfa(
   await page.getByLabel("Correo").fill(user.email);
   await page.getByLabel("Contraseña").fill(user.password);
   await page.getByRole("button", { name: "Entrar" }).click();
+  await enterMfaCode(page, secret);
+  await expect(page).toHaveURL(/\/admin$/);
+}
+
+/** On the "Verificación en dos pasos" screen: types the current code and enters. */
+export async function enterMfaCode(page: Page, secret: string): Promise<void> {
   await expect(page.getByRole("heading", { name: "Verificación en dos pasos" })).toBeVisible();
 
   // A code already used in this window could be refused: wait for the next one
@@ -64,7 +70,6 @@ export async function signInWithMfa(
   usedWindows.set(secret, currentWindow());
   await page.getByLabel("Código de 6 números").fill(generateSync({ secret }));
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL(/\/admin$/);
 }
 
 /**
