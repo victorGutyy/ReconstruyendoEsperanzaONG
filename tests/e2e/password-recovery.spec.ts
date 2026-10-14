@@ -4,6 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 
 import { countEmails, extractRecoveryLink, waitForEmail } from "./helpers/mailpit";
+import { enterMfaCode, signInEnrollingMfa } from "./helpers/session";
 import { createTestUser, hasSupabase, randomClientIp } from "./helpers/users";
 import { failOnCspViolations } from "./helpers/csp";
 
@@ -102,4 +103,36 @@ test("a tampered link is rejected", async ({ page }) => {
 test("the new password page requires the link's session", async ({ page }) => {
   await page.goto("/admin/restablecer");
   await expect(page).toHaveURL(/\/admin\/login\?next=%2Fadmin%2Frestablecer$/);
+});
+
+test("someone who already has the authenticator app gives its code, then sets the password", async ({
+  page,
+  browser,
+}) => {
+  // Found on staging: Supabase refuses a new password for an account with MFA
+  // until the code is given ("insufficient_aal")
+  const user = await createTestUser("editor");
+  const enrolled = await browser.newContext({
+    extraHTTPHeaders: { "x-forwarded-for": randomClientIp() },
+  });
+  const secret = await signInEnrollingMfa(await enrolled.newPage(), user);
+  await enrolled.close();
+
+  await requestLink(page, user.email);
+  await page.goto(extractRecoveryLink((await waitForEmail(user.email)).HTML));
+
+  // The code comes first, then the new password
+  await expect(page).toHaveURL(/\/admin\/mfa\?next=%2Fadmin%2Frestablecer$/);
+  await enterMfaCode(page, secret);
+  await expect(page).toHaveURL(/\/admin\/restablecer$/);
+  await expect(
+    page.getByText("Ya confirmaste tu código. Escribe tu contraseña nueva."),
+  ).toBeVisible();
+
+  const newPassword = `nueva frase ${randomUUID()}`;
+  await page.getByLabel("Contraseña nueva").fill(newPassword);
+  await page.getByLabel("Repite la contraseña").fill(newPassword);
+  await page.getByRole("button", { name: "Guardar y continuar" }).click();
+  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page.locator("#password-error")).toHaveCount(0);
 });

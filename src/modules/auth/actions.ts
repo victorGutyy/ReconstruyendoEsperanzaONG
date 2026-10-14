@@ -7,6 +7,7 @@ import {
   AUTH_CONFIRM_PATH,
   LOGIN_PATH,
   MFA_PATH,
+  RESET_PASSWORD_PATH,
   safeNextPath,
 } from "@/lib/auth/rules";
 import { requireUser } from "@/lib/auth/session";
@@ -155,6 +156,10 @@ export async function updatePassword(_prev: FormState, formData: FormData): Prom
 
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  // The account has its app and the code was not given yet: ask for it, then come back
+  if (error?.code === "insufficient_aal") {
+    redirect(`${MFA_PATH}?next=${encodeURIComponent(RESET_PASSWORD_PATH)}`);
+  }
   if (error) {
     return {
       error:
@@ -166,5 +171,6 @@ export async function updatePassword(_prev: FormState, formData: FormData): Prom
 
   // Anyone who knew the old password is signed out everywhere else
   await supabase.auth.signOut({ scope: "others" });
-  redirect(MFA_PATH);
+  // Already gave the code (account with the app): straight in; otherwise, MFA
+  redirect(user.aal === "aal2" ? ADMIN_HOME : MFA_PATH);
 }
