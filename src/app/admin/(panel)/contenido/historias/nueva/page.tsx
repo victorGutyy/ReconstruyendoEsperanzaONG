@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { authorizePage } from "@/lib/auth/guard";
+import { hasPermission } from "@/lib/auth/rules";
 import { NoPermission } from "@/modules/panel/components/no-permission";
 import { PostEditor } from "@/modules/posts/components/post-editor";
 import { listPostCategories } from "@/modules/posts/queries";
@@ -31,6 +32,7 @@ export default async function NewPostPage() {
         <PostEditor
           initial={{ title: "", excerpt: "", categoryId: "", byline: "", body: null }}
           categories={categories}
+          canManageTaxonomy={hasPermission(authorized.profile, "taxonomy.manage")}
         />
       </div>
     </div>

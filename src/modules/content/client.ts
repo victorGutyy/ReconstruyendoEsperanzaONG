@@ -5,6 +5,7 @@ export { ContentReview } from "./components/content-review";
 export { ContentTabs } from "./components/content-tabs";
 export { type CoverInfo, CoverField } from "./components/cover-field";
 export { DraftRecovery } from "./components/draft-recovery";
+export { EmptyListNote } from "./components/empty-list-note";
 export { OwnerSelect } from "./components/owner-select";
 export { ReviewNote } from "./components/review-note";
 export { StatusActions } from "./components/status-actions";

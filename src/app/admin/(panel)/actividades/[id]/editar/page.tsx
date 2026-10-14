@@ -103,7 +103,10 @@ export default async function EditActivityPage({
           <WizardSteps current={step} activityId={activity.id} />
           <div className="mt-6 rounded-lg border bg-card p-5">
             {step === 1 ? (
-              <StepBasics activity={activity} />
+              <StepBasics
+                activity={activity}
+                canManageTaxonomy={hasPermission(profile, "taxonomy.manage")}
+              />
             ) : step === 2 ? (
               <StepPhotos activity={activity} />
             ) : step === 3 ? (
@@ -126,8 +129,10 @@ export default async function EditActivityPage({
 
 async function StepBasics({
   activity,
+  canManageTaxonomy,
 }: {
   activity: NonNullable<Awaited<ReturnType<typeof getActivityForWizard>>>;
+  canManageTaxonomy: boolean;
 }) {
   const [{ places, categories }, tags, projects] = await Promise.all([
     listBasicsOptions(),
@@ -154,6 +159,7 @@ async function StepBasics({
         places={places}
         categories={categories}
         projects={projects}
+        canManageTaxonomy={canManageTaxonomy}
       />
       <TagsField
         tags={tags}

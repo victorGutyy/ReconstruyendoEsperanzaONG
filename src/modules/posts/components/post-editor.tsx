@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import type { RichTextDoc } from "@/lib/rich-text/schema";
-import { DraftRecovery, useDraftAutosave } from "@/modules/content/client";
+import { DraftRecovery, EmptyListNote, useDraftAutosave } from "@/modules/content/client";
 
 import { savePost } from "../actions";
 import type { Option } from "../queries";
@@ -25,11 +25,14 @@ export function PostEditor({
   initial,
   serverUpdatedAt,
   categories,
+  canManageTaxonomy,
 }: {
   postId?: string;
   initial: PostValues;
   serverUpdatedAt?: string;
   categories: Option[];
+  /** Editors and Administrators create categories; Authors do not. */
+  canManageTaxonomy: boolean;
 }) {
   const router = useRouter();
   const bodyLabelId = useId();
@@ -96,6 +99,7 @@ export function PostEditor({
             id="post-category"
             value={values.categoryId}
             onChange={(event) => change("categoryId", event.target.value)}
+            aria-describedby={categories.length === 0 ? "post-category-empty" : undefined}
           >
             <option value="">Elige una categoría</option>
             {categories.map((category) => (
@@ -104,6 +108,13 @@ export function PostEditor({
               </option>
             ))}
           </NativeSelect>
+          {categories.length === 0 ? (
+            <EmptyListNote
+              id="post-category-empty"
+              what="categorías de historias"
+              canCreate={canManageTaxonomy}
+            />
+          ) : null}
         </div>
         <div className="space-y-2">
           <Label htmlFor="post-byline">Firma (opcional)</Label>

@@ -154,3 +154,26 @@ test("an author cannot publish a story or act as an editor", async ({ page }) =>
   await page.getByRole("button", { name: "Enviar a revisión" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Falta el extracto" })).toBeVisible();
 });
+
+test("a cover that is missing data links straight to its photo", async ({ page }) => {
+  const author = await createTestUser("author");
+  const mediaId = await createTestPhoto(author.id);
+  const { data } = await adminClient()
+    .from("posts")
+    .insert({
+      title: `[DEMO] Con portada ${randomUUID().slice(0, 6)}`,
+      slug: `demo-con-portada-${randomUUID().slice(0, 8)}`,
+      created_by: author.id,
+      cover_media_id: mediaId,
+    })
+    .select("id")
+    .single();
+
+  await signInEnrollingMfa(page, author);
+  await page.goto(`/admin/contenido/historias/${data!.id}`);
+  const cover = page.getByRole("region", { name: "Portada" });
+  await expect(cover).toContainText("Falta descripción");
+  await cover.getByRole("link", { name: "Completar datos de la foto" }).click();
+  await expect(page).toHaveURL(new RegExp(`/admin/medios/${mediaId}$`));
+  await expect(page.getByLabel("Descripción (obligatoria para publicar)")).toBeVisible();
+});

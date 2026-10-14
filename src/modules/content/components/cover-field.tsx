@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -67,11 +68,20 @@ export function CoverField({
           <div className="grid content-start gap-2">
             <p className="font-medium">{cover.altText || "Foto sin descripción"}</p>
             {cover.issues.length > 0 ? (
-              <p className="text-sm text-gold-700">
-                {describeIssues(cover.issues)
-                  .map((issue) => issue.badge)
-                  .join(" · ")}
-              </p>
+              <>
+                <p className="text-sm text-gold-700">
+                  {describeIssues(cover.issues)
+                    .map((issue) => issue.badge)
+                    .join(" · ")}
+                </p>
+                {/* Straight to the photo, instead of looking for it in Medios */}
+                <Link
+                  href={`/admin/medios/${cover.mediaId}`}
+                  className="text-sm font-medium text-green-700 underline underline-offset-4"
+                >
+                  Completar datos de la foto
+                </Link>
+              </>
             ) : null}
             <div className="flex flex-wrap gap-2">
               <LibraryPicker

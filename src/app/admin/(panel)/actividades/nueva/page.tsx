@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { authorizePage } from "@/lib/auth/guard";
+import { hasPermission } from "@/lib/auth/rules";
 import { BasicsForm } from "@/modules/activities/components/basics-form";
 import { WizardSteps } from "@/modules/activities/components/wizard-steps";
 import { listBasicsOptions } from "@/modules/activities/queries";
@@ -39,6 +40,7 @@ export default async function NewActivityPage() {
           places={places}
           categories={categories}
           projects={projects}
+          canManageTaxonomy={hasPermission(authorized.profile, "taxonomy.manage")}
         />
       </div>
     </div>

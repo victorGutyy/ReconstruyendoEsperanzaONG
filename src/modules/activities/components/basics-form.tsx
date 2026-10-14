@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import type { RichTextDoc } from "@/lib/rich-text/schema";
+import { EmptyListNote } from "@/modules/content/client";
 
 import { saveActivityBasics } from "../actions";
 import type { Option } from "../queries";
@@ -58,6 +60,8 @@ function clearBackup(id?: string) {
 
 const toInput = (values: BasicsValues): BasicsInput => ({ ...values, body: values.body });
 
+const NEW_PROJECT_PATH = "/admin/contenido/proyectos/nuevo";
+
 const timeFormat = new Intl.DateTimeFormat("es-CO", {
   timeStyle: "short",
   timeZone: "America/Bogota",
@@ -75,6 +79,7 @@ export function BasicsForm({
   places,
   categories,
   projects,
+  canManageTaxonomy,
 }: {
   activityId?: string;
   initial: BasicsValues;
@@ -83,6 +88,8 @@ export function BasicsForm({
   categories: Option[];
   /** Projects it can belong to (composed by the page from the projects module). */
   projects: Option[];
+  /** Editors and Administrators create places and categories; Authors do not. */
+  canManageTaxonomy: boolean;
 }) {
   const router = useRouter();
   const bodyLabelId = useId();
@@ -271,6 +278,7 @@ export function BasicsForm({
             id="activity-place"
             value={values.placeId}
             onChange={(event) => change("placeId", event.target.value)}
+            aria-describedby={places.length === 0 ? "activity-place-empty" : undefined}
           >
             <option value="">Elige un lugar</option>
             {places.map((place) => (
@@ -279,6 +287,9 @@ export function BasicsForm({
               </option>
             ))}
           </NativeSelect>
+          {places.length === 0 ? (
+            <EmptyListNote id="activity-place-empty" what="lugares" canCreate={canManageTaxonomy} />
+          ) : null}
         </div>
         <div className="space-y-2">
           <Label htmlFor="activity-category">Categoría</Label>
@@ -286,6 +297,7 @@ export function BasicsForm({
             id="activity-category"
             value={values.categoryId}
             onChange={(event) => change("categoryId", event.target.value)}
+            aria-describedby={categories.length === 0 ? "activity-category-empty" : undefined}
           >
             <option value="">Elige una categoría</option>
             {categories.map((category) => (
@@ -294,6 +306,13 @@ export function BasicsForm({
               </option>
             ))}
           </NativeSelect>
+          {categories.length === 0 ? (
+            <EmptyListNote
+              id="activity-category-empty"
+              what="categorías de actividad"
+              canCreate={canManageTaxonomy}
+            />
+          ) : null}
         </div>
       </div>
 
@@ -303,6 +322,7 @@ export function BasicsForm({
           id="activity-project"
           value={values.projectId}
           onChange={(event) => change("projectId", event.target.value)}
+          aria-describedby={projects.length === 0 ? "activity-project-empty" : undefined}
         >
           <option value="">Sin proyecto</option>
           {projects.map((project) => (
@@ -311,6 +331,18 @@ export function BasicsForm({
             </option>
           ))}
         </NativeSelect>
+        {projects.length === 0 ? (
+          <p id="activity-project-empty" className="text-sm text-ink-muted">
+            Todavía no hay proyectos. Si esta actividad hace parte de uno,{" "}
+            <Link
+              href={NEW_PROJECT_PATH}
+              className="font-medium text-green-700 underline underline-offset-4"
+            >
+              créalo en Contenido → Proyectos
+            </Link>
+            .
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
